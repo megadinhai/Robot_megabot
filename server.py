@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from audio_handler import text_to_speech_stream, transcribe_audio_gemini
 from llm_handler import chat_with_gemini
-from devices_manager import device_manager
+from devices_manager import device_manager, generate_device_code
 
 # Thiết lập mã hóa UTF-8 cho console Windows
 if hasattr(sys.stdout, "reconfigure"):
