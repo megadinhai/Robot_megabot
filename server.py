@@ -235,8 +235,12 @@ async def control_robot(req: Request):
     tool_call = mcp_tool_map.get(action, {"name": f"self.robot.{action}", "arguments": {}})
     payload = {
         "type": "mcp",
-        "method": "tools/call",
-        "params": tool_call,
+        "payload": {
+            "jsonrpc": "2.0",
+            "id": int(time.time() * 1000) % 100000,
+            "method": "tools/call",
+            "params": tool_call,
+        },
     }
 
     try:
