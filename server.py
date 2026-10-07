@@ -312,11 +312,15 @@ async def speak_to_robot(req: Request):
         await ws.send_text(json.dumps({"type": "tts", "state": "sentence_start", "text": text}))
 
         # 3. Stream gói âm thanh nếu robot có loa
-        async for chunk in text_to_speech_stream(text, voice=voice, chunk_size=1024):
-            await ws.send_bytes(chunk)
-            await asyncio.sleep(0.001)
+        try:
+            async for chunk in text_to_speech_stream(text, voice=voice, chunk_size=1024):
+                await ws.send_bytes(chunk)
+                await asyncio.sleep(0.001)
+        except Exception as tts_err:
+            logger.warning(f"[TTS STREAM WARNING] {tts_err}")
 
         # 4. Kết thúc và chuyển về neutral
+        await asyncio.sleep(2)
         await ws.send_text(json.dumps({"type": "tts", "state": "stop"}))
         await ws.send_text(json.dumps({"type": "llm", "emotion": "neutral", "text": "😊"}))
 
