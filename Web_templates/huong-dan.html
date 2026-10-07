@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hướng dẫn sử dụng GMBOT AI</title>
+  <style>
+    :root{
+      --bg:#0b1f3d;
+      --panel:#13294b;
+      --panel2:#0f2140;
+      --line:rgba(255,255,255,.09);
+      --text:#eef5ff;
+      --muted:#9ca3af;
+      --blue:#2563eb;
+      --yellow:#fbbf24;
+      --green:#4ade80;
+      --red:#ff6b6b;
+      --cyan:#93c5fd;
+    }
+    *{box-sizing:border-box;word-break:break-word}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:'Segoe UI',Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,.25), transparent 34%),
+        linear-gradient(180deg,#07152b 0%, var(--bg) 100%);
+      line-height:1.65;
+    }
+    a{color:#93c5fd;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .sidebar{
+      position:sticky;top:0;height:100vh;overflow:auto;
+      background:#081225;border-right:1px solid var(--line);padding:20px 14px;
+    }
+    .brand{padding:10px 10px 18px;border-bottom:1px solid var(--line);margin-bottom:12px}
+    .brand b{display:block;font-size:20px;color:white;letter-spacing:.3px}
+    .brand span{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+    .nav a{
+      display:flex;gap:10px;align-items:center;
+      padding:10px 12px;border-radius:12px;color:#dbeafe;font-weight:650;font-size:14px;
+    }
+    .nav a:hover{background:#1e293b;text-decoration:none;color:white}
+    .main{padding:26px;max-width:1180px;width:100%;margin:0 auto}
+    .hero{
+      background:linear-gradient(135deg,rgba(19,41,75,.98),rgba(30,58,138,.92));
+      border:1px solid var(--line);border-radius:22px;padding:28px;margin-bottom:18px;
+      box-shadow:0 18px 50px rgba(0,0,0,.28);
+    }
+    .hero h1{margin:0 0 8px;font-size:32px;line-height:1.2;color:#fff}
+    .hero p{margin:0;color:#dbeafe;max-width:850px}
+    .quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+    .quick-card,.card{
+      background:rgba(19,41,75,.92);border:1px solid var(--line);border-radius:18px;padding:18px;
+    }
+    .quick-card strong{display:block;color:#fff;margin-bottom:4px}
+    .quick-card span{font-size:13px;color:var(--muted)}
+    h2{margin:26px 0 12px;color:var(--yellow);font-size:23px;line-height:1.25}
+    h3{margin:18px 0 8px;color:#fff;font-size:17px}
+    .section{scroll-margin-top:18px}
+    .steps{counter-reset:step;display:grid;gap:10px;margin:12px 0}
+    .step{
+      position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:14px;
+      padding:13px 14px 13px 52px;
+    }
+    .step:before{
+      counter-increment:step;content:counter(step);
+      position:absolute;left:14px;top:13px;width:26px;height:26px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;background:var(--blue);color:white;font-weight:800;font-size:13px;
+    }
+    .note,.tip,.warn{
+      border-radius:14px;padding:13px 14px;margin:12px 0;border:1px solid var(--line);
+      background:rgba(15,33,64,.75);
+    }
+    .tip{border-color:rgba(74,222,128,.25);background:rgba(34,197,94,.08)}
+    .warn{border-color:rgba(255,107,107,.28);background:rgba(239,68,68,.08)}
+    .note b,.tip b,.warn b{color:#fff}
+    .badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:800;margin:2px;background:#1f2937;color:#dbeafe}
+    .badge.vip{background:gold;color:#111827}.badge.admin{background:#1d4ed8;color:white}.badge.safe{background:#166534;color:white}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .feature-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+    .feature{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px}
+    .feature b{color:#fff}.feature div{color:var(--muted);font-size:13px;margin-top:3px}
+    table{width:100%;border-collapse:collapse;margin:12px 0;background:var(--panel2);border-radius:14px;overflow:hidden}
+    th,td{border-bottom:1px solid var(--line);padding:12px;text-align:left;vertical-align:top}
+    th{background:#1e3a8a;color:#dbeafe;font-size:13px;text-transform:uppercase;letter-spacing:.4px}
+    tr:last-child td{border-bottom:none}
+    code{background:#081225;border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:#bfdbfe}
+    .voice{color:var(--green);font-weight:800}
+    .footer{color:var(--muted);font-size:13px;margin:28px 0 10px;text-align:center}
+    .top-btn{position:fixed;right:18px;bottom:18px;background:var(--blue);color:white;border-radius:999px;padding:10px 14px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    @media(max-width:950px){
+      .layout{display:block}.sidebar{position:relative;height:auto}.nav{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}.main{padding:14px}.quick-grid,.feature-list,.two-col{grid-template-columns:1fr}.hero h1{font-size:25px}.top-btn{display:none}
+    }
+    @media print{
+      body{background:white;color:#111}.sidebar,.top-btn{display:none}.layout{display:block}.main{max-width:none}.hero,.card,.quick-card,.feature,.step,.note,.tip,.warn{box-shadow:none;background:white;color:#111;border:1px solid #ddd}h2{color:#111}a{color:#111}
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <b>GMBOT AI</b>
+        <span>Trang hướng dẫn sử dụng nhanh</span>
+      </div>
+      <nav class="nav">
+        <a href="#bat-dau">🚀 Bắt đầu</a>
+        <a href="#cau-hinh">⚙️ Cấu hình AI</a>
+        <a href="#nhan-dang-nguoi-noi">🎙️ Nhận dạng người nói</a>
+        <a href="#vai-tro">🎭 Mẫu vai trò</a>
+        <a href="#bo-nho">🧠 Bộ nhớ</a>
+        <a href="#nhiem-vu">📚 Nhiệm vụ</a>
+        <a href="#bai-hoc">📖 Bài học</a>
+        <a href="#anh-bai-hoc">📷 Ảnh tạo bài học</a>
+        <a href="#giai-bai-tap">🧮 Giải bài tập</a>
+        <a href="#tri-thuc">📚 Cơ sở tri thức</a>
+        <a href="#gop-y">💬 Góp ý</a>
+        <a href="#loi-thuong-gap">🛠️ Lỗi thường gặp</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="hero" id="bat-dau">
+        <h1>Hướng dẫn sử dụng Trung tâm quản lý GMBOT AI</h1>
+        <p>Tài liệu này hướng dẫn người dùng thao tác các chức năng trong frontend: đăng nhập, thêm thiết bị, cấu hình robot AI, chọn vai trò, quản lý bộ nhớ, tạo nhiệm vụ, tạo bài học, scan ảnh, giải bài tập và quản lý cơ sở tri thức.</p>
+      </section>
+
+      <div class="quick-grid">
+        <div class="quick-card"><strong>3. Cấu hình AI</strong><span>Đổi tên, giọng nói, ngôn ngữ, tính cách.</span></div>
+        <div class="quick-card"><strong>4. Dùng tính năng</strong><span>Tạo nhiệm vụ, bài học, giải bài tập, tra cứu tri thức.</span></div>
+      </div>
+
+      <section class="card section" id="cau-hinh">
+        <h2>⚙️ 3. Cấu hình GMbot AI</h2>
+        <p>Tính năng này dùng để thay đổi tên robot, trí thông minh nhân tạo, ngôn ngữ, giọng nói, tốc độ nói, cao độ và vai trò tính cách.</p>
+        <div class="steps">
+          <div class="step">Vào menu <b>⚙️ Cấu hình GMbot AI</b>.</div>
+          <div class="step">Bấm <b>🔄 Tải cấu hình hiện tại</b> để lấy cấu hình đang dùng.</div>
+          <div class="step">Chỉnh các mục cần thay đổi: tên robot, model AI, ngôn ngữ, giọng nói, tốc độ nói, cao độ.</div>
+          <div class="step">Ở phần <b>Vai trò - tính cách</b>, giữ nguyên dòng bắt buộc <code>[VAI TRÒ VÀ TÍNH CÁCH]</code> ở đầu nội dung.</div>
+          <div class="step">Bấm <b>💾 Lưu cấu hình</b>.</div>
+          <div class="step">Khởi động lại robot AI để robot nhận cấu hình mới.</div>
+        </div>
+        <div class="tip"><b>Gợi ý:</b> nếu dùng tiếng Việt, nên chọn model được khuyến nghị trong giao diện và chọn giọng nói tiếng Việt phù hợp Nam/Nữ.</div>
+      </section>
+
+      <section class="card section" id="nhan-dang-nguoi-noi">
+        <h2>🎙️ Nhận dạng người nói</h2>
+        <p>Tính năng này giúp robot phân biệt từng thành viên qua mẫu giọng nói, từ đó gọi đúng tên, xưng hô phù hợp và sử dụng mô tả của người đang trò chuyện. Mỗi robot có thể đăng ký tối đa <b>5 người nói</b>.</p>
+
+        <h3>Chuẩn bị mẫu giọng</h3>
+        <div class="steps">
+          <div class="step">Dùng đúng người cần đăng ký để nói chuyện trực tiếp với robot.</div>
+          <div class="step">Nói một câu hoàn chỉnh, đủ dài và rõ ràng trong môi trường ít tiếng ồn. Câu nói này sẽ được dùng làm mẫu nhận dạng.</div>
+          <div class="step">Khi trò chuyện xong, nói <span class="voice">“Tạm biệt”</span> để robot tự kết thúc phiên. Mẫu giọng chỉ xuất hiện trên máy chủ sau khi cuộc trò chuyện đã kết thúc.</div>
+        </div>
+
+        <h3>Thêm người nói</h3>
+        <div class="steps">
+          <div class="step">Vào menu <b>⚙️ Cấu hình GMbot AI</b>, sau đó bấm <b>🔄 Tải cấu hình hiện tại</b>.</div>
+          <div class="step">Kéo xuống phần <b>Nhận dạng người nói</b> và bấm <b>Làm mới</b> để tải các đoạn hội thoại mới nhất.</div>
+          <div class="step">Bấm <b>+ Thêm người nói</b>.</div>
+          <div class="step">Nhập <b>Tên người nói</b>, ví dụ: Bố, Mẹ, bé Gạo. Có thể nhập thêm <b>Mô tả</b>, ví dụ: “Đây là bố Vương, là bố của bé Gạo”.</div>
+          <div class="step">Tại <b>Chọn giọng nói</b>, chọn đoạn thoại do chính người đó nói. Bấm <b>Nghe mẫu</b> để kiểm tra đúng giọng trước khi lưu.</div>
+          <div class="step">Bấm <b>Lưu người nói</b>. Khi thông báo thêm thành công xuất hiện, người nói sẽ có trong danh sách bên dưới.</div>
+        </div>
+
+        <h3>Sửa hoặc xóa người nói</h3>
+        <div class="steps">
+          <div class="step">Bấm <b>Sửa</b> tại người cần cập nhật. Có thể đổi tên, mô tả hoặc chọn mẫu giọng mới; nếu không chọn mẫu mới, hệ thống giữ mẫu giọng hiện tại.</div>
+          <div class="step">Bấm <b>Xóa</b> và xác nhận nếu không muốn robot nhận dạng người đó nữa.</div>
+        </div>
+
+        <div class="tip"><b>Để nhận dạng chính xác:</b> chọn câu hoàn chỉnh dài, phát âm rõ, chỉ có một người nói và ít tạp âm. Không dùng đoạn quá ngắn, tiếng nói nhỏ hoặc có nhiều người nói cùng lúc.</div>
+        <div class="note"><b>Lưu ý:</b> mục <b>Nhận dạng người nói</b> khác với mục <b>Chọn giọng nói</b> của robot. “Chọn giọng nói” quyết định giọng robot phát ra; “Nhận dạng người nói” giúp robot biết ai đang nói với mình.</div>
+      </section>
+
+      <section class="card section" id="vai-tro">
+        <h2>🎭 4. Mẫu vai trò nhanh</h2>
+        <p>Mục này giúp áp dụng nhanh các vai trò có sẵn như bạn đồng hành, giáo viên, thông dịch viên, người bản xứ, trò chơi, chuyên gia.</p>
+        <div class="steps">
+          <div class="step">Vào menu <b>🎭 Mẫu vai trò nhanh</b>.</div>
+          <div class="step">Chọn nhóm vai trò, ví dụ: <b>Giáo viên</b>, <b>Ngôn ngữ</b>, <b>Thông dịch</b>, <b>Game</b>.</div>
+          <div class="step">Bấm vào vai trò muốn xem chi tiết.</div>
+          <div class="step">Bấm <b>Áp dụng vào cấu hình GMbot AI</b>.</div>
+          <div class="step">Sau khi lưu thành công, khởi động lại robot AI.</div>
+        </div>
+        <div class="note"><b>Ví dụ:</b> chọn “Sophia - Giáo viên Toán Cấp 1” để robot giảng Toán dễ hiểu cho học sinh tiểu học.</div>
+      </section>
+
+      <section class="card section" id="bo-nho">
+        <h2>🧠 5. Quản lý bộ nhớ</h2>
+        <p>Bộ nhớ là nơi lưu các nội dung robot đã ghi nhớ. Bạn có thể tải, tìm kiếm, chọn nhiều mục và xóa dữ liệu không cần thiết.</p>
+        <div class="steps">
+          <div class="step">Vào menu <b>🧠 Bộ nhớ</b>.</div>
+          <div class="step">Bấm <b>🔄 Tải dữ liệu Bộ nhớ</b>.</div>
+          <div class="step">Dùng ô tìm kiếm để lọc nội dung memory.</div>
+          <div class="step">Muốn xóa 1 dòng, bấm <b>Xóa</b> tại dòng đó.</div>
+          <div class="step">Muốn xóa nhiều dòng, tick chọn các dòng hoặc bấm <b>Chọn tất cả kết quả hiển thị</b>, sau đó bấm <b>Xóa đã chọn</b>.</div>
+        </div>
+        <div class="warn"><b>Cẩn thận:</b> dữ liệu đã xóa khỏi bộ nhớ có thể không khôi phục được.</div>
+      </section>
+
+      <section class="card section" id="nhiem-vu">
+        <h2>📚 6. Tạo nhiệm vụ cho robot</h2>
+        <p>Nhiệm vụ là nội dung robot sẽ kích hoạt khi bắt đầu cuộc trò chuyện.</p>
+        <div class="steps">
+          <div class="step">Vào menu <b>📚 Tạo nhiệm vụ</b>.</div>
+          <div class="step">Nhập nội dung nhiệm vụ, tối đa 1000 ký tự. Ví dụ: học từ tiếng Anh, nhắc uống thuốc, luyện bài tập.</div>
+          <div class="step">Bấm <b>Tạo</b>.</div>
+          <div class="step">Khi bắt đầu trò chuyện với robot, nói <span class="voice">“So-phi-a”</span> hoặc <span class="voice">“Xin chào”</span> để kích hoạt nhiệm vụ.</div>
+          <div class="step">Khi làm xong, nói <span class="voice">“hoàn thành”</span>, <span class="voice">“xong rồi”</span> hoặc <span class="voice">“làm xong rồi”</span> để nhiệm vụ tự xóa.</div>
+        </div>
+        <div class="note"><b>Lưu ý:</b> mỗi thiết bị chỉ nên có 1 nhiệm vụ chưa hoàn thành tại một thời điểm.</div>
+      </section>
+
+      <section class="card section" id="bai-hoc">
+        <h2>📖 7. Chọn bài học và tự tạo bài học</h2>
+        <div class="two-col">
+          <div>
+            <h3>Chọn bài học có sẵn</h3>
+            <div class="steps">
+              <div class="step">Vào <b>📖 Chọn Bài học</b>.</div>
+              <div class="step">Mở nhóm <b>Bài học có sẵn</b> hoặc <b>Bài học của bạn</b>.</div>
+              <div class="step">Bấm vào bài học để xem nội dung.</div>
+              <div class="step">Bấm <b>Áp dụng</b>.</div>
+              <div class="step">Nói <span class="voice">“So-phi-a”</span> hoặc <span class="voice">“Xin chào”</span> khi bắt đầu trò chuyện để kích hoạt bài học.</div>
+            </div>
+          </div>
+          <div>
+            <h3>Tự tạo bài học</h3>
+            <div class="steps">
+              <div class="step">Vào <b>✍️ Tự tạo bài học</b>.</div>
+              <div class="step">Nhập <b>Tên bài học</b>.</div>
+              <div class="step">Nhập <b>Nội dung bài học</b>.</div>
+              <div class="step">Bấm <b>🚀 Tạo bài học</b>.</div>
+              <div class="step">Sau khi tạo xong, vào <b>Chọn Bài học</b> để áp dụng.</div>
+            </div>
+          </div>
+        </div>
+        <div class="warn"><b>Điều kiện:</b> một số chức năng bài học yêu cầu thiết bị đã liên kết và tài khoản/thiết bị có quyền VIP.</div>
+      </section>
+
+      <section class="card section" id="anh-bai-hoc">
+        <h2>📷 8. Chụp ảnh tạo bài học</h2>
+        <p>Tính năng này giúp scan trang sách thành chữ, sau đó yêu cầu AI soạn bài dạy từ nội dung đã scan.</p>
+        <div class="steps">
+          <div class="step">Vào menu <b>📷 Chụp ảnh tạo bài học</b>.</div>
+          <div class="step">Nhập tên bài học nếu muốn. Có thể để trống.</div>
+          <div class="step">Bấm <b>🖼️ Tải ảnh lên</b> hoặc <b>📷 Chụp ảnh</b>.</div>
+          <div class="step">Nếu ảnh có phần thừa, bấm <b>✂️ Bấm để cắt vùng ảnh cần dùng</b>, kéo chọn vùng bài học rồi bấm <b>Cắt lấy vùng ảnh này</b>.</div>
+          <div class="step">Bấm <b>Scan ảnh thành chữ</b>.</div>
+          <div class="step">Kiểm tra phần <b>Văn bản sau khi scan</b>. Nếu sai chữ, bấm <b>Sửa</b> để chỉnh lại.</div>
+          <div class="step">Bấm <b>Soạn bài dạy từ text này</b>.</div>
+          <div class="step">Kiểm tra bài dạy AI tạo ra. Có thể bấm <b>Sửa bài dạy</b>, sau đó bấm <b>Tạo bài học</b> để lưu.</div>
+        </div>
+        <div class="tip"><b>Mẹo chụp ảnh:</b> đặt sách trên mặt phẳng, chụp đủ sáng, giữ camera thẳng, lấy trọn trang hoặc đúng vùng bài cần scan.</div>
+      </section>
+
+      <section class="card section" id="giai-bai-tap">
+        <h2>🧮 9. Chụp ảnh giải bài tập</h2>
+        <p>Tính năng này giúp scan đề bài thành chữ rồi tạo yêu cầu để robot hướng dẫn giải bài tập.</p>
+        <div class="steps">
+          <div class="step">Vào menu <b>🧮 Chụp ảnh giải bài tập</b>.</div>
+          <div class="step">Nhập tên bài hoặc ghi chú nếu cần.</div>
+          <div class="step">Bấm <b>🖼️ Tải ảnh lên</b> hoặc <b>📷 Chụp ảnh</b>.</div>
+          <div class="step">Có thể bấm <b>✂️ Bấm để cắt vùng ảnh cần dùng</b> nếu chỉ muốn lấy một câu hỏi.</div>
+          <div class="step">Bấm <b>Scan ảnh thành chữ</b>.</div>
+          <div class="step">Nếu OCR bị sai, bấm <b>Sửa</b> để chỉnh lại nội dung bài tập.</div>
+          <div class="step">Bấm <b>Yêu cầu AI giải bài này</b>.</div>
+          <div class="step">Nói <span class="voice">“So-phi-a”</span> hoặc <span class="voice">“Xin chào”</span> để robot kích hoạt chế độ giải bài tập.</div>
+          <div class="step">Sau khi giải xong, bấm <b>Xóa yêu cầu giải bài</b> hoặc nói <span class="voice">“hoàn thành”</span>, <span class="voice">“xong rồi”</span>.</div>
+        </div>
+      </section>
+
+      <section class="card section" id="tri-thuc">
+        <h2>📚 10. Cơ sở tri thức</h2>
+        <p>Cơ sở tri thức dùng để tải lên tài liệu tham khảo dài hạn, ví dụ: thời khóa biểu, mô tả sản phẩm, kịch bản tư vấn, nội quy, tài liệu học tập.</p>
+        <div class="steps">
+          <div class="step">Vào menu <b>📚 Cơ sở tri thức</b>.</div>
+          <div class="step">Nhập tiêu đề tài liệu nếu muốn. Nếu để trống, hệ thống lấy theo tên file.</div>
+          <div class="step">Bấm <b>📄 Chọn tài liệu</b>.</div>
+          <div class="step">Chọn file hỗ trợ: <b>DOCX, TXT, MD</b>, tối đa 3MB.</div>
+          <div class="step">Bấm <b>Tải lên cơ sở tri thức</b>.</div>
+          <div class="step">Chờ hệ thống xử lý tài liệu. Khi trạng thái là <b>✅ Sẵn sàng</b>, robot có thể tra cứu.</div>
+          <div class="step">Khi nói với robot, dùng câu lệnh: <span class="voice">“Tìm trong cơ sở tri thức + nội dung cần tra cứu”</span>.</div>
+        </div>
+        <h3>Sửa nội dung tài liệu đã tách đoạn</h3>
+        <div class="steps">
+          <div class="step">Chọn tài liệu trong danh sách.</div>
+          <div class="step">Xem từng đoạn nội dung ở phần chi tiết.</div>
+          <div class="step">Bấm <b>Sửa</b> tại đoạn cần chỉnh.</div>
+          <div class="step">Sửa nội dung rồi bấm <b>Lưu</b>.</div>
+        </div>
+        <div class="warn"><b>Giới hạn:</b> tài khoản thường chỉ có 1 cơ sở tri thức cá nhân. Muốn dùng tài liệu khác, hãy xóa tài liệu cũ trước.</div>
+      </section>
+
+      <section class="card section" id="gop-y">
+        <h2>💬 11. Góp ý - Báo lỗi</h2>
+        <div class="steps">
+          <div class="step">Vào menu <b>💬 Góp ý - Báo lỗi</b>.</div>
+          <div class="step">Nhập nội dung góp ý hoặc mô tả lỗi đang gặp.</div>
+          <div class="step">Bấm <b>📨 Gửi góp ý</b>.</div>
+        </div>
+        <div class="note"><b>Dành cho admin:</b> admin có thể xem danh sách góp ý, tìm kiếm theo nội dung hoặc username, và xóa góp ý đã xử lý.</div>
+      </section>
+
+      <section class="card section" id="loi-thuong-gap">
+        <h2>🛠️ 12. Lỗi thường gặp và cách xử lý</h2>
+        <table>
+          <tr><th>Vấn đề</th><th>Cách xử lý</th></tr>
+          <tr><td>Không thấy mục VIP</td><td>Một số tính năng như chọn bài học, tạo bài học từ ảnh, giải bài tập ảnh cần thiết bị VIP.</td></tr>
+          <tr><td>AI chưa nhận cấu hình mới</td><td>Sau khi lưu cấu hình, hãy khởi động lại robot AI.</td></tr>
+          <tr><td>Không thấy mẫu giọng mới</td><td>Hãy kết thúc cuộc trò chuyện bằng câu “Tạm biệt”, chờ phiên trò chuyện đóng, rồi bấm <b>Làm mới</b> trong phần Nhận dạng người nói.</td></tr>
+          <tr><td>Robot nhận nhầm người nói</td><td>Sửa người nói và chọn mẫu khác dài, rõ hơn; tránh mẫu có tạp âm hoặc nhiều người cùng nói.</td></tr>
+          <tr><td>Không thêm được người nói</td><td>Kiểm tra đã nhập tên, đã chọn mẫu giọng và danh sách chưa đạt giới hạn 5 người.</td></tr>
+          <tr><td>Scan ảnh bị sai chữ</td><td>Chụp lại ảnh sáng hơn, cắt đúng vùng cần dùng, hoặc bấm <b>Sửa</b> để chỉnh text trước khi gửi AI.</td></tr>
+          <tr><td>Không tải được tài liệu cơ sở tri thức</td><td>Kiểm tra định dạng DOCX/TXT/MD và dung lượng dưới 3MB.</td></tr>
+        </table>
+      </section>
+
+      <section class="card section">
+        <h2>✅ Quy trình sử dụng khuyến nghị</h2>
+        <div class="feature-list">
+          <div class="feature"><b>Người mới dùng</b><div>Đăng nhập → Thêm thiết bị → Cấu hình AI → Tạo nhiệm vụ đơn giản.</div></div>
+          <div class="feature"><b>Phụ huynh/học sinh</b><div>Chọn bài học → Chụp ảnh giải bài tập → Nói “Xin chào” để bắt đầu học.</div></div>
+          <div class="feature"><b>Người dạy học</b><div>Tự tạo bài học hoặc scan sách → sửa nội dung → lưu bài học → áp dụng.</div></div>
+          <div class="feature"><b>Doanh nghiệp/tư vấn</b><div>Tải tài liệu vào cơ sở tri thức → dùng câu lệnh tìm trong cơ sở tri thức khi cần tra cứu.</div></div>
+        </div>
+      </section>
+
+      <div class="footer">GMBOT AI · Trang hướng dẫn sử dụng frontend</div>
+    </main>
+  </div>
+  <a href="#bat-dau" class="top-btn">↑ Đầu trang</a>
+</body>
+</html>

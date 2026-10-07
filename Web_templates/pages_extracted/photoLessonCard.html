@@ -1,0 +1,85 @@
+<div class="card" id="photoLessonCard" style="display:none;">
+    <h3>📷 Chụp ảnh tạo bài dạy học</h3>
+
+    <div class="photo-lesson-grid">
+        <div class="upload-dropzone">
+            <div class="form-group">
+                <label>Tên bài học (không bắt buộc)</label>
+                <input id="photoLessonName" maxlength="150" placeholder="Ví dụ: Bài học tiếng Anh về màu sắc">
+            </div>
+
+            <div class="form-group">
+                <label>Ảnh trang sách giáo khoa</label>
+                <input id="photoLessonFile" type="file" accept="image/png,image/jpeg,image/heic,image/heif,.heic,.heif" onchange="previewLessonImage(event)" style="display:none;">
+
+                <input id="photoLessonCameraFile" type="file" accept="image/*,.heic,.heif" capture="environment" onchange="previewLessonImage(event)" style="display:none;">
+
+                <div class="action-row" style="margin-top:12px;">
+                    <button type="button" class="secondary" onclick="openPhotoLibrary()">🖼️ Tải ảnh lên</button>
+                    <button type="button" class="primary" onclick="openCameraCapture()">📷 Chụp ảnh</button>
+                </div>
+
+                <div class="helper-note">
+                    Hỗ trợ JPG, PNG. Trên điện thoại, bấm "Chụp ảnh" để mở camera sau.
+                    Ảnh nên chụp thẳng, sáng rõ, đủ 1 trang.
+                </div>
+                </div>
+
+                <div id="photoLessonMobilePreviewSlot" class="mobile-preview-slot"></div>
+
+                <div class="action-row" style="margin-top:12px;">
+                <button id="photoLessonCropBtn" class="secondary" onclick="openLessonCropper()" style="display:none;">
+                    ✂️ Bấm để cắt vùng ảnh cần dùng
+                </button>
+
+                <button class="primary" onclick="scanLessonImageToText()">Scan ảnh thành chữ</button>
+                <button class="secondary" onclick="resetPhotoLessonForm()">Xóa ảnh</button>
+            </div>
+
+            <div id="photoLessonMessage" style="margin-top:12px;"></div>
+        </div>
+
+        <div id="photoLessonDesktopPreviewSlot" class="photo-preview-desktop-slot">
+            <div class="preview-box" id="photoLessonPreviewBox">
+                <div id="photoLessonPreviewEmpty" style="opacity:0.6;">📄 Ảnh xem trước sẽ hiện ở đây</div>
+                <img id="photoLessonPreview" style="display:none;" alt="Xem trước ảnh bài học">
+            </div>
+        </div>
+    </div>
+
+    <div class="ocr-editor-wrap">
+        <h3 style="font-size:15px; margin-bottom:10px;">📝 Văn bản sau khi scan</h3>
+
+        <div id="photoLessonOcrEmpty" class="ocr-empty">Chưa có dữ liệu</div>
+
+        <div id="photoLessonOcrWrap" style="display:none;">
+            <input id="photoLessonOcrTitle" maxlength="100" placeholder="Tiêu đề OCR" readonly="">
+            <textarea id="photoLessonOcrText" class="ocr-editor" placeholder="Text OCR sẽ hiện ở đây..." readonly=""></textarea>
+
+            <div id="photoLessonOcrActionRow" class="action-row" style="margin-top:12px;">
+                <button class="secondary" onclick="enableLessonOcrEdit()">Sửa</button>
+                <button class="primary" onclick="generateCurriculumFromEditedText()">Soạn bài dạy từ text này</button>
+                <button class="danger" onclick="clearLessonOcrDraft()">Xóa text</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:18px;">
+        <h3 style="font-size:15px; margin-bottom:10px;">📘 Bài dạy đã soạn</h3>
+
+        <div id="generatedLessonEmpty" class="ocr-empty">Chưa có dữ liệu</div>
+
+        <div id="generatedLessonEditorWrap" style="display:none;">
+            <input id="generatedLessonTitle" maxlength="100" placeholder="Tên bài học" readonly="">
+
+            <textarea id="generatedLessonContent" class="ocr-editor" placeholder="Bài dạy do AI tạo sẽ hiện ở đây..." readonly=""></textarea>
+
+            <div id="generatedLessonActionRow" class="action-row" style="margin-top:12px; display:none;">
+                <button class="secondary" onclick="enableGeneratedLessonEdit()">Sửa bài dạy</button>
+                <button class="primary" onclick="saveGeneratedLesson()">Tạo bài học</button>
+                <button class="danger" onclick="clearGeneratedLessonDraft()">Xóa</button>
+            </div>
+            <div id="generatedLessonMessage" style="margin-top:12px;"></div>
+        </div>
+    </div>
+</div>

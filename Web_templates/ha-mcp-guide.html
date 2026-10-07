@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hướng dẫn kết nối Home Assistant với GMbot AI để điều khiển thiết bị nhà thông minh bằng giọng nói</title>
+
+<style>
+body {
+    margin: 0;
+    background: #0b1f3d;
+    color: white;
+    font-family: "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 18px;
+}
+
+.card {
+    background: #13294b;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+h1 {
+    font-size: 24px;
+    color: #fbbf24;
+    margin-bottom: 8px;
+}
+
+h2 {
+    font-size: 18px;
+    color: #93c5fd;
+    margin-top: 0;
+}
+
+h3 {
+    color: #fbbf24;
+}
+
+a {
+    color: #60a5fa;
+}
+
+code {
+    background: #0f2140;
+    padding: 2px 6px;
+    border-radius: 6px;
+    color: #facc15;
+}
+
+pre {
+    background: #0f2140;
+    padding: 12px;
+    border-radius: 10px;
+    overflow-x: auto;
+    color: #dbeafe;
+}
+
+.step {
+    background: #0f2140;
+    border-radius: 12px;
+    padding: 14px;
+    margin: 12px 0;
+}
+
+.warning {
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(248,113,113,0.35);
+    color: #fecaca;
+}
+
+.success {
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(74,222,128,0.35);
+    color: #dcfce7;
+}
+
+.note {
+    background: rgba(59,130,246,0.12);
+    border: 1px solid rgba(96,165,250,0.28);
+    color: #dbeafe;
+}
+
+button {
+    padding: 11px 15px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.primary {
+    background: #2563eb;
+    color: white;
+}
+
+.secondary {
+    background: #374151;
+    color: white;
+}
+
+.top-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+ol, ul {
+    padding-left: 22px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 12px;
+    }
+
+    h1 {
+        font-size: 21px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="card">
+        <h1>🏠 Hướng dẫn kết nối Home Assistant với GMbot AI</h1>
+        <p>
+            Hướng dẫn này giúp bạn cài integration <b>MCP Server for Xiaozhi</b> vào Home Assistant,
+            sau đó kết nối Home Assistant với thiết bị GMbot AI để điều khiển nhà thông minh bằng giọng nói.
+        </p>
+
+        <div class="top-actions">
+            <button class="primary" onclick="window.open('https://github.com/c1pher-cn/ha-mcp-for-xiaozhi', '_blank')">
+                Mở GitHub ha-mcp-for-xiaozhi
+            </button>
+
+            <button class="secondary" onclick="window.location.href='/'">
+                Quay lại trang quản lý GMbot
+            </button>
+        </div>
+    </div>
+
+    <div class="card note">
+        <h2>📌 Bạn cần chuẩn bị trước</h2>
+        <ul>
+            <li>Home Assistant đã cài và hoạt động bình thường.</li>
+            <li>Đã cài HACS trong Home Assistant.</li>
+            <li>Đã có tài khoản GMbot AI hoạt động.</li>
+            <li>Đã có token WSS endpoint của thiết bị GMbot.</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>1. Cài HACS nếu chưa có</h2>
+        <div class="step">
+            <p>Nếu Home Assistant của bạn chưa có HACS, hãy cài HACS trước.</p>
+            <p>
+                Xem hướng dẫn HACS:
+                <a href="https://www.hacs.xyz/docs/use/" target="_blank">https://www.hacs.xyz/docs/use/</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>2. Cài MCP Server for Xiaozhi qua HACS</h2>
+
+        <div class="step">
+            <ol>
+                <li>Mở Home Assistant.</li>
+                <li>Vào <b>HACS</b>.</li>
+                <li>Vào mục <b>Integrations</b>.</li>
+                <li>Tìm <b>xiaozhi</b> hoặc <b>ha-mcp-for-xiaozhi</b>.</li>
+                <li>Chọn <b>MCP Server for Xiaozhi</b>.</li>
+                <li>Bấm tải/cài đặt.</li>
+                <li>Sau khi cài xong, khởi động lại Home Assistant.</li>
+            </ol>
+        </div>
+
+        <div class="step note">
+            Nếu không tìm thấy trong HACS, hãy thêm custom repository:
+            <pre>https://github.com/c1pher-cn/ha-mcp-for-xiaozhi</pre>
+            Category chọn <b>Integration</b>, sau đó tìm lại <b>xiaozhi</b>.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>3. Thêm Thiết bị GMbot vào Home Assistant</h2>
+
+        <div class="step">
+            <ol>
+                <li>Trong <b>Home Assitant</b>.</li>
+                <li>Vào<b>Cài đặt</b>.</li>
+                <li>Chọn <b>Thiết bị & Dịch vụ</b>.</li>
+                <li>Chọn <b>MCP Server for Xiaozhi</b>.</li>
+                <li>Bấm<b>Thêm dịch vụ</b>.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>4. Nhập token WSS endpoint GMbot</h2>
+
+        <div class="step">
+            <p>Khi Home Assistant yêu cầu nhập MCP endpoint, dán token WSS endpoint bạn nhận được từ admin GMbot.</p>
+
+            <p>
+                Sau đó chọn MCP / function bạn muốn cho Xiaozhi sử dụng.
+                Mục <code>Assist</code> là function có sẵn của Home Assistant.
+                Các mục khác là MCP server khác nếu bạn đã cấu hình thêm trong Home Assistant.
+            </p>
+        </div>
+
+        <div class="step warning">
+            <b>Không chia sẻ WSS token cho người khác.</b>
+            Token này giống như khóa kết nối giữa Home Assistant và thiết bị GMbot của bạn.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>5. Kiểm tra trạng thái kết nối</h2>
+
+        <div class="step">
+            <ol>
+                <li>Sau khi submit cấu hình trong Home Assistant, chờ khoảng 1 phút và thử nói với GMbot: "Kiểm tra các thiết bị trong nhà" => Nếu GMbot cập nhật và đọc được các thiết bị trong Home Assistant là đã kết nối thành công</li>
+            </ol>
+        </div>
+
+        <div class="step success">
+            Có thể sử dụng các câu trò chuyện tự nhiên để điều khiển thiết bị trong HASS mà không cần câu lệnh cụ thể chính xác.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>6. Cách yêu cầu WSS endpoint từ admin GMbot</h2>
+
+        <div class="step">
+            <ol>
+                <li>Đăng nhập trang quản lý GMbot AI.</li>
+                <li>Chọn menu <b>🔗 Yêu cầu kết nối Home Assistant</b>.</li>
+                <li>Nhập email của bạn.</li>
+                <li>Bấm gửi yêu cầu.</li>
+                <li>Admin sẽ gửi token WSS endpoint qua email bạn cung cấp.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card warning">
+        <h2>⚠️ Các lỗi thường gặp</h2>
+
+        <h3>Không tìm thấy integration sau khi cài</h3>
+        <p>Hãy restart Home Assistant, sau đó vào lại Settings → Devices & Services → Add Integration.</p>
+
+        <h3>Kết nối không online</h3>
+        <ul>
+            <li>Kiểm tra WSS endpoint có bị copy thiếu không.</li>
+            <li>Kiểm tra token có đúng không.</li>
+            <li>Chờ 1 phút rồi refresh lại trạng thái ở trang Xiaozhi.</li>
+            <li>Kiểm tra Home Assistant có truy cập Internet bình thường không.</li>
+        </ul>
+
+        <h3>AI không điều khiển đúng thiết bị</h3>
+        <ul>
+            <li>Kiểm tra đã chọn đúng MCP / Assist trong cấu hình integration.</li>
+            <li>Đặt tên thiết bị trong Home Assistant rõ ràng, dễ hiểu.</li>
+            <li>Thử nói rõ tên phòng và tên thiết bị.</li>
+        </ul>
+    </div>
+
+</div>
+</body>
+</html>

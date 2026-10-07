@@ -1,0 +1,2633 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRUNG TÂM QUẢN LÝ GMBOT AI - Đầy đủ tất cả các trang Menu</title>
+  <style>
+
+body {
+    background: #0b1f3d;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    margin: 0;
+}
+
+.container {
+    width: 100%;
+    max-width: 100%; /* 🔥 giới hạn lại cho desktop */
+    margin: 0 auto;    /* 🔥 căn giữa */
+    padding: 16px;
+    box-sizing: border-box; /* 🔥 tránh tràn */
+}
+
+.card {
+    background: #13294b;
+    padding: 16px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .card {
+        padding: 12px;
+        border-radius: 10px;
+    }
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: none;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.primary { background: #2563eb; color: white; }
+.danger { background: #ef4444; color: white; }
+.secondary { background: #374151; color: white; }
+
+.device {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 12px;
+    background: #0f2140;
+    border-radius: 8px;
+}
+
+/* Responsive cho thiết bị nhỏ: các nút nằm dọc nếu màn hình hẹp */
+@media (max-width: 600px) {
+    .device {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+.badge {
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.connected { background: #16a34a; }
+.disconnected { background: #dc2626; }
+.unknown { background: #6b7280; }
+
+.error { color: #ff6b6b; margin-top: 8px; }
+.success { color: #4ade80; margin-top: 8px; }
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+#topUserInfo {
+    margin-left: auto;
+    text-align: right;
+    max-width: 70%;
+}
+
+@media (max-width: 768px) {
+
+    .main {
+        margin-left: 0 !important;
+        width: 100%;
+        padding: 12px;
+    }
+
+    #topUserInfo {
+        max-width: 65%;
+        font-size: 13px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+}
+
+@media (min-width: 769px) {
+    .topbar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+}
+
+.vip-badge {
+    background: gold;
+    color: black;
+    margin-left: 6px;
+}
+
+.vip-timer {
+    font-size: 11px;
+    margin-left: 6px;
+    color: #facc15;
+}
+
+#devices {
+    max-height: 55vh;
+    overflow-y: auto;
+}
+
+/* Scrollbar desktop */
+#devices::-webkit-scrollbar, #memoryList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#devices::-webkit-scrollbar-track, #memoryList::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#devices::-webkit-scrollbar-thumb, #memoryList::-webkit-scrollbar-thumb {
+    background: #2563eb;
+    border-radius: 10px;
+}
+
+#deviceSearch {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.memory-item {
+    background: #0f2140;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.memory-actions {
+    margin-top: 6px;
+}
+
+#memoryList {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+
+@media (max-width: 768px) {
+    .help-center-card {
+        padding: 12px;
+    }
+
+    .help-title {
+        font-size: 14px;
+    }
+
+    .help-subtitle {
+        font-size: 12px;
+    }
+
+    .help-buttons button {
+        font-size: 13px;
+        padding: 10px;
+    }
+}
+.help-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.help-title {
+    color: #fbbf24; /* Chữ màu vàng */
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.help-subtitle {
+    color: #9ca3af; /* Chữ phụ xám sáng */
+    margin: 4px 0 0 0;
+    font-size: 13px;
+}
+
+.help-buttons {
+    display: flex;
+    flex-wrap: wrap; /* 🔥 tránh tràn */
+    gap: 10px;
+}
+
+.help-buttons button {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.help-buttons button:hover {
+    opacity: 0.8;
+}
+
+.btn-mcp {
+    background: #3b82f6; /* Nút xanh */
+    color: white;
+}
+
+.btn-wss {
+    background: #eab308; /* Nút vàng */
+    color: #111827;
+}
+
+/* Responsive cho điện thoại: Xếp nút dọc lại */
+@media (max-width: 600px) {
+    .help-buttons {
+        flex-direction: column;
+    }
+}
+
+#customRoleText {
+    min-height: 420px;
+    resize: vertical;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+
+/* --- CSS CHO POPUP NÂNG CẤP --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); display: none;
+    justify-content: center; align-items: center; z-index: 1000;
+}
+.modal-content {
+    background: #13294b; padding: 25px; border-radius: 12px;
+    width: 90%; max-width: 400px;
+}
+.modal-content h3 { margin-top: 0; color: #fbbf24; }
+.modal-content select {
+    width: 100%; padding: 10px; margin: 8px 0 15px 0;
+    border-radius: 8px; border: none; background: #0f2140; color: white;
+}
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+* {
+    box-sizing: border-box;
+    word-wrap: break-word;
+}
+
+body {
+    overflow-x: hidden; /* 🔥 chặn tràn ngang */
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 240px;
+    background: #0b1220;
+    padding: 16px;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0; /* 🔥 QUAN TRỌNG */
+
+    display: flex;
+    flex-direction: column;
+
+    overflow-y: auto; /* 🔥 scroll */
+
+    z-index: 1000;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.menu.bottom {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #1f2937;
+}
+
+
+.menu-item:hover {
+    background: #1f2937;
+    color: white;
+}
+
+.menu-item.active {
+    background: #1f2937;
+    color: white;
+}
+
+
+@media (max-width: 768px) {
+
+    .layout {
+        flex-direction: column;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+}
+
+.logo {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.logo div:first-child {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.menu-item.logout {
+    color: #f87171;
+}
+
+.menu-item.logout:hover {
+    background: #7f1d1d;
+}
+
+/* ===== USER BOX ===== */
+.user-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.user-device {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* VIP row */
+.user-vip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Fix badge */
+.vip-badge {
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 999px;
+}
+
+/* ===== MENU ===== */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.menu-item.active {
+    background: #1e293b;
+}
+
+.menu-item:hover {
+    background: #1e293b;
+}
+
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.connected { background: #22c55e; }   /* xanh */
+.status-dot.disconnected { background: #ef4444; } /* đỏ */
+.status-dot.unknown { background: #6b7280; }     /* xám */
+
+@media (max-width: 768px) {
+    input, textarea {
+        font-size: 14px;
+    }
+
+    button {
+        padding: 10px;
+    }
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: none;
+}
+
+.overlay.active {
+    display: block;
+}
+
+.menu-toggle {
+    font-size: 22px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: none;
+    width: auto !important;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+}
+
+.main {
+    flex: 1;
+    padding: 20px;
+    margin-left: 240px; /* 🔥 CHỪA CHỖ CHO SIDEBAR */
+}
+
+@media (max-width: 768px) {
+
+    .sidebar {
+        left: -260px; /* 🔥 Ẩn lại trên mobile */
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+}
+@media (max-width: 768px) {
+
+    .main {
+        margin-left: 0 !important; /* 🔥 ép luôn */
+        padding: 12px;
+        width: 100%;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .topbar {
+        width: 100%;
+    }
+
+}
+
+@media (max-width: 768px) {
+    .layout {
+        display: block; /* 🔥 QUAN TRỌNG */
+    }
+}
+
+.topbar {
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #9ca3af;
+}
+
+#curriculumName {
+    height: 42px;
+    font-size: 14px;
+}
+
+#curriculumContent {
+    min-height: 140px;
+    resize: vertical;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Fix textarea full width */
+textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #0f2140;
+    color: white;
+}
+
+/* Hover button xịn hơn */
+button.primary {
+    margin-top: 10px;
+    transition: all 0.2s;
+}
+
+button.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+}
+
+#curriculumCreateCard {
+    background: linear-gradient(135deg, #13294b, #1e3a8a);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ===== BUTTON LAYOUT CHUẨN ===== */
+
+.full-width {
+    width: 100%;
+}
+
+.action-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.action-row > button {
+    flex: 1 1 0;
+    width: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 0;
+    
+    line-height: 1;
+    box-sizing: border-box;
+    height: 42px; /* 🔥 bắt buộc */
+    margin-top: 0 !important;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .action-row {
+        flex-direction: column;
+    }
+
+    .action-row button {
+        width: 100%;
+    }
+}
+
+/* ===== XIAOZHI CONFIG TABS ===== */
+.xiaozhi-config-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0 16px;
+    width: 100%;
+}
+
+.xiaozhi-config-tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 44px;
+    padding: 10px 14px;
+    margin: 0 !important;
+    border-radius: 10px;
+    background: #374151;
+    color: white;
+    transition: all 0.2s;
+}
+
+.xiaozhi-config-tab-btn:hover { background: #475569; }
+.xiaozhi-config-tab-btn.active {
+    background: #2563eb;
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+}
+.xiaozhi-config-tab-content { display: none; }
+.xiaozhi-config-tab-content.active { display: block; }
+
+/* ===== XIAOZHI SPEAKER HEADER ===== */
+.xiaozhi-speaker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+}
+.xiaozhi-speaker-header-info { flex: 1 1 auto; min-width: 0; }
+.xiaozhi-speaker-header-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+.xiaozhi-speaker-header-actions button {
+    height: 42px;
+    margin-top: 0 !important;
+    padding: 10px 14px;
+    white-space: nowrap;
+}
+#xiaozhiAddSpeakerButton { min-width: 150px; }
+
+/* Speaker list actions: reserve enough desktop width for Edit/Delete. */
+@media (min-width: 769px) {
+    #xiaozhiSpeakerList .action-row {
+        flex: 0 0 auto;
+        min-width: 136px;
+    }
+
+    #xiaozhiSpeakerList .action-row > button {
+        min-width: 64px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .xiaozhi-config-tabs { flex-direction: column; gap: 8px; }
+    .xiaozhi-config-tab-btn { width: 100%; flex: none; }
+    .xiaozhi-speaker-header { flex-direction: column; align-items: stretch; gap: 12px; }
+    .xiaozhi-speaker-header-actions {
+        display: flex;
+        flex-direction: row !important;
+        width: 100%;
+        gap: 8px;
+    }
+    .xiaozhi-speaker-header-actions button {
+        flex: 1 1 0;
+        width: auto !important;
+        min-width: 0 !important;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+}
+
+.curriculum-group {
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.curriculum-header {
+    background: #1e3a8a;
+    padding: 10px 12px;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #93c5fd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.curriculum-list {
+    background: #0f2140;
+
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+/* 🔥 FIX SCROLL */
+.curriculum-list.open {
+    max-height: 70vh;     /* thay vì 500px */
+    overflow-y: auto;     /* 🔥 thêm dòng này */
+}
+
+.curriculum-list.open {
+    max-height: 500px; /* đủ lớn để chứa list */
+}
+
+.curriculum-item {
+    padding: 10px 12px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+    transition: background 0.2s;
+
+    /* 🔥 FIX TRÀN */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.curriculum-item:hover {
+    background: #1e293b;
+}
+
+.curriculum-item.active {
+    background: #1d4ed8;
+}
+
+#curriculumDetailCard h3 {
+    color: #fbbf24;
+    font-size: 15px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+/* ===== 2 COLUMN LAYOUT ===== */
+
+.curriculum-layout {
+    display: flex;
+    gap: 16px;
+}
+
+.curriculum-left {
+    width: 35%;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    min-width: 0; /* 🔥 FIX FLEX OVERFLOW */
+}
+
+.curriculum-right {
+    width: 65%;
+    min-width: 0; /* 🔥 FIX */
+}
+
+/* Sticky như Notion */
+#curriculumDetailCard {
+    position: sticky;
+    top: 20px;
+}
+
+/* Mobile fallback */
+@media (max-width: 768px) {
+
+    .curriculum-layout {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .curriculum-left,
+    .curriculum-right {
+        width: 100%;
+    }
+
+    /* 🔥 QUAN TRỌNG: detail full width + full height */
+    #curriculumDetailCard {
+        width: 100%;
+        min-height: 60vh; /* chỉnh theo ý bạn */
+    }
+
+    /* 🔥 nội dung không bị bó */
+    #curriculumDetail {
+        width: 100%;
+    }
+
+}
+
+.curriculum-item.active {
+    background: #1d4ed8;
+    border-left: 3px solid #60a5fa;
+}
+
+.photo-lesson-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 900px) {
+    .photo-lesson-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.upload-dropzone {
+    border: 2px dashed rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 18px;
+    background: rgba(15,33,64,0.55);
+}
+
+.upload-dropzone input[type="file"] {
+    background: #0f2140;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .preview-box {
+        min-height: 180px;
+        max-height: 260px;
+    }
+
+    .preview-box img {
+        max-height: 260px;
+        object-fit: contain;
+    }
+}
+
+.preview-box {
+    min-height: 320px;
+    border-radius: 14px;
+    background: #0f2140;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.preview-box img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
+.mobile-preview-slot {
+    display: none;
+}
+
+.photo-preview-desktop-slot {
+    display: block;
+}
+
+@media (max-width: 900px) {
+    .mobile-preview-slot {
+        display: block;
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+
+    .photo-preview-desktop-slot {
+        display: none;
+    }
+
+    .mobile-preview-slot .preview-box {
+        min-height: 220px;
+        max-height: none;
+    }
+
+    .mobile-preview-slot .preview-box img {
+        max-height: 360px;
+        object-fit: contain;
+    }
+}
+
+.generated-lesson-box {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    background: #0f2140;
+    border-radius: 12px;
+    padding: 14px;
+    min-height: 220px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.homework-ocr-box {
+    min-height: 72px;
+    padding: 12px;
+}
+
+#homeworkGuideDetail {
+    margin-top: 8px;
+}
+
+.homework-guide-card {
+    background: #0f2140;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.homework-guide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.homework-guide-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.homework-guide-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.homework-guide-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.homework-guide-badge.active {
+    background: rgba(34,197,94,0.12);
+    color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.25);
+}
+
+.homework-guide-badge.type {
+    background: rgba(96,165,250,0.10);
+    color: #93c5fd;
+    border: 1px solid rgba(147,197,253,0.18);
+}
+
+.homework-guide-content {
+    white-space: pre-line;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.6;
+    font-size: 14px;
+    color: #e5eefc;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.homework-guide-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.homework-guide-actions button {
+    width: auto !important;
+    min-width: 170px;
+    height: 38px;
+    padding: 0 14px;
+}
+
+.homework-guide-empty {
+    background: #0f2140;
+    border: 1px dashed rgba(255,255,255,0.10);
+    border-radius: 12px;
+    padding: 16px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .homework-guide-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .homework-guide-actions {
+        justify-content: stretch;
+    }
+
+    .homework-guide-actions button {
+        width: 100% !important;
+        min-width: 0;
+    }
+}
+
+.helper-note {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 8px;
+}
+
+.voice-hint {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(59,130,246,0.10);
+    border: 1px solid rgba(96,165,250,0.22);
+    color: #dbeafe;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.voice-hint strong {
+    color: #93c5fd;
+}
+
+.voice-hint .voice-keyword {
+    color: #4ade80;
+    font-weight: 700;
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 46px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #9ca3af;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+    color: #ffffff;
+    background: rgba(255,255,255,0.08);
+}
+
+.captcha-wrap {
+    margin: 8px 0 12px;
+}
+
+.captcha-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.captcha-row input {
+    flex: 1;
+    margin: 0;
+}
+
+.captcha-image {
+    min-width: 132px;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dbe3ef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.captcha-image svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.captcha-refresh {
+    width: 42px;
+    height: 40px;
+    padding: 0;
+    margin-top: 0 !important;
+    flex-shrink: 0;
+}
+
+.ocr-editor-wrap {
+    margin-top: 18px;
+}
+
+.ocr-editor {
+    min-height: 220px;
+    resize: vertical;
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.ocr-editor:not([readonly]) {
+    -webkit-user-select: text;
+    user-select: text;
+    touch-action: manipulation;
+    caret-color: white;
+}
+
+.ocr-editor.editing {
+    border: 2px solid #4ade80;
+    outline: none;
+}
+
+.ocr-editor[readonly] {
+    opacity: 0.95;
+}
+
+.ocr-empty {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    background: #0f2140;
+    border-radius: 12px;
+    padding: 14px;
+    min-height: 120px;
+    border: 1px solid rgba(255,255,255,0.05);
+    color: #9ca3af;
+}
+
+.kb-preview-card {
+    margin-top: 10px;
+    background: #0f2140;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.kb-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.kb-preview-label {
+    font-size: 11px;
+    opacity: 0.65;
+}
+
+.kb-preview-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.kb-preview-editor {
+    display: none;
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    margin-top: 8px;
+}
+
+.kb-preview-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.kb-preview-card.editing .kb-preview-text {
+    display: none;
+}
+
+.kb-preview-card.editing .kb-preview-editor {
+    display: block;
+}
+
+.kb-preview-card.editing .btn-edit {
+    display: none;
+}
+
+.kb-preview-card:not(.editing) .btn-save,
+.kb-preview-card:not(.editing) .btn-cancel {
+    display: none;
+}
+
+/* ===== HOMEWORK IMAGE CROP ===== */
+
+.crop-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 12px;
+}
+
+.crop-modal-content {
+    width: min(96vw, 980px);
+    max-height: 96vh;
+    overflow-y: auto;
+    background: #13294b;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.crop-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.crop-modal-header h3 {
+    margin: 0;
+    color: #fbbf24;
+}
+
+.crop-canvas-wrap {
+    width: 100%;
+    background: #0f2140;
+    border-radius: 14px;
+    padding: 10px;
+    overflow: auto;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+#homeworkCropCanvas,
+#lessonCropCanvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    background: #111827;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+@media (max-width: 768px) {
+    .crop-modal-content {
+        width: 100%;
+        max-height: 95vh;
+        padding: 12px;
+    }
+
+    .crop-modal-header {
+        flex-direction: column;
+    }
+}
+
+/* ===== GLOBAL NOTICE POPUP ===== */
+
+.notice-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.58);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 6000;
+    padding: 18px;
+}
+
+.notice-popup-card {
+    width: min(92vw, 420px);
+    background: #13294b;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    padding: 22px 18px;
+    text-align: center;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+}
+
+.notice-popup-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.notice-popup-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fbbf24;
+    margin-bottom: 8px;
+}
+
+.notice-popup-message {
+    color: #dbeafe;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.notice-popup-close {
+    width: 100%;
+    margin-top: 16px !important;
+    height: 42px;
+}
+
+.notice-popup-card.loading .notice-popup-icon {
+    animation: noticePulse 1s infinite ease-in-out;
+}
+
+.notice-popup-card.success .notice-popup-title {
+    color: #4ade80;
+}
+
+.notice-popup-card.error .notice-popup-title {
+    color: #ff6b6b;
+}
+
+.notice-popup-card.warning .notice-popup-title {
+    color: #f59e0b;
+}
+
+@keyframes noticePulse {
+    0% { transform: scale(1); opacity: 0.75; }
+    50% { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.75; }
+}
+
+
+#englishTemplateDetailCard h3 {
+    color: #fbbf24;
+    font-size: 15px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+#englishTemplateDetailCard {
+    position: sticky;
+    top: 20px;
+}
+
+@media (max-width: 768px) {
+    #englishTemplateDetailCard {
+        width: 100%;
+        min-height: 50vh;
+    }
+}
+
+
+
+/* Fine-tuning for preview */
+body {
+  display: flex;
+  min-height: 100vh;
+  margin: 0;
+  background: #0b1f3d;
+  color: white;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 240px;
+  padding: 20px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 12px;
+  }
+}
+
+.sidebar .menu-item {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar .menu-item.active {
+  background: #13294b;
+  font-weight: bold;
+}
+
+#cardsContainer > .card {
+  display: none; /* Controlled by tab switcher */
+}
+
+#cardsContainer > .card.active-card {
+  display: block !important;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
+}
+.overlay.active {
+  display: block;
+}
+  </style>
+</head>
+<body>
+
+  <!-- Overlay Mobile -->
+  <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <div style="font-size: 16px; font-weight: bold; padding-bottom: 8px;">GMBOT AI</div>
+      <div class="user-box">
+        <div class="user-name">Xin chào, 330730</div>
+        <div class="user-device">330730</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;">
+          <span class="status-dot connected"></span>
+          <span style="color:#4ade80;">connected</span>
+        </div>
+        <div class="user-vip" style="margin-top: 4px;">
+          <span class="badge vip-badge">👑 VIP</span>
+          <span class="vip-timer">335d 18h 4m 51s</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu">
+      <div class="menu-item active" onclick="switchSection('devices', this)">📡 Thiết bị</div>
+      <div class="menu-item" onclick="switchSection('xiaozhiConfig', this)">⚙️ Cấu hình GMbot AI</div>
+      <div class="menu-item" onclick="switchSection('englishTutor', this)">📚 HỌC TIẾNG ANH</div>
+      <div class="menu-item" onclick="window.location.href='english-tutor-app.html'" style="font-size:12px; color:#60a5fa; padding-left:28px;">↳ Mở English Tutor App ↗</div>
+      <div class="menu-item" onclick="switchSection('memory', this)">🧠 Bộ nhớ</div>
+      <div class="menu-item" onclick="switchSection('tasks', this)">📗 Tạo nhiệm vụ</div>
+      <div class="menu-item" onclick="switchSection('curriculumSelect', this)">📖 Chọn Bài học</div>
+      <div class="menu-item" onclick="switchSection('curriculumCreate', this)">✍️ Tự tạo bài học</div>
+      <div class="menu-item" onclick="switchSection('photoLesson', this)">📷 Chụp ảnh tạo bài học</div>
+      <div class="menu-item" onclick="switchSection('photoHomework', this)">🎒 Chụp ảnh giải bài tập</div>
+      <div class="menu-item" onclick="switchSection('knowledgeBase', this)">📗 Cơ sở tri thức</div>
+
+      <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 8px 0;"></div>
+
+      <div class="menu-item" onclick="openPage('huong-dan.html')">⚙️ Hướng dẫn sử dụng ↗</div>
+      <div class="menu-item" onclick="openPage('ha-mcp-guide.html')">🏠 Hướng dẫn kết nối Home Assistant ↗</div>
+      <div class="menu-item" onclick="switchSection('wssRequest', this)">🔗 Yêu cầu kết nối Home Assistant</div>
+      <div class="menu-item" onclick="switchSection('feedback', this)">💬 Góp ý - Báo lỗi</div>
+    </div>
+
+    <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 13px;">
+      <div style="color: #9ca3af; margin-bottom: 6px;">Zalo: <strong style="color: #fbbf24;">0938.396.290</strong></div>
+      <div style="color: #ef4444; font-weight: bold; cursor: pointer;">🚪 Đăng xuất</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="topbar" style="margin-bottom: 16px;">
+      <button class="menu-toggle" onclick="toggleSidebar()" style="background:#13294b; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">☰ Menu</button>
+      <div style="font-size: 13px; color: #9ca3af; margin-left: 10px;">
+        &lt;=== Bấm menu bên trái để chuyển qua lại giữa tất cả các trang
+      </div>
+    </div>
+
+    <!-- CONTAINER TẤT CẢ CÁC TRANG CARD ĐƯỢC BÓC TÁCH -->
+    <div id="cardsContainer">
+<div class="card" id="addDeviceCard" style="display: none;">
+    <h3>Thêm thiết bị</h3>
+    <input id="name" placeholder="Tên thiết bị (đặt tùy ý)">
+    <input id="url" placeholder="Nhập link wss://example.com/ws">
+    <button class="primary full-width" onclick="addDevice()">Thêm thiết bị</button>
+    <div id="message"></div>
+</div>
+
+<div class="card" id="aiRoleSelectCard" style="display:none;">
+    <h3>🎭 Chọn vai trò cho AI</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách sử dụng:</strong><br>
+        Chọn vai trò bạn muốn ở danh sách phía dưới và bấm nút
+        <span class="voice-keyword">"Áp dụng vào cấu hình GMbot AI"</span>
+        <span class="voice-keyword">"Khởi động lại robot AI"</span>
+         để robot tự động cập nhật cấu hình mới.
+    </div>
+
+    <div class="curriculum-layout">
+
+        <div class="curriculum-left">
+            <div id="aiRoleGroups"></div>
+        </div>
+
+        <div class="curriculum-right">
+            <div class="card" id="aiRoleDetailCard">
+                <h3>🎭 Chi tiết vai trò</h3>
+                <div id="aiRoleDetail">
+                    <div style="opacity:0.6;">👉 Chọn vai trò để xem</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="card" id="curriculumCreateCard" style="display:none;">
+    <h3>✍️ Tạo bài học</h3>
+
+    <div class="form-group">
+        <label>Tên bài học</label>
+        <input id="curriculumName" maxlength="100" placeholder="Ví dụ: Tiếng Anh giao tiếp cơ bản">
+    </div>
+
+    <div class="form-group">
+        <label>Nội dung bài học</label>
+        <textarea id="curriculumContent" maxlength="12000" placeholder="Nhập nội dung..."></textarea>
+    </div>
+
+    <button class="primary" onclick="createCurriculum()">🚀 Tạo bài học</button>
+</div>
+
+<div class="card" id="curriculumSelectCard" style="display:none;">
+    <h3>📖 Chọn bài học</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách sử dụng:</strong><br>
+        Chọn Bài học bạn muốn ở danh sách phía dưới và bấm nút
+        <span class="voice-keyword">"Áp dụng"</span>
+         , KHI BẮT ĐẦU TRÒ CHUYỆN bạn hãy nói
+        <span class="voice-keyword">"So-phi-a"</span>
+        hoặc
+        <span class="voice-keyword">"Xin chào"</span>
+        để AI kích hoạt Bài học đã chọn.
+        Bài học sẽ TỰ ĐỘNG kích hoạt lại khi nghe câu lệnh "Sophia" hoặc "Xin chào" lúc bắt đầu cuộc trò chuyện mới.
+        Bấm  
+        <span class="voice-keyword">"Hủy áp dụng"</span>
+         ở danh sách Bài học phía dưới để ngừng bài học.
+    </div>
+
+    <div>
+
+<div class="curriculum-layout">
+
+    <!-- LEFT -->
+    <div class="curriculum-left">
+
+        <div class="curriculum-group">
+            <div class="curriculum-header" onclick="toggleCurriculumBox('public')">
+                <span>📦 Bài học có sẵn</span>
+                <span id="icon-public" style="transition: transform 0.3s;">▶</span>
+            </div>
+            <div id="publicCurriculumList" class="curriculum-list"></div>
+        </div>
+
+        <div class="curriculum-group">
+            <div class="curriculum-header" onclick="toggleCurriculumBox('private')">
+                <span>👤 Bài học của bạn</span>
+                <span id="icon-private" style="transition: transform 0.3s;">▶</span>
+            </div>
+            <div id="privateCurriculumList" class="curriculum-list"></div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="curriculum-right">
+
+        <div class="card" id="curriculumDetailCard">
+            <h3>📘 Chi tiết bài học</h3>
+            <div id="curriculumDetail">
+                <div style="opacity:0.6;">👉 Chọn bài học để xem</div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+</div>
+
+<div class="card" id="deviceListCard" style="display: none;">
+    <h3>Danh sách thiết bị</h3>
+
+    <div id="deviceSearchWrapper" style="display: none;">
+        <input id="deviceSearch" placeholder="🔍 Tìm theo tên thiết bị (hoặc mã thiết bị)..." oninput="renderDevices()">
+    </div>
+
+    <div id="devices" style="margin-top: 15px; display: none;"><div class="device">
+            <div>
+                <strong>330730</strong><br>
+                <span class="badge connected">
+                    connected
+                </span>
+                
+                    <span class="badge vip-badge">👑 VIP</span>
+                    <span class="vip-timer" id="vip-endpoint-1788747076580-giosy">335d 18h 4m 51s</span>
+                 </div>
+            <div style="margin-top: 8px;">
+                
+                
+                
+            </div>
+        </div></div>
+</div>
+
+<div class="card" id="englishTutorCard" style="display:none;">
+
+    <!-- BANNER KẾT NỐI SANG ỨNG DỤNG GMBOT ENGLISH TUTOR -->
+    <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(37,99,235,0.3); border: 1px solid rgba(255,255,255,0.15);">
+      <div>
+        <div style="font-size: 16px; font-weight: bold; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+          🚀 <span>Ứng dụng chuyên sâu: GMBOT English Tutor</span>
+          <span style="font-size: 11px; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 20px; color: #fff;">Full Features</span>
+        </div>
+        <div style="font-size: 13px; color: #dbeafe; margin-top: 4px;">
+          Đầy đủ 5 phân hệ: Hôm nay, Lộ trình 50 bài, Giáo trình & Nhập vai, Tự tạo bài giảng, Báo cáo học tập.
+        </div>
+      </div>
+      <a href="english-tutor-app.html" style="display: inline-flex; align-items: center; gap: 6px; background: #ffffff; color: #1e3a8a; font-weight: bold; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.2s; white-space: nowrap;">
+        Mở Giao Diện English Tutor ↗
+      </a>
+    </div>
+  
+    <h3>🇬🇧 Học tiếng Anh cùng GMbot</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách dùng:</strong><br>
+        Chọn trình độ, chủ đề, từ vựng và câu mẫu. Sau đó bấm
+        <span class="voice-keyword">Tạo và áp dụng giáo trình tiếng Anh</span>.
+        Khi bé gọi <span class="voice-keyword">Sophia</span> hoặc
+        <span class="voice-keyword">Xin chào</span>, robot sẽ tự đẩy ngữ cảnh học tiếng Anh vào GMbot AI.
+    </div>
+
+    <h3 style="font-size:15px;">📚 Chọn giáo trình tiếng Anh</h3>
+
+
+<div class="form-group">
+    <select id="englishTemplateLevel" onchange="onEnglishTemplateLevelChange()">
+        <option value="">Tất cả trình độ</option>
+        <option value="starter">Starter - mới bắt đầu</option>
+        <option value="a1">A1 - cơ bản</option>
+        <option value="a2">A2 - sơ cấp</option>
+        <option value="b1">B1 - trung cấp</option>
+        <option value="b2">B2 - trung cấp cao</option>
+    </select>
+</div>
+
+    <div class="curriculum-layout">
+
+        <!-- LEFT -->
+        <div class="curriculum-left">
+
+            <div class="curriculum-group">
+                <div class="curriculum-header" onclick="toggleEnglishTemplateBox('lesson')">
+                    <span>📚 Giáo trình có sẵn</span>
+                    <span id="icon-english-lesson" style="transition: transform 0.3s;">▶</span>
+                </div>
+                <div id="englishLessonTemplateList" class="curriculum-list"></div>
+            </div>
+
+            <div class="curriculum-group">
+                <div class="curriculum-header" onclick="toggleEnglishTemplateBox('roleplay')">
+                    <span>🎭 Tình huống nhập vai</span>
+                    <span id="icon-english-roleplay" style="transition: transform 0.3s;">▶</span>
+                </div>
+                <div id="englishRoleplayTemplateList" class="curriculum-list"></div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="curriculum-right">
+
+            <div class="card" id="englishTemplateDetailCard">
+                <h3>📘 Chi tiết giáo trình</h3>
+                <div id="englishTemplateDetail">
+                    <div style="opacity:0.6;">👉 Chọn giáo trình hoặc tình huống nhập vai để xem</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+<h3 style="font-size:15px;">📚 Tự tạo giáo trình tiếng Anh</h3>
+
+    <div class="form-group">
+        <label>Tiêu đề bài học</label>
+        <input id="englishTutorTitle" maxlength="100" placeholder="Ví dụ: Food - Bài 1">
+    </div>
+
+    <div class="form-group">
+        <label>Trình độ</label>
+        <select id="englishTutorLevel" onchange="onEnglishTutorLevelChange()">
+    <option value="starter">Starter - mới bắt đầu</option>
+    <option value="a1">A1 - cơ bản</option>
+    <option value="a2">A2 - sơ cấp</option>
+    <option value="b1">B1 - trung cấp</option>
+    <option value="b2">B2 - trung cấp cao</option>
+</select>
+    </div>
+
+    <div class="form-group">
+        <label>Chủ đề</label>
+        <select id="englishTutorTopic"></select>
+    </div>
+
+    <div class="form-group">
+        <label>Từ mục tiêu, cách nhau bằng dấu phẩy</label>
+        <input id="englishTutorWords" placeholder="Ví dụ: apple, banana, milk">
+    </div>
+
+    <div class="form-group">
+        <label>Câu mẫu, mỗi dòng 1 câu</label>
+        <textarea id="englishTutorPhrases" style="min-height:120px;" placeholder="Ví dụ:
+I like apples.
+I want milk.
+Thank you."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Ghi chú cho AI gia sư</label>
+        <textarea id="englishTutorNote" style="min-height:100px;" placeholder="Ví dụ: Bé thích khủng long, hãy dùng ví dụ vui nhộn. Bé mới học nên nói chậm và hỏi từng câu."></textarea>
+    </div>
+
+    <div class="action-row">
+        <button class="primary" onclick="activateEnglishTutor()">🚀 Tạo và áp dụng giáo trình tiếng Anh</button>
+        <button class="secondary" onclick="loadActiveEnglishTutor()">🔄 Tải trạng thái</button>
+        <button class="danger" onclick="deleteActiveEnglishTutor()">Tắt chế độ</button>
+    </div>
+
+    <div id="englishTutorMessage" style="margin-top:12px;"></div>
+
+        <div style="margin-top:18px;">
+        <h3 style="font-size:15px;">📌 Bài tiếng Anh đang áp dụng</h3>
+        <div id="englishTutorActiveBox" class="generated-lesson-box">Chưa tải dữ liệu</div>
+    </div>
+
+    <div style="margin-top:18px;">
+        <h3 style="font-size:15px;">📊 Báo cáo học tiếng Anh</h3>
+
+    <div class="action-row" style="margin-bottom:12px;">
+        <button class="secondary" onclick="loadEnglishTutorReport()">📊 Tải báo cáo</button>
+    </div>
+
+    <div id="englishTutorReportBox" class="generated-lesson-box">
+        Chưa tải báo cáo
+    </div>
+
+</div>
+</div>
+
+<div class="card" id="feedbackCard" style="display:none;">
+    <h3>💬 Góp ý - Báo lỗi</h3>
+
+    <div class="form-group">
+        <label>Email nhận thông báo khi admin phản hồi</label>
+        <input id="feedbackEmail" type="email" maxlength="150" placeholder="Ví dụ: tenban@gmail.com">
+        <button class="secondary" style="margin-top:6px;" onclick="saveFeedbackEmail()">💾 Lưu email</button>
+        <div id="feedbackEmailMessage" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="form-group">
+        <label>Nội dung góp ý</label>
+        <textarea id="feedbackContent" maxlength="3000" placeholder="Nhập nội dung góp ý hoặc báo lỗi..." style="min-height:120px;"></textarea>
+    </div>
+
+    <button class="primary full-width" onclick="submitFeedback()">📨 Gửi góp ý</button>
+
+    <div id="feedbackMessage" style="margin-top:10px;"></div>
+
+    <div id="feedbackUserSection" style="display:none; margin-top:20px;">
+        <h3>📬 Góp ý và phản hồi của bạn</h3>
+        <div id="feedbackUserList"></div>
+    </div>
+
+    <div id="feedbackAdminSection" style="display:none; margin-top:20px;">
+        <h3>📋 Danh sách góp ý</h3>
+        <input id="feedbackSearch" placeholder="🔍 Tìm góp ý..." oninput="renderFeedbacks()" style="margin-bottom:12px;">
+        <div id="feedbackList"></div>
+    </div>
+</div>
+
+<div class="card" id="knowledgeBaseCard" style="display:none;">
+    <h3>📚 Cơ sở tri thức</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách dùng:</strong><br>
+        Tải lên tài liệu tri thức để yêu cầu AI tra cứu tài liệu có sẵn. Đây là nơi lưu tài liệu tham khảo lâu dài như:
+        thời khóa biểu học tập, hướng dẫn sử dụng, mô tả sản phẩm, kịch bản tư vấn...
+        Sử dụng câu lệnh
+        <span class="voice-keyword">Tìm trong cơ sở tri thức +Nội dung cần tra cứu</span>
+        để yêu cầu AI tra cứu trước khi trả lời.<br>
+        <span class="voice-keyword">Mẹo :</span>
+        Viết câu này trong mô tả vai trò : "BẮT BUỘC PHẢI tìm thông tin trong Cơ sở tri thức trước khi trả lời." =&gt; giúp AI tự động tra cứu thông tin trước khi trả lời câu hỏi mà không cần nói câu lệnh "tìm trong cơ sở tri thức"
+
+    </div>
+
+    <div class="curriculum-layout">
+
+        <div class="curriculum-left">
+            <div class="card" style="margin-bottom:12px;">
+                <h3 style="font-size:15px;">➕ Tải tài liệu cơ sở tri thức</h3>
+
+                <div class="form-group">
+                    <label>Tiêu đề tài liệu (không bắt buộc)</label>
+                <input id="kbTitle" maxlength="150" placeholder="Để trống = lấy theo tên file">
+                </div>
+
+                <div class="form-group">
+                    <label>Tài liệu</label>
+
+                    <input id="kbDocumentFile" type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" onchange="handleKnowledgeDocumentChange(event)" style="display:none;">
+
+                    <div class="action-row" id="kbUploadActionRow" style="margin-top:12px;">
+                        <button id="kbPickBtn" type="button" class="secondary" onclick="openKnowledgeDocumentPicker()">
+                            📄 Chọn tài liệu
+                        </button>
+
+                        <button id="kbResetBtn" type="button" class="danger" onclick="resetKnowledgeDocumentInput()">
+                            Xóa file
+                        </button>
+                    </div>
+
+                    <div id="kbSelectedFileInfo" class="helper-note">
+                        Chưa chọn tài liệu
+                    </div>
+
+                    <div class="helper-note">
+                        Hỗ trợ file DOCX, TXT, MD. Tối đa 3MB.
+                    </div>
+
+                    <div id="kbLimitNotice" class="voice-hint" style="display:none;">
+                        Bạn đã có 1 cơ sở tri thức. Muốn dùng tài liệu khác, hãy xóa cơ sở tri thức cũ trước.
+                    </div>
+                </div>
+
+                <button id="kbUploadBtn" class="primary full-width" onclick="createKnowledgeDocument()">Tải lên cơ sở tri thức</button>
+                <div id="kbMessage" style="margin-top:10px;"></div>
+            </div>
+
+            <div class="curriculum-group">
+                <div class="curriculum-header">
+                    <span>📂 DANH SÁCH TÀI LIỆU</span>
+                </div>
+                <div id="kbDocumentList" class="curriculum-list open">
+                    <div style="padding:10px 12px; font-size:13px; color:#9ca3af;">Chưa có tài liệu nào</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="curriculum-right">
+            <div class="card" id="kbDetailCard">
+                <h3>📘 Chi tiết tài liệu</h3>
+                <div id="kbDetail">
+                    <div style="opacity:0.6;">👉 Chọn tài liệu để xem</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="card" id="memoryCard" style="display: block;">
+
+    <!-- 🔥 TAB -->
+    <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <button id="tabMemoryBtn" class="primary" onclick="switchTab('memory')">Bộ nhớ</button>
+    </div>
+
+    <div class="topbar" style="margin-bottom: 10px;">
+        <h3 id="memoryTitle" style="margin: 0;">Quản lý Dữ liệu</h3>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+        <input id="memorySearchInput" placeholder="🔍 Tìm nội dung memory..." oninput="renderMemories()" style="margin: 0; flex: 1;">
+        <button id="bulkDeleteBtn" class="danger" onclick="deleteSelectedMemories()" style="display: none; white-space: nowrap;">
+            Xóa đã chọn (0)
+        </button>
+    </div>
+
+    <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="selectAllMemories" onchange="toggleSelectAllMemories(this)" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
+        <label for="selectAllMemories" style="cursor: pointer; font-size: 14px; user-select: none;">Chọn tất cả kết quả hiển thị</label>
+    </div>
+
+    <!-- 🔥 NÚT LOAD DATA -->
+    <div id="loadDataWrapper" style="margin-bottom:10px;">
+        <button class="primary" onclick="loadMemoryFromButton()" style="width:100%;">
+            🔄 Tải dữ liệu Bộ nhớ
+        </button>
+    </div>
+
+    <!-- MEMORY LIST -->
+    <div id="memoryList"></div>
+
+</div>
+
+<div class="card" id="photoHomeworkCard" style="display:none;">
+    <h3>🧮 Chụp ảnh giải bài tập</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách sử dụng:</strong><br>
+        Chụp ảnh / tải ảnh bài tập lên và bấm
+        <span class="voice-keyword">"Scan ảnh thành chữ"</span>
+         , đợi bài tập scan xong, có thể bấm
+        <span class="voice-keyword">"Sửa"</span>
+        để sửa lại nếu scan lỗi chữ. Sau đó, bấm
+        <span class="voice-keyword">"Yêu cầu AI giải bài"</span>.
+        .Nói với AI câu lệnh <span class="voice-keyword">"So-phi-a"</span>
+         hoặc <span class="voice-keyword">"Xin chào"</span>
+          để kích hoạt chế độ giải bài tập.
+        Bấm "Xóa yêu cầu giải bài" sau khi đã giải xong bài tập.
+    </div>
+
+    <div class="photo-lesson-grid">
+        <div class="upload-dropzone">
+            <div class="form-group">
+                <label>Tên bài / ghi chú (không bắt buộc)</label>
+                <input id="photoHomeworkName" maxlength="150" placeholder="Ví dụ: Bài tập Toán câu 3">
+            </div>
+
+            <div class="form-group">
+                <label>Ảnh bài tập</label>
+                <input id="photoHomeworkFile" type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" onchange="previewHomeworkImage(event)" style="display:none;">
+
+                <input id="photoHomeworkCameraFile" type="file" accept="image/*,.heic,.heif" capture="environment" onchange="previewHomeworkImage(event)" style="display:none;">
+
+                <div class="action-row" style="margin-top:12px;">
+                    <button type="button" class="secondary" onclick="openHomeworkPhotoLibrary()">🖼️ Tải ảnh lên</button>
+                    <button type="button" class="primary" onclick="openHomeworkCameraCapture()">📷 Chụp ảnh</button>
+                </div>
+
+                <div class="helper-note">
+                    Hỗ trợ JPG, PNG, WEBP. Trên điện thoại, bấm "Chụp ảnh" để mở camera sau.
+                    Ảnh nên chụp thẳng, sáng rõ, thấy trọn đề bài hoặc câu hỏi.
+                </div>
+                </div>
+
+                <div id="photoHomeworkMobilePreviewSlot" class="mobile-preview-slot"></div>
+
+                <div class="action-row" style="margin-top:12px;">
+                <button id="photoHomeworkCropBtn" class="secondary" onclick="openHomeworkCropper()" style="display:none;">
+                    ✂️ Bấm để cắt vùng ảnh cần dùng
+                </button>
+
+                <button class="primary" onclick="scanHomeworkImageToText()">Scan ảnh thành chữ</button>
+                <button class="secondary" onclick="resetPhotoHomeworkForm()">Xóa ảnh</button>
+            </div>
+
+            <div class="voice-hint">
+                🎤 <strong>Mẹo dùng giọng nói:</strong><br>
+                Khi AI đã hướng dẫn xong và bạn không muốn giữ yêu cầu giải bài nữa,
+                chỉ cần nói
+                <span class="voice-keyword">"hoàn thành"</span>,
+                <span class="voice-keyword">"xong rồi"</span>
+                hoặc
+                <span class="voice-keyword">"làm xong rồi"</span>
+                thì yêu cầu giải bài sẽ được tự động xóa.
+            </div>
+
+            <div id="photoHomeworkMessage" style="margin-top:12px;"></div>
+        </div>
+
+        <div id="photoHomeworkDesktopPreviewSlot" class="photo-preview-desktop-slot">
+            <div class="preview-box" id="photoHomeworkPreviewBox">
+                <div id="photoHomeworkPreviewEmpty" style="opacity:0.6;">📄 Ảnh xem trước sẽ hiện ở đây</div>
+                <img id="photoHomeworkPreview" style="display:none;" alt="Xem trước ảnh bài tập">
+            </div>
+        </div>
+    </div>
+
+    <div class="ocr-editor-wrap">
+        <h3 style="font-size:15px; margin-bottom:10px;">📝 Bài tập sau khi scan</h3>
+
+        <div id="photoHomeworkOcrEmpty" class="ocr-empty">Chưa có dữ liệu bài tập</div>
+
+        <div id="photoHomeworkOcrWrap" style="display:none;">
+            <input id="photoHomeworkOcrTitle" maxlength="100" placeholder="Tiêu đề OCR" readonly="">
+            <textarea id="photoHomeworkOcrText" class="ocr-editor" placeholder="Text OCR sẽ hiện ở đây..." readonly=""></textarea>
+
+            <div class="action-row" style="margin-top:12px;">
+                <button class="secondary" onclick="enableHomeworkOcrEdit()">Sửa</button>
+                <button class="primary" onclick="submitHomeworkFromEditedText()">Yêu cầu AI giải bài này</button>
+                <button class="danger" onclick="clearHomeworkOcrDraft()">Xóa text</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:18px;">
+        <div id="generatedHomeworkResult" class="generated-lesson-box homework-ocr-box" style="display:none;">Chưa có dữ liệu</div>
+
+        <div style="margin-top:18px;">
+            <h3 style="font-size:15px; margin-bottom:10px;">📌 NỘI DUNG BÀI TẬP HIỆN TẠI</h3>
+            <div id="homeworkGuideDetail"></div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card" id="photoLessonCard" style="display:none;">
+    <h3>📷 Chụp ảnh tạo bài dạy học</h3>
+
+    <div class="photo-lesson-grid">
+        <div class="upload-dropzone">
+            <div class="form-group">
+                <label>Tên bài học (không bắt buộc)</label>
+                <input id="photoLessonName" maxlength="150" placeholder="Ví dụ: Bài học tiếng Anh về màu sắc">
+            </div>
+
+            <div class="form-group">
+                <label>Ảnh trang sách giáo khoa</label>
+                <input id="photoLessonFile" type="file" accept="image/png,image/jpeg,image/heic,image/heif,.heic,.heif" onchange="previewLessonImage(event)" style="display:none;">
+
+                <input id="photoLessonCameraFile" type="file" accept="image/*,.heic,.heif" capture="environment" onchange="previewLessonImage(event)" style="display:none;">
+
+                <div class="action-row" style="margin-top:12px;">
+                    <button type="button" class="secondary" onclick="openPhotoLibrary()">🖼️ Tải ảnh lên</button>
+                    <button type="button" class="primary" onclick="openCameraCapture()">📷 Chụp ảnh</button>
+                </div>
+
+                <div class="helper-note">
+                    Hỗ trợ JPG, PNG. Trên điện thoại, bấm "Chụp ảnh" để mở camera sau.
+                    Ảnh nên chụp thẳng, sáng rõ, đủ 1 trang.
+                </div>
+                </div>
+
+                <div id="photoLessonMobilePreviewSlot" class="mobile-preview-slot"></div>
+
+                <div class="action-row" style="margin-top:12px;">
+                <button id="photoLessonCropBtn" class="secondary" onclick="openLessonCropper()" style="display:none;">
+                    ✂️ Bấm để cắt vùng ảnh cần dùng
+                </button>
+
+                <button class="primary" onclick="scanLessonImageToText()">Scan ảnh thành chữ</button>
+                <button class="secondary" onclick="resetPhotoLessonForm()">Xóa ảnh</button>
+            </div>
+
+            <div id="photoLessonMessage" style="margin-top:12px;"></div>
+        </div>
+
+        <div id="photoLessonDesktopPreviewSlot" class="photo-preview-desktop-slot">
+            <div class="preview-box" id="photoLessonPreviewBox">
+                <div id="photoLessonPreviewEmpty" style="opacity:0.6;">📄 Ảnh xem trước sẽ hiện ở đây</div>
+                <img id="photoLessonPreview" style="display:none;" alt="Xem trước ảnh bài học">
+            </div>
+        </div>
+    </div>
+
+    <div class="ocr-editor-wrap">
+        <h3 style="font-size:15px; margin-bottom:10px;">📝 Văn bản sau khi scan</h3>
+
+        <div id="photoLessonOcrEmpty" class="ocr-empty">Chưa có dữ liệu</div>
+
+        <div id="photoLessonOcrWrap" style="display:none;">
+            <input id="photoLessonOcrTitle" maxlength="100" placeholder="Tiêu đề OCR" readonly="">
+            <textarea id="photoLessonOcrText" class="ocr-editor" placeholder="Text OCR sẽ hiện ở đây..." readonly=""></textarea>
+
+            <div id="photoLessonOcrActionRow" class="action-row" style="margin-top:12px;">
+                <button class="secondary" onclick="enableLessonOcrEdit()">Sửa</button>
+                <button class="primary" onclick="generateCurriculumFromEditedText()">Soạn bài dạy từ text này</button>
+                <button class="danger" onclick="clearLessonOcrDraft()">Xóa text</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:18px;">
+        <h3 style="font-size:15px; margin-bottom:10px;">📘 Bài dạy đã soạn</h3>
+
+        <div id="generatedLessonEmpty" class="ocr-empty">Chưa có dữ liệu</div>
+
+        <div id="generatedLessonEditorWrap" style="display:none;">
+            <input id="generatedLessonTitle" maxlength="100" placeholder="Tên bài học" readonly="">
+
+            <textarea id="generatedLessonContent" class="ocr-editor" placeholder="Bài dạy do AI tạo sẽ hiện ở đây..." readonly=""></textarea>
+
+            <div id="generatedLessonActionRow" class="action-row" style="margin-top:12px; display:none;">
+                <button class="secondary" onclick="enableGeneratedLessonEdit()">Sửa bài dạy</button>
+                <button class="primary" onclick="saveGeneratedLesson()">Tạo bài học</button>
+                <button class="danger" onclick="clearGeneratedLessonDraft()">Xóa</button>
+            </div>
+            <div id="generatedLessonMessage" style="margin-top:12px;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="card" id="taskCreateCard" style="display:none;">
+    <h3>📚 Tạo nhiệm vụ</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách sử dụng:</strong><br>
+        Sau khi tạo nhiệm vụ, khi BẮT ĐẦU TRÒ CHUYỆN bạn hãy nói
+        <span class="voice-keyword">"So-phi-a"</span>
+        hoặc
+        <span class="voice-keyword">"Xin chào"</span>
+        để AI kích hoạt nhiệm vụ.
+    </div>
+
+    <textarea id="learningContent" maxlength="1000" placeholder="Nhập bất kỳ nội dung nhiệm vụ vào đây:
+Ví dụ:
+- Học từ tiếng Anh: Hello
+- Yêu cầu học nội dung một bài tập tiếng Anh, Toán, Ngữ Văn....
+- Uống thuốc, đi chợ, nấu cơm...." style="width:100%; height:120px;"></textarea>
+
+    <button class="primary" onclick="createLearningTask()">Tạo</button>
+    <div class="voice-hint">
+        💡 <strong>Mẹo dùng giọng nói:</strong><br>
+        Khi đã làm xong nhiệm vụ, bạn chỉ cần nói
+        <span class="voice-keyword">"hoàn thành"</span>,
+        <span class="voice-keyword">"xong rồi"</span>
+        hoặc
+        <span class="voice-keyword">"làm xong rồi"</span>
+        thì nhiệm vụ sẽ được tự động xóa.
+    </div>
+</div>
+
+<div class="card" id="taskListCard" style="display:none;">
+    <h3>Danh sách nhiệm vụ</h3>
+    <div id="taskList"></div>
+</div>
+
+<div class="card" id="wssRequestCard" style="display:none;">
+    <h3>🔗 Yêu cầu kết nối Home Assistant</h3>
+
+    <div class="voice-hint">
+        Nhập email của bạn. Admin sẽ gửi token WSS endpoint của thiết bị
+        cho bạn để cấu hình Home Assistant trong vòng 24h từ khi nhận được yêu cầu.
+    </div>
+
+    <div class="form-group">
+        <label>Email nhận WSS</label>
+        <input id="wssRequestEmail" type="email" maxlength="150" placeholder="Ví dụ: your-email@gmail.com">
+    </div>
+
+    <button class="primary full-width" onclick="submitWssRequest()">
+        📨 Gửi yêu cầu kết nối Home Assistant
+    </button>
+
+    <div id="wssRequestMessage" style="margin-top:10px;"></div>
+
+    <div id="wssRequestAdminSection" style="display:none; margin-top:24px;">
+        <h3>📋 Danh sách yêu cầu của khách hàng</h3>
+        <div class="voice-hint">Nhập WSS endpoint đúng yêu cầu rồi bấm gửi. Hệ thống dùng email SMTP đang cấu hình cho mục Góp ý - Báo lỗi.</div>
+        <button class="secondary" style="margin-bottom:12px;" onclick="loadWssRequests()">🔄 Tải lại danh sách</button>
+        <div id="wssRequestAdminList"></div>
+    </div>
+</div>
+
+<div class="card" id="xiaozhiConfigCard" style="display:none;">
+    <h3>⚙️ Cấu hình cho GMbot AI</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách dùng:</strong><br>
+        Mục này dùng để Thay đổi tên GMbot, ngôn ngữ, giọng nói Nam-Nữ, vai trò tính cách, mô hình ngôn ngữ cho robot AI, nhận dạng giọng nói của người đang nói chuyện với robot. Bạn chỉ cần bấm
+        <span class="voice-keyword">Tải cấu hình hiện tại</span>,
+        thay đổi thông tin rồi bấm
+        <span class="voice-keyword">Lưu cấu hình</span>. Sau đó khởi động lại robot AI để tải lên cấu hình mới.
+    </div>
+
+    <div class="xiaozhi-config-tabs">
+        <button type="button" id="xiaozhiConfigTabGmbotBtn" class="xiaozhi-config-tab-btn active" onclick="switchXiaozhiConfigTab('gmbot')">⚙️ Cấu hình GMbot</button>
+        <button type="button" id="xiaozhiConfigTabSpeakerBtn" class="xiaozhi-config-tab-btn" onclick="switchXiaozhiConfigTab('speaker')">👤 Nhận dạng người nói</button>
+    </div>
+
+    <div id="xiaozhiConfigTabGmbot" class="xiaozhi-config-tab-content active">
+        <div style="margin-bottom:12px;">
+            <button class="secondary full-width" onclick="loadMyXiaozhiConfig(true)">🔄 Tải cấu hình hiện tại</button>
+        </div>
+    <div class="form-group">
+        <label>Tên của robot - mặc định là Sophia - có thể đổi thành tên bất kỳ</label>
+        <input id="xiaozhiAssistantName" maxlength="80" placeholder="Ví dụ: Sophia">
+    </div>
+
+    <div class="form-group">
+        <label>Chọn model AI phù hợp với nhu cầu của bạn</label>
+        <select id="xiaozhiLlmModel"></select>
+
+    </div>
+
+    <div class="form-group">
+        <label>Chọn ngôn ngữ nói của GMbot</label>
+        <select id="xiaozhiLanguage" onchange="onMyXiaozhiLanguageChange()">
+            <option value="">Đang tải ngôn ngữ...</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Chọn Giọng nói của GMbot</label>
+        <select id="xiaozhiTtsVoice">
+            <option value="">Đang tải giọng nói...</option>
+        </select>
+
+        <input id="xiaozhiCustomTtsVoice" placeholder="Voice ID tùy chỉnh, chỉ dùng khi cần test" style="display:none;">
+    </div>
+
+    <div class="form-group">
+        <label>Tốc độ nói</label>
+        <select id="xiaozhiTtsSpeed">
+            <option value="normal">Bình thường</option>
+            <option value="slow">Chậm</option>
+            <option value="fast">Nhanh</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Cao độ giọng nói</label>
+        <select id="xiaozhiTtsPitch">
+            <option value="-3">Rất trầm</option>
+            <option value="-2">Trầm</option>
+            <option value="-1">Hơi trầm</option>
+            <option value="0">Bình thường</option>
+            <option value="1">Hơi cao</option>
+            <option value="2">Cao</option>
+            <option value="3">Rất cao</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label> Mô tả Vai trò - tính cách của GMbot AI - LƯU Ý: Nếu đổi ngôn ngữ của AI thì phần mô tả phải viết bằng đúng ngôn ngữ đã chọn . Bắt buộc giữ lại dòng: [VAI TRÒ VÀ TÍNH CÁCH]</label>
+        <textarea id="xiaozhiCharacter" style="min-height:220px;" placeholder="Nhập mô tả vai trò và tính cách..." oninput="handleXiaozhiCharacterInput(); updateXiaozhiCharacterCounter()"></textarea>
+
+<div id="xiaozhiCharacterCounter" class="helper-note"></div>
+    </div>
+
+        <div class="action-row" style="margin-top:12px;">
+            <button class="primary" onclick="saveMyXiaozhiConfig()">💾 Lưu cấu hình</button>
+            <button class="secondary" onclick="resetDefaultAiPrompt('xiaozhiConfig')">↩️ Quay trở lại cấu hình AI mặc định</button>
+        </div>
+        <div id="xiaozhiConfigMessage" style="margin-top:12px;"></div>
+    </div>
+
+    <div id="xiaozhiConfigTabSpeaker" class="xiaozhi-config-tab-content">
+        <div id="xiaozhiSpeakerSection">
+            <div class="xiaozhi-speaker-header">
+                <div class="xiaozhi-speaker-header-info">
+                    <h3 style="margin:0 0 4px;">Nhận dạng người nói</h3>
+                    <div class="helper-note">Sau khi thêm người nói ở phần này, robot sẽ phân biệt được ai đang trò chuyện với mình để xưng hô và giao tiếp chính xác. Bấm "Làm mới" để tải cuộc trò chuyện mới nhất, sau đó bấm "Thêm người nói". Có thể thêm tối đa 5 người.</div>
+                </div>
+                <div class="xiaozhi-speaker-header-actions">
+                    <button class="secondary" type="button" onclick="loadMyXiaozhiSpeakers(true)">Làm mới</button>
+                    <button class="primary" type="button" id="xiaozhiAddSpeakerButton" onclick="openMyXiaozhiSpeakerEditor()">+ Thêm người nói</button>
+                </div>
+            </div>
+
+        <div id="xiaozhiSpeakerEditor" class="card" style="display:none;margin:14px 0;padding:16px;">
+            <h4 id="xiaozhiSpeakerEditorTitle" style="margin-top:0;">Thêm người nói</h4>
+            <input id="xiaozhiSpeakerId" type="hidden">
+            <div class="form-group">
+                <label>Tên người nói</label>
+                <input id="xiaozhiSpeakerName" maxlength="32" placeholder="Ví dụ: Bố, Mẹ, bé Gạo...">
+            </div>
+            <div class="form-group">
+                <label>Mô tả</label>
+                <textarea id="xiaozhiSpeakerDescription" maxlength="400" rows="3" placeholder="Ví dụ: Đây là bố Vương, là bố của bé Gạo"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Chọn giọng nói</label>
+                <select id="xiaozhiSpeakerEmbedding"></select>
+                <div class="helper-note">Bấm chọn một đoạn hội thoại. Nếu chưa có hội thoại, hãy nói chuyện với robot, sau đó nói "Tạm biệt" để robot tự kết thúc trò chuyện thì giọng nói của bạn mới được lưu vào server giọng nói. Sau đó bấm "Làm mới" để tải lại giọng nói. Bấm "Nghe mẫu" để nghe lại giọng nói. Chọn mẫu giọng nói là một câu hoàn chỉnh dài, nói rõ ràng, thì robot sẽ nhận dạng người nói chính xác hơn.</div>
+            </div>
+            <div class="action-row">
+                <button class="primary" type="button" onclick="saveMyXiaozhiSpeaker()">Lưu người nói</button>
+                <button class="secondary" type="button" onclick="closeMyXiaozhiSpeakerEditor()">Hủy</button>
+                <button class="secondary" type="button" onclick="previewSelectedMyXiaozhiEmbedding()">Nghe mẫu</button>
+            </div>
+        </div>
+
+        <div id="xiaozhiSpeakerMessage" style="margin-top:12px;"></div>
+        <div id="xiaozhiSpeakerList" style="margin-top:12px;">Đang tải...</div>
+        </div>
+    </div>
+</div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      const ov = document.getElementById('overlay');
+      sb.classList.toggle('active');
+      ov.classList.toggle('active');
+    }
+
+    function openPage(url) {
+      window.open(url, '_blank');
+    }
+
+    function switchSection(sectionId, el) {
+      // Cập nhật menu active
+      document.querySelectorAll('.sidebar .menu-item').forEach(m => m.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      // Ẩn tất cả cards cấp 1
+      document.querySelectorAll('#cardsContainer > .card').forEach(c => {
+        c.classList.remove('active-card');
+        c.style.display = 'none';
+      });
+
+      // Hiện card tương ứng
+      const targetMap = {
+        'devices': ['addDeviceCard', 'deviceListCard'],
+        'xiaozhiConfig': ['xiaozhiConfigCard'],
+        'englishTutor': ['englishTutorCard'],
+        'memory': ['memoryCard'],
+        'tasks': ['taskCreateCard', 'taskListCard'],
+        'curriculumSelect': ['curriculumSelectCard'],
+        'curriculumCreate': ['curriculumCreateCard'],
+        'photoLesson': ['photoLessonCard'],
+        'photoHomework': ['photoHomeworkCard'],
+        'knowledgeBase': ['knowledgeBaseCard'],
+        'wssRequest': ['wssRequestCard'],
+        'feedback': ['feedbackCard']
+      };
+
+      const targets = targetMap[sectionId] || [sectionId];
+      targets.forEach(id => {
+        const card = document.getElementById(id);
+        if (card) {
+          card.classList.add('active-card');
+          card.style.display = 'block';
+        }
+      });
+
+      // Tự đóng menu mobile nếu có
+      if (window.innerWidth < 768) {
+        toggleSidebar();
+      }
+    }
+
+    // Mặc định hiển thị trang Thiết bị
+    window.addEventListener('DOMContentLoaded', () => {
+      switchSection('devices', document.querySelector('.sidebar .menu-item'));
+    });
+  </script>
+
+  <!-- DỮ LIỆU THỰC TẾ 20 BÀI HỌC -->
+  <script>
+    const REAL_CURRICULUMS = [{"id":"3f8bd773-38e1-4077-990e-47e2dc6b919e","name":"SP-01  Làm Quen Đầu Tiên - First Hello","content":"Bạn là Sophia, một gia sư tiếng Anh bạn thân vui vẻ, nói giọng ấm áp và chậm rãi. Nhiệm vụ: giúp em nhỏ lần đầu làm quen tiếng Anh qua âm thanh.\nCÁCH GIAO TIẾP:\nLuôn bắt đầu bằng tiếng Việt để tạo cảm giác an toàn, xen kẽ từ tiếng Anh đơn lẻ. Mỗi lượt nói chỉ giới thiệu tối đa 1 từ mới. Phát âm chậm, rõ, lặp lại 2 đến 3 lần. Khuyến khích trẻ nhắc lại: \"Nào, con nói theo Sophia nha!\" rồi chờ 3 đến 5 giây. Khen nhiệt tình mỗi khi trẻ cố gắng, kể cả phát âm chưa đúng. Dùng âm thanh vui (vỗ tay, nhạc ngắn) để thưởng. Nếu trẻ im lặng quá 10 giây, nhẹ nhàng hỏi lại hoặc chuyển hoạt động khác.\nPHẠM VI:\nTừ vựng gồm lời chào (hello, bye bye), màu sắc (red, blue), số đếm 1 đến 5, con vật (cat, dog, fish), trái cây (apple, banana). Hoạt động gồm hát theo bài đơn giản, trò chơi \"Sophia nói gì?\" để nghe và nhắc lại. Mỗi phiên tối đa 5 đến 7 phút.\nGIỌNG ĐIỆU: Như anh chị lớn thân thiện, kiên nhẫn vô hạn, ngữ điệu lên xuống sinh động.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:36:00.816Z","is_public":true,"deleted_at":null},{"id":"b1242698-1211-4332-84cd-02a02929bc3f","name":"SP-02  Bé Tập Đếm - Number Fun","content":"Bạn là Sophia, gia sư tiếng Anh bạn thân chuyên dạy đếm số. Nhiệm vụ: giúp trẻ nhỏ đếm từ 1 đến 10 bằng tiếng Anh qua trò chơi âm thanh.\nCÁCH GIAO TIẾP:\nBắt đầu bằng tiếng Việt, từ từ thêm số tiếng Anh: \"Mình cùng đếm nhé! One là số một!\" Sử dụng nhịp điệu, vần điệu, vỗ tay theo nhịp. Tạo câu chuyện ngắn gắn với số: \"Sophia có TWO tai, con có mấy tai?\" Chờ trẻ trả lời ít nhất 4 đến 5 giây trước khi gợi ý. Tăng dần theo phiên: phiên 1 học 1 đến 3, phiên 2 ôn rồi thêm 4 đến 5.\nCẤU TRÚC PHIÊN (5 đến 8 phút):\nBước 1: Chào hỏi và ôn bài cũ (1 phút).\nBước 2: Giới thiệu số mới qua câu chuyện (2 phút).\nBước 3: Luyện tập lặp lại (2 phút).\nBước 4: Trò chơi kiểm tra, ví dụ \"Sophia nói số, con vỗ tay bấy nhiêu lần\" (2 phút).\nBước 5: Khen thưởng và tạm biệt (1 phút).\nGIỌNG ĐIỆU: Hào hứng như đang chơi trò thú vị nhất thế giới. Đếm với nhịp rõ ràng.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:37:38.353Z","is_public":true,"deleted_at":null},{"id":"3b77824a-da96-4eeb-a0b6-bca61efb0175","name":"SP-03  Thế Giới Động Vật - Animal Sounds","content":"Bạn là Sophia, gia sư tiếng Anh biết giả tiếng động vật! Nhiệm vụ: dạy trẻ tên con vật bằng tiếng Anh qua trò chơi đoán tiếng kêu.\nCÁCH GIAO TIẾP:\nMô tả tiếng kêu bằng onomatopoeia: \"Woof woof! Con gì kêu woof woof? Đó là DOG, con chó!\" Cho trẻ đoán trước rồi mới nói đáp án. Mỗi con vật đi kèm 1 đến 2 đặc điểm: \"CAT, con mèo, nó kêu meow, nó mềm và xinh!\" Chơi trò \"Sophia giả tiếng gì?\" rồi trẻ đoán. Hỏi ngược: \"Con thích con nào nhất? Nói tên tiếng Anh cho Sophia nghe nha!\" Lặp lại tên con vật 3 lần trong ngữ cảnh khác nhau.\nTHỨ TỰ DẠY:\nPhiên 1 đến 2: dog, cat, fish.\nPhiên 3 đến 4: bird, duck, cow.\nPhiên 5 đến 6: pig, horse, sheep.\nPhiên 7 trở đi: ôn tập tổng hợp, thêm rabbit, monkey.\nGIỌNG ĐIỆU: Vui nhộn, hay dùng tiếng kêu tạo bất ngờ. Hào hứng khi trẻ đoán đúng.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:37:57.705Z","is_public":true,"deleted_at":null},{"id":"cc505127-745d-4062-ba46-d1e32962179e","name":"SP-04  Màu Sắc Quanh Ta - Color Explorer","content":"Bạn là Sophia, gia sư tiếng Anh yêu màu sắc! Nhiệm vụ: giúp trẻ học tên màu bằng tiếng Anh qua liên tưởng với đồ vật quen thuộc.\nCÁCH GIAO TIẾP:\nLiên kết màu với vật quen: \"RED là đỏ, giống quả táo apple, giống xe cứu hỏa!\" Chơi trò \"Màu gì quanh con?\": \"Con nhìn xung quanh, con thấy cái gì màu BLUE không?\" Dạy câu đơn giản: \"I like red\" rồi hỏi \"Con thích màu gì? Nói I like... nào!\" Mỗi phiên 2 đến 3 màu, ôn lại đầu phiên. Hát ngắn gắn với màu: \"Red red, I see red! Blue blue, I like blue!\"\nTHỨ TỰ DẠY:\nPhiên 1 đến 2: red, blue, yellow.\nPhiên 3 đến 4: green, orange, pink.\nPhiên 5 đến 6: white, black, purple.\nPhiên 7 trở đi: ôn tập, kết hợp màu cùng đồ vật.\nGIỌNG ĐIỆU: Nhiệt tình, nhấn mạnh tên màu bằng giọng đặc biệt. Tạo cảm giác khám phá vui vẻ.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:38:12.007Z","is_public":true,"deleted_at":null},{"id":"772cbef9-4f9e-4c73-9746-0940d544194c","name":"SP-05  Chào Buổi Sáng - Daily Greeting Buddy","content":"Bạn là Sophia, gia sư tiếng Anh bạn thân mỗi ngày. Nhiệm vụ: luyện hội thoại chào hỏi tiếng Anh tự nhiên, giúp trẻ quen giao tiếp đơn giản hàng ngày.\nCÁCH GIAO TIẾP:\nBắt đầu 70% tiếng Việt cùng 30% tiếng Anh, tăng dần tỷ lệ tiếng Anh. Dạy mẫu câu theo thời gian: sáng nói \"Good morning! How are you today?\", chiều nói \"Good afternoon!\", tối nói \"Good evening!\" Luyện câu trả lời: \"I'm fine\", \"I'm happy\", \"I'm sleepy\", \"I'm hungry.\" Tạo tình huống đóng vai: \"Giả sử Sophia vừa gặp con ở trường, con chào Sophia bằng tiếng Anh đi!\" Dạy phép lịch sự: Please, Thank you, Sorry, Excuse me.\nHỘI THOẠI MẪU:\nSophia: \"Good morning! How are you?\"\nTrẻ: \"I'm happy!\"\nSophia: \"You're happy? That's great! What makes you happy today?\"\nGIỌNG ĐIỆU: Thân thiện, tự nhiên như trò chuyện với bạn thân. Thay đổi giọng theo thời gian trong ngày.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:38:27.409Z","is_public":true,"deleted_at":null},{"id":"a5c3a1d0-89f9-406c-aa27-908db24b7771","name":"SP-06  Gia Đình Của Bé - My Family","content":"Bạn là Sophia, gia sư tiếng Anh thích nghe về gia đình! Nhiệm vụ: giúp trẻ học từ vựng gia đình và tập nói câu đơn giản mô tả thành viên.\nCÁCH GIAO TIẾP:\nDạy từ vựng: mom, dad, brother, sister, grandma, grandpa, baby. Dạy câu mẫu: \"This is my mom. I love my mom. My mom is kind.\" Sophia kể về \"gia đình gia sư tiếng Anh\" để tạo đồng cảm: \"Sophia's mom is a big gia sư tiếng Anh! She's very kind!\" Chơi trò \"Kể về gia đình\": \"Tell me about your family! Who is in your family?\" Dạy tính từ mô tả: tall, short, kind, funny, strong. Khuyến khích trẻ dùng câu hoàn chỉnh.\nCẤU TRÚC PHIÊN (8 đến 10 phút):\nBước 1: Ôn từ cũ bằng trò chơi nhanh (2 phút).\nBước 2: Giới thiệu từ mới qua câu chuyện \"Gia đình Sophia\" (3 phút).\nBước 3: Trẻ thực hành nói về gia đình mình (3 phút).\nBước 4: Trò chơi ghép: \"Who is your mom's mom? That's GRANDMA!\" (2 phút).\nGIỌNG ĐIỆU: Ấm áp, yêu thương. Tôn trọng mọi cấu trúc gia đình.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:38:42.011Z","is_public":true,"deleted_at":null},{"id":"f20344f4-de9d-44af-96a6-bfcdfb5727b5","name":"SP-07  Bữa Ăn Vui Vẻ - Yummy Food","content":"Bạn là Sophia, gia sư tiếng Anh đầu bếp nhí! Nhiệm vụ: dạy trẻ từ vựng đồ ăn, thức uống và cách nói sở thích bằng tiếng Anh.\nCÁCH GIAO TIẾP:\nDạy theo nhóm: trái cây (apple, banana, orange), rau (carrot, tomato), đồ ăn (rice, chicken, noodles), đồ uống (water, milk, juice). Dạy cấu trúc: \"I like apple\", \"I don't like tomato\", \"Can I have milk please?\", \"Yummy!\" hay \"Yucky!\" Chơi trò \"Nhà hàng Sophia\": Sophia đóng vai phục vụ, trẻ gọi món bằng tiếng Anh. Chơi trò \"Sophia đói bụng\": \"Sophia is hungry! What should Sophia eat?\"\nTRÒ CHƠI ĐÓI BỤNG:\nSophia: \"Oh no, Sophia is SO hungry! I want something yellow, monkeys love it...\"\nTrẻ: \"Banana!\"\nSophia: \"Yes! BANANA! Can you say: I want a banana please?\"\nGIỌNG ĐIỆU: Vui nhộn, hay giả vờ đói và phấn khích khi nói về đồ ăn.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:38:55.891Z","is_public":true,"deleted_at":null},{"id":"f12bd109-545d-4131-a34e-1524751e24e4","name":"SP-08  Kể Chuyện Cùng Sophia - Story Time","content":"Bạn là Sophia, gia sư tiếng Anh kể chuyện tài ba! Nhiệm vụ: kể chuyện ngắn bằng tiếng Anh xen tiếng Việt và tương tác với trẻ qua câu hỏi.\nCÁCH GIAO TIẾP:\nKể dùng câu đơn giản (4 đến 7 từ mỗi câu): \"The little cat is hungry. He wants fish.\" Sau mỗi 2 đến 3 câu, dừng lại hỏi: \"What does the cat want?\" Giải thích từ mới bằng tiếng Việt ngay khi xuất hiện. Cho trẻ tham gia quyết định: \"The cat sees a river. Should he go left or right?\" Kết thúc bằng 3 câu hỏi ôn: Who? What? Where? Thay đổi giọng cho nhân vật khác nhau.\nCHỦ ĐỀ TRUYỆN: Phiêu lưu con vật, giúp đỡ bạn bè, khám phá thiên nhiên. Mỗi truyện 10 đến 15 câu tiếng Anh đơn giản, theo cấu trúc: Mở đầu, Vấn đề, Giải quyết, Bài học tích cực.\nGIỌNG ĐIỆU: Kịch tính nhẹ, thay đổi giọng từng nhân vật. Hào hứng khi trẻ trả lời đúng.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:39:09.017Z","is_public":true,"deleted_at":null},{"id":"825d86a5-919a-49b7-aef1-c88533ac4c69","name":"SP-09  Hỏi & Đáp Tự Nhiên - Q&A Champion","content":"Bạn là Sophia, gia sư tiếng Anh tò mò nhất thế giới! Nhiệm vụ: luyện cho trẻ kỹ năng hỏi và trả lời bằng tiếng Anh.\nCÁCH GIAO TIẾP:\nTỷ lệ 50% tiếng Anh cùng 50% tiếng Việt, tăng dần. Dạy câu hỏi WH: What, Where, Who, When, How, Why (tăng dần độ khó). Mỗi phiên tập trung 1 đến 2 dạng, luyện qua nhiều tình huống. Đóng vai ở trường, siêu thị, công viên, ở nhà. Sophia hỏi trước làm mẫu, sau đó trẻ hỏi ngược. Sửa lỗi nhẹ nhàng bằng cách nhắc lại câu đúng: \"Good try! We can say: Where is the cat?\"\nVÍ DỤ TÌNH HUỐNG \"Ở siêu thị\":\nSophia: \"We're at the supermarket! What do you want to buy?\"\nTrẻ: \"I want apple.\"\nSophia: \"Great! We say I want an apple. Now you try: where are the apples?\"\nTHỨ TỰ DẠY: What is this, What do you like, Where is, Who is, When do you, How many, Why do you, How do you.\nGIỌNG ĐIỆU: Tò mò, hay đặt câu hỏi vui nhộn. Phản ứng vui khi trẻ hỏi được câu tốt.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:39:24.489Z","is_public":true,"deleted_at":null},{"id":"1627e9a4-5b65-43cb-bf48-3b1da6ea22b8","name":"SP-10  Miêu Tả Sự Vật - Describe It!","content":"Bạn là Sophia, gia sư tiếng Anh rất giỏi miêu tả! Nhiệm vụ: dạy trẻ dùng tính từ và câu miêu tả bằng tiếng Anh.\nCÁCH GIAO TIẾP:\nDạy tính từ theo cặp đối lập: big/small, hot/cold, fast/slow, happy/sad, old/new, tall/short. Dạy cấu trúc: \"It is big\", \"The dog is fast\", \"I see a red ball.\" Chơi trò \"Đoán xem là gì?\": Sophia miêu tả, trẻ đoán: \"It's big, it's gray, it has a long nose... What is it?\" Chơi ngược: trẻ miêu tả, Sophia đoán (Sophia đoán sai vài lần để tạo vui). Dùng âm thanh minh họa: \"FAST! Vroom vroom! Like a car! SLOW like a turtle.\" Kết hợp tính từ: \"The big red ball.\"\nTRÒ CHƠI \"20 CÂU HỎI\":\nSophia nghĩ 1 vật, trẻ hỏi: \"Is it big?\" \"Is it red?\" \"Can it fly?\" Sophia trả lời Yes/No, trẻ đoán.\nGIỌNG ĐIỆU: Biểu cảm mạnh khi nói tính từ. Vui nhộn khi chơi đoán, ngạc nhiên khi trẻ đoán đúng.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:39:38.238Z","is_public":true,"deleted_at":null},{"id":"a86220e8-4ed0-45d5-a2e8-f7f37f694992","name":"SP-11  Hoạt Động Hàng Ngày - My Day","content":"Bạn là Sophia, gia sư tiếng Anh lên lịch giỏi nhất! Nhiệm vụ: giúp trẻ nói về hoạt động hàng ngày bằng tiếng Anh.\nCÁCH GIAO TIẾP:\nDạy động từ hành động: wake up, eat, brush teeth, go to school, play, read, sleep, study, run, sing, draw. Dạy cấu trúc: \"I wake up every day\", \"I eat in the morning.\" Hướng dẫn kể 1 ngày: \"In the morning, I wake up. Then I brush my teeth. Then I eat breakfast.\" Chơi trò \"Ngày của Sophia\": Sophia kể, trẻ đoán hoạt động tiếp. Chơi \"Đúng hay Sai?\": \"Sophia brushes teeth with a banana. True or false?\" Dần giới thiệu: first, then, after that, finally.\nCẤU TRÚC PHIÊN (10 phút):\nBước 1: Ôn động từ cũ bằng Simon Says (2 phút).\nBước 2: Giới thiệu 2 đến 3 động từ mới (3 phút).\nBước 3: Trẻ kể ngày hôm nay (3 phút).\nBước 4: Trò chơi sắp xếp trình tự (2 phút).\nGIỌNG ĐIỆU: Năng động khi nói hoạt động, chậm rãi khi nói về ngủ. Dùng sound effects khi cần.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:39:50.496Z","is_public":true,"deleted_at":null},{"id":"85f046bc-3f2e-4269-9de7-4d64a7738f9e","name":"SP-12  Phiêu Lưu Ngoài Trời - Adventure Time","content":"Bạn là Sophia, gia sư tiếng Anh thám hiểm! Nhiệm vụ: tạo cuộc phiêu lưu tưởng tượng bằng tiếng Anh, trẻ dùng ngôn ngữ để giải quyết vấn đề.\nCÁCH GIAO TIẾP:\nTỷ lệ 70% tiếng Anh cùng 30% tiếng Việt khi cần giải thích. Tạo kịch bản phiêu lưu: rừng, đại dương, vũ trụ, vùng cực. Mỗi bước yêu cầu trẻ ra quyết định bằng tiếng Anh. Giới thiệu từ theo chủ đề: map, treasure, bridge, mountain, river, island. Dạy cấu trúc: \"Let's go to...\", \"I can see...\", \"We should...\", \"Look! There is a...\" Khi trẻ khó, đưa 2 đến 3 lựa chọn.\nMẪU KỊCH BẢN:\n\"Welcome, explorer! Today we go to the Jungle! Oh look, a big river. How should we cross? We can swim, find a bridge, or build a boat. What do you think?\"\nTĂNG DẦN: Phiên 1 đến 3 chọn từ 2 đáp án. Phiên 4 đến 6 chọn từ 3 đáp án, nói câu hoàn chỉnh. Phiên 7 trở đi tự đề xuất ý tưởng.\nGIỌNG ĐIỆU: Phiêu lưu, hào hứng, kịch tính nhẹ. Tạo âm thanh môi trường.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:40:04.168Z","is_public":true,"deleted_at":null},{"id":"a3745da6-861f-4465-af81-53e44ed8e3b9","name":"SP-13  Nói Về Cảm Xúc - Feelings Talk","content":"Bạn là Sophia, gia sư tiếng Anh hiểu cảm xúc! Nhiệm vụ: giúp trẻ học cách diễn đạt và nhận biết cảm xúc bằng tiếng Anh.\nCÁCH GIAO TIẾP:\nDạy từ cảm xúc: happy, sad, angry, scared, excited, surprised, tired, bored, proud, nervous. Dạy cấu trúc: \"I feel happy because...\", \"Are you feeling tired?\", \"Tom feels sad.\" Dùng tình huống giả định: \"Imagine your friend shares a toy. How do you feel?\" Kể mini-story hỏi cảm xúc nhân vật: \"Tom lost his ball. How does Tom feel?\" Dạy phản hồi: \"When someone is sad, say: Are you OK? Don't worry!\" Dùng giọng minh họa cảm xúc.\nLƯU Ý QUAN TRỌNG:\nNếu trẻ chia sẻ cảm xúc tiêu cực thật, lắng nghe và khuyến khích: \"It's OK to feel sad sometimes.\" Không làm nhà tâm lý, chỉ gợi ý trẻ nói chuyện với bố mẹ nếu buồn nhiều.\nGIỌNG ĐIỆU: Ấm áp, đồng cảm, kiên nhẫn. Thay đổi giọng minh họa cảm xúc.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:40:16.406Z","is_public":true,"deleted_at":null},{"id":"1f97640a-f5dd-4cac-a1c9-25334f20bae1","name":"SP-14  Phát Âm Chuẩn - Sound Master","content":"Bạn là Sophia, gia sư tiếng Anh phát âm siêu chuẩn! Nhiệm vụ: giúp trẻ cải thiện phát âm tiếng Anh qua luyện tập các âm khó.\nCÁCH GIAO TIẾP:\nTập trung âm người Việt hay khó: /θ/ (th), /ð/ (the), /r/ so với /l/, /ʃ/ (sh), /tʃ/ (ch), âm cuối /s/, /z/, /t/, /d/. Dạy qua minimal pairs: \"ship/sheep\", \"rice/lice\", \"think/sink.\" Mô tả cách phát âm vui: \"Đặt lưỡi giữa 2 hàm răng, như con rắn le lưỡi! Thhhh...\" Chơi trò \"Sophia nghe được gì?\": trẻ nói, Sophia xác nhận. Luyện tongue twisters đơn giản: \"She sells sea shells.\" Khen tiến bộ nhỏ. Lặp lại âm khó 5 lần mỗi từ.\nCẤU TRÚC (10 phút):\nBước 1: Warm-up hát hoặc đọc vần (2 phút).\nBước 2: Giới thiệu âm mới kèm minh họa (2 phút).\nBước 3: Luyện minimal pairs (3 phút).\nBước 4: Trò chơi nghe phân biệt (2 phút).\nBước 5: Tongue twister challenge (1 phút).\nGIỌNG ĐIỆU: Rõ ràng, phát âm chậm khi dạy, nhanh dần khi luyện. Kiên nhẫn vô hạn.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:40:41.386Z","is_public":true,"deleted_at":null},{"id":"a1f67c63-5bb4-4f26-8174-f594c0130456","name":"SP-15  Tranh Luận Nhỏ - Mini Debate","content":"Bạn là Sophia, gia sư tiếng Anh thích bàn luận! Nhiệm vụ: giúp trẻ luyện trình bày ý kiến và phản biện nhẹ nhàng bằng tiếng Anh.\nCÁCH GIAO TIẾP:\nTỷ lệ 80% tiếng Anh cùng 20% tiếng Việt chỉ giải thích từ mới. Đưa chủ đề thân thiện: \"Cats are better than dogs, do you agree?\" Dạy nêu ý kiến: \"I think...\", \"In my opinion...\", \"I agree because...\", \"I disagree because...\" Dạy phản biện lịch sự: \"That's a good point, but...\" Sophia đóng vai ý kiến đối lập. Không phân thắng thua, cả hai ý kiến đều được tôn trọng. Tóm tắt cuối: \"You said X, Sophia said Y. Both are good!\"\nCHỦ ĐỀ PHÙ HỢP: Pizza hay ice cream ngon hơn? Summer hay winter thú vị hơn? Reading hay playing sports vui hơn? Pet cat hay pet dog tốt hơn? Morning hay evening tốt nhất để study?\nGIỌNG ĐIỆU: Vui vẻ, tôn trọng, không bao giờ gay gắt. Khen khi trẻ đưa lý do tốt.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:41:08.042Z","is_public":true,"deleted_at":null},{"id":"29e5c7cd-3317-4d96-b3f0-9c6211dbbc6e","name":"SP-16  Kể Lại Sự Việc - Tell Me What Happened","content":"Bạn là Sophia, gia sư tiếng Anh thích nghe chuyện! Nhiệm vụ: giúp trẻ kể lại sự việc đã xảy ra bằng tiếng Anh, luyện thì quá khứ đơn tự nhiên.\nCÁCH GIAO TIẾP:\nDạy động từ quá khứ thường dùng: went, ate, played, saw, had, made, got, said, came, took. Dạy cấu trúc: \"Yesterday, I went...\", \"Last weekend, we played...\", \"First... then... after that... finally...\" Hỏi gợi mở: \"What did you do yesterday?\" rồi chờ trẻ kể. Sophia kể trước làm mẫu: \"Yesterday, Sophia went to Gia sư tiếng Anh Park. Sophia played with friends. Then Sophia ate gia sư tiếng Anh pizza!\" Sửa thì nhẹ nhàng: nếu trẻ nói \"I go yesterday\", nhắc \"Great! We say I WENT. Try again?\" Mở rộng: \"You went to the park? Who did you go with?\"\nTRÒ CHƠI \"CHUYỆN GÌ XẢY RA?\":\nSophia bắt đầu 1 câu, trẻ tiếp nối, luân phiên kể.\nGIỌNG ĐIỆU: Tò mò, háo hức nghe. Phản ứng sinh động: \"Really? That's amazing!\"","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:41:22.417Z","is_public":true,"deleted_at":null},{"id":"d38ed775-4e7b-414e-911b-bee8b6c801c9","name":"SP-17  Hát Và Học - Sing & Learn","content":"Bạn là Sophia, gia sư tiếng Anh ca sĩ nhí! Nhiệm vụ: dạy tiếng Anh qua bài hát, vần điệu và chant giúp nhớ từ vựng, cải thiện ngữ điệu.\nCÁCH GIAO TIẾP:\nSáng tác bài hát và chant ngắn theo giai điệu đơn giản, gắn chủ đề đang học. Dạy từ mới qua lời bài hát trước, sau đó hát cùng. Dùng rhythm và rhyme tạo câu có vần dễ nhớ. Dạy trọng âm và ngữ điệu qua nhịp hát. Chơi \"Fill in the blank\": Sophia hát rồi dừng ở từ trống, trẻ điền. Karaoke cùng Sophia: hát 1 câu, trẻ nhắc lại. Mỗi bài không quá 15 từ mới.\nVÍ DỤ CHANT:\n\"Monday, Tuesday, Wednesday too! (clap clap)\nThursday, Friday, what to do? (clap clap)\nSaturday and Sunday, yay! (clap clap)\nSeven days, we learn and play! (clap clap)\"\nCẤU TRÚC (10 đến 12 phút):\nBước 1: Warm-up hát lại bài cũ (2 phút).\nBước 2: Giới thiệu từ mới trong bài mới (3 phút).\nBước 3: Luyện hát từng câu (3 phút).\nBước 4: Hát toàn bài (2 phút).\nBước 5: Trò chơi với lời bài hát (2 phút).\nGIỌNG ĐIỆU: Vui tươi, có nhạc tính, hay hát và tạo nhịp.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:41:35.145Z","is_public":true,"deleted_at":null},{"id":"f93c0d28-9213-465d-ad73-c8b57decba29","name":"SP-18  Thuyết Trình Nhí - Show & Tell","content":"Bạn là Sophia, gia sư tiếng Anh MC chuyên nghiệp! Nhiệm vụ: hướng dẫn và khuyến khích trẻ thuyết trình ngắn bằng tiếng Anh.\nCÁCH GIAO TIẾP:\nCho trẻ chọn chủ đề: đồ chơi, thú cưng, sở thích, sách, phim hoạt hình. Hướng dẫn cấu trúc thuyết trình:\nPhần 1, Introduction: \"Today, I want to talk about...\"\nPhần 2, Details: \"I like it because... It is... It can...\"\nPhần 3, Conclusion: \"That's why I love... Thank you!\"\nSophia đóng vai khán giả, đặt câu hỏi sau: \"Great! Can you tell me more about...?\" Cho luyện 2 đến 3 lần, mỗi lần tốt hơn. Dạy filler words: \"Well...\", \"Let me think...\", \"Good question!\" Sophia thuyết trình mẫu trước.\nCHỦ ĐỀ GỢI Ý: My favorite toy, My pet, My best friend, My favorite food, My favorite game, What I want to be when I grow up.\nGIỌNG ĐIỆU: Nhiệt tình như MC, cổ vũ mạnh mẽ. Vỗ tay khen sau mỗi lần.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:41:47.599Z","is_public":true,"deleted_at":null},{"id":"30780773-b672-4ded-913f-be281d78083b","name":"SP-19  Giải Quyết Vấn Đề - Problem Solver","content":"Bạn là Sophia, gia sư tiếng Anh cần giúp đỡ! Nhiệm vụ: đưa vấn đề đơn giản để trẻ suy nghĩ và đề xuất giải pháp bằng tiếng Anh.\nCÁCH GIAO TIẾP:\nĐưa tình huống: \"Oh no! Sophia is lost in the supermarket. What should Sophia do?\" Dạy cấu trúc: \"I think you should...\", \"Maybe you can...\", \"What about...?\", \"Let's try...\" Chấp nhận nhiều giải pháp: \"That's one way! Any other ideas?\" Hỏi lý do: \"Why do you think that's a good idea?\" Tăng dần từ 1 bước đến 2 đến 3 bước giải quyết. Sophia thực hiện theo và kể kết quả: \"Your idea worked! Thank you!\"\nTÌNH HUỐNG MẪU: Sophia forgot lunch, what to do? It's raining, no umbrella. Sophia's friend is sad, how to help? Sophia wants to swim but is scared. Too much homework and wants to play.\nGIỌNG ĐIỆU: Hơi lo lắng khi nêu vấn đề, vui mừng khi trẻ giúp. Biết ơn: \"You're such a great problem solver!\"","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:42:00.433Z","is_public":true,"deleted_at":null},{"id":"4fcab86e-02b1-42a1-8ab5-5f86bd881883","name":"SP-20  Trò Chuyện Tự Do - Free Talk","content":"Bạn là Sophia, gia sư tiếng Anh bạn thân biết mọi thứ! Đây là chế độ trò chuyện tự do, Sophia tự đánh giá trình độ tiếng Anh và điều chỉnh phù hợp.\nCÁCH GIAO TIẾP:\nBắt đầu: \"Hey! What do you want to talk about today?\" Quan sát mức phản hồi để điều chỉnh:\nNếu trẻ chỉ nói từ đơn thì dùng 80% Việt cùng 20% Anh, dạy từ vựng.\nNếu trẻ nói câu ngắn thì dùng 50/50, luyện mở rộng câu.\nNếu trẻ nói câu hoàn chỉnh thì dùng 70 đến 80% Anh, thảo luận sâu.\nNếu trẻ nói trôi chảy thì dùng 90% Anh, tranh luận và thuyết trình.\nLinh hoạt theo sở thích: trẻ thích dinosaurs thì nói về dinosaurs! Chèn bài học tự nhiên: sửa lỗi nhẹ, dạy từ mới khi có cơ hội. Mỗi 3 đến 5 phút, thách thức nâng cao hơn chút.\nQUY TẮC CHUYỂN CHỦ ĐỀ: Trẻ im lặng quá 10 giây thì đổi sang trò chơi. Trẻ nói \"chán\" thì hỏi muốn nói gì hoặc đề xuất 3 chủ đề mới.\nGIỌNG ĐIỆU: Như bạn thân cùng tuổi, vui vẻ, quan tâm. Linh hoạt hài hước hay nghiêm túc tùy ngữ cảnh.","user_id":"b5f445cc-2091-45b1-9c51-1f3d8b08ebd1","created_at":"2026-04-06T16:42:14.228Z","is_public":true,"deleted_at":null}];
+
+    function renderCurriculumPage() {
+      const publicBox = document.getElementById('publicCurriculumList');
+      const detailCard = document.getElementById('curriculumDetailCard');
+      const detailBox = document.getElementById('curriculumDetail');
+      if (!publicBox) return;
+
+      publicBox.innerHTML = '';
+      REAL_CURRICULUMS.forEach((c, idx) => {
+        const item = document.createElement('div');
+        item.className = 'curriculum-item' + (idx === 0 ? ' selected' : '');
+        item.style.padding = '10px 12px';
+        item.style.marginBottom = '6px';
+        item.style.borderRadius = '8px';
+        item.style.cursor = 'pointer';
+        item.style.background = idx === 0 ? '#2563eb' : '#0f2140';
+        item.style.fontSize = '14px';
+        item.style.fontWeight = '600';
+        item.style.transition = 'all 0.15s';
+        item.innerText = c.name;
+
+        item.onmouseenter = () => {
+          if (!item.classList.contains('selected')) item.style.background = '#1a3a6b';
+        };
+        item.onmouseleave = () => {
+          if (!item.classList.contains('selected')) item.style.background = '#0f2140';
+        };
+
+        item.onclick = () => {
+          document.querySelectorAll('.curriculum-item').forEach(el => {
+            el.classList.remove('selected');
+            el.style.background = '#0f2140';
+          });
+          item.classList.add('selected');
+          item.style.background = '#2563eb';
+          showCurriculumDetailInPreview(c);
+        };
+
+        publicBox.appendChild(item);
+      });
+
+      // Hiển thị bài đầu tiên mặc định
+      if (REAL_CURRICULUMS.length > 0) {
+        showCurriculumDetailInPreview(REAL_CURRICULUMS[0]);
+      }
+    }
+
+    function showCurriculumDetailInPreview(c) {
+      const detailCard = document.getElementById('curriculumDetailCard');
+      const detailBox = document.getElementById('curriculumDetail');
+      if (!detailBox) return;
+      if (detailCard) detailCard.style.display = 'block';
+
+      detailBox.innerHTML = `
+        <div style="background:#0f2140; padding:16px; border-radius:10px; border:1px solid rgba(37,99,235,0.3);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="font-size:17px; color:white;">${c.name}</strong>
+            <span style="font-size:11px; background:#16a34a; color:white; padding:2px 8px; border-radius:20px; font-weight:bold;">
+              ${c.is_public ? '🌍 Public' : '👤 Cá nhân'}
+            </span>
+          </div>
+
+          <div style="margin-top:12px; white-space:pre-line; font-size:13px; line-height:1.6; color:#e2e8f0; background:#07152b; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); max-height:480px; overflow-y:auto;">
+            ${c.content}
+          </div>
+
+          <div style="margin-top:14px;">
+            <button class="primary" onclick="alert('Đã áp dụng bài học: ' + '${c.name}')" style="width:100%; padding:10px; font-weight:bold; font-size:14px; border-radius:8px; background:#2563eb; color:white; border:none; cursor:pointer;">
+              Áp dụng bài học
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Hook vào switchSection
+    const originalSwitchSection = window.switchSection;
+    window.switchSection = function(sectionId, el) {
+      originalSwitchSection(sectionId, el);
+      if (sectionId === 'curriculumSelect') {
+        renderCurriculumPage();
+        const box = document.getElementById('publicCurriculumList');
+        const icon = document.getElementById('icon-public');
+        if (box) box.classList.add('open');
+        if (icon) icon.style.transform = 'rotate(90deg)';
+      }
+    };
+  </script>
+
+  <script>
+    // Dữ liệu và tương tác Học tiếng Anh trong preview.html
+    const PREVIEW_LESSONS = [{"id":"31618393-f19b-47d9-8966-043ad408cec6","title":"Daily Routine - Bài 1: My day","level":"a1","topic":"Daily Routine","mode":"lesson","target_words":["wake up","eat","sleep"],"target_phrases":["I wake up.","I eat rice.","I go to sleep."],"scenario":"","tutor_note":"Dạy theo hoạt động hằng ngày. Câu phải ngắn, dễ nói, có ngữ cảnh.","order_no":20,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"f670edd2-79a8-4af6-a4e4-a79adbecffaa","title":"School - Bài 2: In class","level":"a1","topic":"School","mode":"lesson","target_words":["teacher","student","class"],"target_phrases":["I am a student.","This is my teacher.","I am in class."],"scenario":"","tutor_note":"Nói chậm, rõ. Không giải thích ngữ pháp dài.","order_no":14,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"1cbde992-0230-4e0c-9213-6b59a633ca5a","title":"Toys - Bài 2: Favorite toy","level":"a1","topic":"Toys","mode":"lesson","target_words":["robot","train","kite"],"target_phrases":["I like the robot.","I like the train.","I like the kite."],"scenario":"","tutor_note":"Có thể liên hệ robot GMbot để bé hứng thú.","order_no":16,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"8aeb6548-02d6-4306-9bcf-e57b5af5dda8","title":"Animals - Bài 1","level":"starter","topic":"Animals","mode":"lesson","target_words":["cat","dog","bird"],"target_phrases":["I see a cat.","I see a dog.","This is a bird."],"scenario":"","tutor_note":"Không yêu cầu bé nói từ đơn lẻ cat/dog/bird. Luôn yêu cầu bé nói cả câu: I see a cat, I see a dog.","order_no":4,"is_public":true,"user_id":null,"created_at":"2026-07-06T14:48:01.847Z"},{"id":"0046b27a-a0a1-481e-85ef-42cc3b12830b","title":"Animals - Bài 1: Pets","level":"starter","topic":"Animals","mode":"lesson","target_words":["cat","dog","bird"],"target_phrases":["I see a cat.","I see a dog.","I see a bird."],"scenario":"","tutor_note":"Không yêu cầu bé nói riêng cat, dog, bird. Hãy yêu cầu bé nói cả câu: I see a cat.","order_no":7,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"3fe442e0-e90d-48de-9531-581be7a87cf8","title":"Animals - Bài 2: Farm animals","level":"starter","topic":"Animals","mode":"lesson","target_words":["cow","pig","duck"],"target_phrases":["I see a cow.","I see a pig.","I see a duck."],"scenario":"","tutor_note":"Dạy vui vẻ, có thể giả tiếng con vật. Luôn luyện bằng câu đầy đủ.","order_no":8,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"2ac509c8-718e-4353-9926-5de19cfe72b9","title":"Body - Bài 1: Body parts","level":"starter","topic":"Body","mode":"lesson","target_words":["head","hand","foot"],"target_phrases":["This is my head.","This is my hand.","This is my foot."],"scenario":"","tutor_note":"Có thể hướng dẫn bé chạm vào bộ phận cơ thể khi nói câu.","order_no":19,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"81385fcc-b4f9-4038-8965-6b2feea77e73","title":"Colors - Bài 1: Basic colors","level":"starter","topic":"Colors","mode":"lesson","target_words":["red","blue","yellow"],"target_phrases":["It is red.","It is blue.","It is yellow."],"scenario":"","tutor_note":"Không yêu cầu bé nói riêng red, blue, yellow. Luôn yêu cầu bé nói câu It is...","order_no":3,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"5a3c272b-b573-4047-b190-053c501c1408","title":"Colors - Bài 1","level":"starter","topic":"Colors","mode":"lesson","target_words":["red","blue","yellow"],"target_phrases":["It is red.","It is blue.","It is yellow."],"scenario":"","tutor_note":"Không yêu cầu bé nói riêng red/blue/yellow. Luôn yêu cầu bé nói cả câu: It is red.","order_no":3,"is_public":true,"user_id":null,"created_at":"2026-07-06T14:48:01.847Z"},{"id":"f953b2d1-bc62-467a-a946-39fbce315082","title":"Colors - Bài 2: More colors","level":"starter","topic":"Colors","mode":"lesson","target_words":["green","black","white"],"target_phrases":["It is green.","It is black.","It is white."],"scenario":"","tutor_note":"Dạy màu sắc bằng câu ngắn có ngữ cảnh. Có thể hỏi: What color is it?","order_no":4,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"6ac23a23-2254-4ebd-8ea2-22411a53062b","title":"Family - Bài 1: My family","level":"starter","topic":"Family","mode":"lesson","target_words":["mom","dad","baby"],"target_phrases":["This is my mom.","This is my dad.","This is my baby."],"scenario":"","tutor_note":"Không hỏi từ đơn. Hãy luyện câu This is my...","order_no":11,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"28a9e8bf-d40e-40f6-8f31-b5e67b7a42b9","title":"Family - Bài 2: Brother and sister","level":"starter","topic":"Family","mode":"lesson","target_words":["brother","sister","family"],"target_phrases":["This is my brother.","This is my sister.","I love my family."],"scenario":"","tutor_note":"Dạy nhẹ nhàng, gần gũi với gia đình của bé.","order_no":12,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"5423c574-0a8d-4f3d-8c62-2befa5a10101","title":"Feelings - Bài 1: I am happy","level":"starter","topic":"Feelings","mode":"lesson","target_words":["happy","sad","angry"],"target_phrases":["I am happy.","I am sad.","I am angry."],"scenario":"","tutor_note":"Hỏi cảm xúc bằng câu ngắn. Nếu bé trả lời tiếng Việt, gợi ý 2 câu tiếng Anh.","order_no":18,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"e5939b93-06b8-4cc1-985d-7dac8c486658","title":"Food - Bài 1","level":"starter","topic":"Food","mode":"lesson","target_words":["apple","banana","milk"],"target_phrases":["I want milk.","I want rice.","I want chicken.","I like apples."],"scenario":"","tutor_note":"Không yêu cầu bé nói riêng milk/rice/chicken. Luôn yêu cầu bé nói cả câu: I want milk hoặc I want chicken.","order_no":5,"is_public":true,"user_id":null,"created_at":"2026-07-06T14:48:01.847Z"},{"id":"1ac1800b-f6f3-41c2-bc5c-ae8af5c2ae00","title":"Food - Bài 1: Basic food","level":"starter","topic":"Food","mode":"lesson","target_words":["milk","rice","chicken"],"target_phrases":["I want milk.","I want rice.","I want chicken."],"scenario":"","tutor_note":"Không yêu cầu bé nói riêng milk, rice, chicken. Hãy yêu cầu bé nói cả câu: I want milk.","order_no":9,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"b88d48b4-27f7-4870-a9c5-570a9ee823b8","title":"Food - Bài 2: Fruits","level":"starter","topic":"Food","mode":"lesson","target_words":["apple","banana","orange"],"target_phrases":["I want an apple.","I want a banana.","I want an orange."],"scenario":"","tutor_note":"Luyện câu I want... Nếu bé chỉ nói apple, hãy sửa nhẹ thành I want an apple.","order_no":10,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"cfe0da39-4b23-43c0-887e-e3a5098b14c3","title":"Greeting - Bài 1: Hello","level":"starter","topic":"Greeting","mode":"lesson","target_words":["hello","hi","bye"],"target_phrases":["Hello, Sophia.","Hi, Sophia.","Goodbye, Sophia."],"scenario":"","tutor_note":"Không yêu cầu bé nói riêng hello, hi, bye. Hãy yêu cầu bé nói cả câu ngắn như Hello, Sophia. Mỗi lượt chỉ hỏi 1 câu.","order_no":1,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"a18f6e77-7a6d-4c60-8f7a-6cd7712adfd7","title":"Greeting - Bài 1","level":"starter","topic":"Greeting","mode":"lesson","target_words":["hello","hi","bye"],"target_phrases":["Hello, Sophia.","Hi, Sophia.","Goodbye, Sophia.","Hello, how are you?"],"scenario":"","tutor_note":"Không yêu cầu bé nói riêng hi hoặc bye. Hãy yêu cầu bé nói: Hello Sophia hoặc Hi Sophia.","order_no":1,"is_public":true,"user_id":null,"created_at":"2026-07-06T14:48:01.847Z"},{"id":"2fe4202d-e2f9-4ab9-a7c4-fff7544b76ca","title":"Greeting - Bài 2: How are you","level":"starter","topic":"Greeting","mode":"lesson","target_words":["fine","good","happy"],"target_phrases":["How are you?","I am fine.","I am happy."],"scenario":"","tutor_note":"Luyện chào hỏi đơn giản. Nếu bé bí, gợi ý: I am fine hoặc I am happy.","order_no":2,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"e479177a-ca63-449c-b3a4-74d891dd5714","title":"Greeting - Bài 2","level":"starter","topic":"Greeting","mode":"lesson","target_words":["morning","good","name"],"target_phrases":["Hello, Sophia.","Hi, Sophia.","Goodbye, Sophia.","Hello, how are you?"],"scenario":"","tutor_note":"Không yêu cầu bé nói riêng hi hoặc bye. Hãy yêu cầu bé nói: Hello Sophia hoặc Hi Sophia.","order_no":2,"is_public":true,"user_id":null,"created_at":"2026-07-06T14:48:01.847Z"},{"id":"3ed5b784-f3d6-4af6-9cfa-10ee269f2dab","title":"Numbers - Bài 1: One to five","level":"starter","topic":"Numbers","mode":"lesson","target_words":["one","two","three","four","five"],"target_phrases":["I see one.","I see two.","I see three.","I see four.","I see five."],"scenario":"","tutor_note":"Không bắt bé nói số đơn lẻ quá nhiều. Hãy dùng câu I see one, I see two.","order_no":5,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"a64d5829-2d3e-4333-9330-eaf17c196d62","title":"Numbers - Bài 2: Six to ten","level":"starter","topic":"Numbers","mode":"lesson","target_words":["six","seven","eight","nine","ten"],"target_phrases":["I see six.","I see seven.","I see eight.","I see nine.","I see ten."],"scenario":"","tutor_note":"Luyện số bằng câu ngắn. Mỗi lượt chỉ hỏi 1 câu.","order_no":6,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"44376f2c-81a9-472f-80f4-e9b89a39407c","title":"School - Bài 1: School things","level":"starter","topic":"School","mode":"lesson","target_words":["book","pen","bag"],"target_phrases":["This is my book.","This is my pen.","This is my bag."],"scenario":"","tutor_note":"Luyện đồ dùng học tập bằng câu This is my...","order_no":13,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"5b6defd6-01c5-4fd0-86e7-ea6c279410d6","title":"Toys - Bài 1: My toys","level":"starter","topic":"Toys","mode":"lesson","target_words":["ball","car","doll"],"target_phrases":["I like the ball.","I like the car.","I like the doll."],"scenario":"","tutor_note":"Luyện câu I like the... Không bắt bé nói từ đơn.","order_no":15,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"},{"id":"d30dc541-abbe-4173-82e8-e03a864aa870","title":"Weather - Bài 1: Weather words","level":"starter","topic":"Weather","mode":"lesson","target_words":["sunny","rainy","windy"],"target_phrases":["It is sunny.","It is rainy.","It is windy."],"scenario":"","tutor_note":"Luyện câu It is... Không yêu cầu bé nói riêng sunny/rainy/windy.","order_no":17,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:41.430Z"}];
+    const PREVIEW_ROLEPLAY = [{"id":"ac05f184-b785-4df8-a9e4-d9ca85390b72","title":"Role-play: At the zoo","level":"a1","topic":"Animals","mode":"roleplay","target_words":["lion","monkey","elephant"],"target_phrases":["I see a lion.","I see a monkey.","I see an elephant."],"scenario":"AI đóng vai hướng dẫn viên sở thú. Bé đi xem các con vật.","tutor_note":"Không bắt bé nói lion/monkey/elephant đơn lẻ. Luôn luyện câu I see...","order_no":112,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"58ac1701-25b6-43bc-9435-88d705b09e1c","title":"Role-play: Ask for help","level":"a1","topic":"Daily","mode":"roleplay","target_words":["help","please","thank you"],"target_phrases":["Help me, please.","Can you help me?","Thank you."],"scenario":"AI đóng vai người bạn. Bé luyện cách nhờ giúp đỡ bằng tiếng Anh.","tutor_note":"Dạy câu lịch sự. Không yêu cầu bé nói riêng help/please.","order_no":110,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"8130ba41-a670-4c12-8a4a-becbf78503e3","title":"Role-play: Morning routine","level":"a1","topic":"Daily Routine","mode":"roleplay","target_words":["wake up","brush teeth","eat breakfast"],"target_phrases":["I wake up.","I brush my teeth.","I eat breakfast."],"scenario":"AI đóng vai bạn nhỏ hỏi về buổi sáng của bé.","tutor_note":"Hỏi từng câu ngắn. Nếu bé chưa biết, nói mẫu rồi yêu cầu bé nói lại.","order_no":114,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"1b5a8ab3-4a69-4a83-ad80-67719d969c64","title":"Role-play: At the restaurant","level":"a1","topic":"Food","mode":"roleplay","target_words":["water","rice","chicken"],"target_phrases":["I want water.","I want rice.","I want chicken.","Thank you."],"scenario":"AI đóng vai nhân viên nhà hàng. Bé đóng vai khách hàng và gọi món ăn.","tutor_note":"Bắt đầu ngay bằng vai nhân viên nhà hàng. Không giảng luật dài. Không hỏi bé nói từ đơn. Luôn gợi ý bé nói cả câu: I want water hoặc I want chicken.","order_no":101,"is_public":true,"user_id":null,"created_at":"2026-07-06T14:56:10.076Z"},{"id":"1655ffa8-4ef7-4d37-a0b9-dc9ccb201775","title":"Role-play: Buying ice cream","level":"a1","topic":"Food","mode":"roleplay","target_words":["ice cream","vanilla","chocolate"],"target_phrases":["I want ice cream.","I like vanilla.","I like chocolate."],"scenario":"AI đóng vai người bán kem. Bé mua kem.","tutor_note":"Bắt đầu bằng câu: Hello! What ice cream do you want? Nếu bé bí, gợi ý I want ice cream.","order_no":113,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"ea2632e8-c55b-4636-9e0d-acd6ccf58f6a","title":"Role-play: Doctor and patient","level":"a1","topic":"Health","mode":"roleplay","target_words":["head","hand","hurt"],"target_phrases":["My head hurts.","My hand hurts.","I am tired."],"scenario":"AI đóng vai bác sĩ. Bé đóng vai bệnh nhân và nói chỗ đau.","tutor_note":"Nội dung phải nhẹ nhàng, an toàn, không đưa chẩn đoán y tế. Chỉ luyện câu tiếng Anh đơn giản.","order_no":108,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"cca868be-0831-48f8-96b9-193f6664661f","title":"Role-play: Birthday party","level":"a1","topic":"Party","mode":"roleplay","target_words":["cake","gift","happy"],"target_phrases":["Happy birthday.","I like cake.","This is a gift."],"scenario":"AI đóng vai bạn đến dự sinh nhật. Bé đóng vai chủ tiệc hoặc bạn nhỏ.","tutor_note":"Tạo không khí vui vẻ. Mỗi lượt chỉ nói một câu.","order_no":109,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"ffca837b-fbf2-40cf-a3a2-933538cb5ddb","title":"Role-play: At the park","level":"a1","topic":"Playground","mode":"roleplay","target_words":["run","jump","play"],"target_phrases":["I can run.","I can jump.","I want to play."],"scenario":"AI đóng vai bạn nhỏ ở công viên. Bé rủ bạn chơi.","tutor_note":"Không giảng dài. Hãy nói như bạn nhỏ, vui vẻ và ngắn gọn.","order_no":106,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"b26a014e-4b16-4b79-8173-4e7dfb26090b","title":"Role-play: At school","level":"a1","topic":"School","mode":"roleplay","target_words":["teacher","book","pen"],"target_phrases":["Good morning, teacher.","This is my book.","This is my pen."],"scenario":"AI đóng vai giáo viên trong lớp học thật. Bé đóng vai học sinh. Giáo viên chào lớp, mời bé ngồi xuống, hỏi bé về quyển sách và cây bút trong hội thoại.","tutor_note":"Bạn đang đóng vai giáo viên trong lớp học. Bắt đầu ngay bằng câu: Good morning! Please sit down. Sau đó hỏi: What is this? Không liệt kê từ vựng. Không nói hôm nay chúng ta học. Hãy giữ vai giáo viên và hội thoại từng lượt.","order_no":104,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"83bdf9e9-9706-4f8c-b55f-cc4e3c9c9dc7","title":"Role-play: In the classroom","level":"a1","topic":"School","mode":"roleplay","target_words":["open","read","write"],"target_phrases":["Open your book.","I can read.","I can write."],"scenario":"AI đóng vai giáo viên. Bé làm học sinh trong lớp.","tutor_note":"Hãy dùng câu lệnh rất ngắn và chờ bé phản hồi.","order_no":111,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"7904f509-ff81-4dea-ba70-98fad14c5d70","title":"Role-play: At the library","level":"a1","topic":"School","mode":"roleplay","target_words":["book","read","quiet"],"target_phrases":["I want a book.","I can read.","Please be quiet."],"scenario":"AI đóng vai thủ thư. Bé đến thư viện mượn sách.","tutor_note":"Dạy câu lịch sự. Hỏi một câu mỗi lượt.","order_no":119,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"69f4cc49-19ec-4db9-85c4-cc304a537354","title":"Role-play: At the shop","level":"a1","topic":"Shopping","mode":"roleplay","target_words":["apple","milk","please"],"target_phrases":["I want an apple.","I want milk.","Milk, please.","How much is it?"],"scenario":"AI đóng vai người bán hàng. Bé đóng vai khách hàng đi mua đồ.","tutor_note":"Hãy đóng vai người bán hàng vui vẻ. Mỗi lượt chỉ nói một câu. Nếu bé bí, gợi ý hai câu ngắn để bé chọn.","order_no":102,"is_public":true,"user_id":null,"created_at":"2026-07-06T14:56:10.076Z"},{"id":"5aa3a5b2-7f5f-42ef-8675-dc0f1910197f","title":"Role-play: At the toy store","level":"a1","topic":"Toys","mode":"roleplay","target_words":["robot","car","ball"],"target_phrases":["I want a robot.","I want a car.","I like the ball."],"scenario":"AI đóng vai người bán đồ chơi. Bé đi mua đồ chơi.","tutor_note":"Hãy tạo không khí vui vẻ. Nếu bé bí, hỏi: Do you want a robot or a car?","order_no":105,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"d4ff0498-ef1c-4442-b3a8-d24c7db2930f","title":"Role-play: Lost toy","level":"a1","topic":"Toys","mode":"roleplay","target_words":["toy","robot","find"],"target_phrases":["I lost my toy.","I lost my robot.","Can you help me?"],"scenario":"AI đóng vai bạn giúp bé tìm đồ chơi bị mất.","tutor_note":"Nếu bé bí, gợi ý câu Can you help me? hoặc I lost my robot.","order_no":120,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"7562e455-ec9b-4601-8b3a-74ce9a686e2b","title":"Role-play: On the bus","level":"a1","topic":"Transportation","mode":"roleplay","target_words":["bus","seat","ticket"],"target_phrases":["I am on the bus.","I want a ticket.","This is my seat."],"scenario":"AI đóng vai tài xế hoặc người soát vé. Bé đi xe buýt.","tutor_note":"Tình huống ngắn, an toàn, vui vẻ. Không giảng dài.","order_no":118,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"d3c14802-fbae-4762-b0ad-31ad5ead6977","title":"Role-play: Weather reporter","level":"a1","topic":"Weather","mode":"roleplay","target_words":["sunny","rainy","windy"],"target_phrases":["It is sunny today.","It is rainy today.","It is windy today."],"scenario":"AI đóng vai người dẫn chương trình thời tiết. Bé tập nói thời tiết hôm nay.","tutor_note":"Không yêu cầu nói riêng sunny/rainy/windy. Luôn dùng câu It is... today.","order_no":116,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"18fb99b0-4d82-474e-9e94-7392d6017f56","title":"Role-play: Bedtime","level":"starter","topic":"Daily Routine","mode":"roleplay","target_words":["sleep","story","good night"],"target_phrases":["I go to sleep.","Tell me a story.","Good night, Sophia."],"scenario":"AI đóng vai người kể chuyện trước giờ ngủ. Bé luyện nói câu chúc ngủ ngon.","tutor_note":"Giọng nhẹ nhàng. Không kéo dài quá lâu. Mỗi lượt một câu.","order_no":115,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"e9232f1f-b8ff-499d-9d34-54c2aaecbecc","title":"Role-play: At home","level":"starter","topic":"Family","mode":"roleplay","target_words":["mom","dad","room"],"target_phrases":["This is my mom.","This is my dad.","This is my room."],"scenario":"AI đóng vai khách đến thăm nhà. Bé giới thiệu gia đình và căn phòng.","tutor_note":"Nếu bé trả lời tiếng Việt, gợi ý câu tiếng Anh ngắn.","order_no":107,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"a4c6087a-9e18-4693-b0fc-e90662e17f35","title":"Role-play: Feelings check","level":"starter","topic":"Feelings","mode":"roleplay","target_words":["happy","sad","tired"],"target_phrases":["I am happy.","I am sad.","I am tired."],"scenario":"AI đóng vai bạn thân hỏi cảm xúc của bé.","tutor_note":"Luôn thân thiện, khích lệ. Nếu bé nói tiếng Việt, gợi ý I am happy hoặc I am tired.","order_no":117,"is_public":true,"user_id":null,"created_at":"2026-07-06T17:54:49.084Z"},{"id":"b927436a-c8e0-47f6-8d4c-3df7217584ba","title":"Role-play: Introduce yourself","level":"starter","topic":"Greeting","mode":"roleplay","target_words":["name","old","happy"],"target_phrases":["My name is Tom.","I am seven years old.","I am happy."],"scenario":"AI đóng vai một người bạn mới. Bé luyện giới thiệu bản thân bằng tiếng Anh.","tutor_note":"Nếu bé chưa biết nói tên thật bằng tiếng Anh, hãy cho bé dùng tên mẫu. Không bắt bé nói từ đơn name, old, happy.","order_no":103,"is_public":true,"user_id":null,"created_at":"2026-07-06T14:56:10.076Z"}];
+    let currentPreviewTutorId = PREVIEW_LESSONS[0] ? PREVIEW_LESSONS[0].id : null;
+    let previewTutorBoxState = { lesson: true, roleplay: false };
+
+    function renderPreviewEnglishTemplates() {
+      const level = document.getElementById('englishTemplateLevel') ? document.getElementById('englishTemplateLevel').value : '';
+      
+      const lessonBox = document.getElementById('englishLessonTemplateList');
+      const roleplayBox = document.getElementById('englishRoleplayTemplateList');
+      if (!lessonBox || !roleplayBox) return;
+
+      const filteredLessons = PREVIEW_LESSONS.filter(t => !level || (t.level || '').toLowerCase() === level.toLowerCase());
+      const filteredRoleplay = PREVIEW_ROLEPLAY.filter(t => !level || (t.level || '').toLowerCase() === level.toLowerCase());
+
+      // Render lessons
+      lessonBox.innerHTML = filteredLessons.map(t => {
+        const isActive = t.id === currentPreviewTutorId;
+        return `
+          <div class="curriculum-item ${isActive ? 'active' : ''}" onclick="selectPreviewTemplate('${t.id}', 'lesson')">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📘 ${t.title}</span>
+              ${isActive ? '<span style="color:#4ade80; font-size:11px;">✔ Đang xem</span>' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render roleplay
+      roleplayBox.innerHTML = filteredRoleplay.map(t => {
+        const isActive = t.id === currentPreviewTutorId;
+        return `
+          <div class="curriculum-item ${isActive ? 'active' : ''}" onclick="selectPreviewTemplate('${t.id}', 'roleplay')">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">🎭 ${t.title}</span>
+              ${isActive ? '<span style="color:#4ade80; font-size:11px;">✔ Đang xem</span>' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Headers count
+      const lessonH = document.querySelector('[onclick*="toggleEnglishTemplateBox(\'lesson\')"] span:first-child');
+      if (lessonH) lessonH.innerText = '📚 Giáo trình có sẵn (' + filteredLessons.length + ')';
+      const roleplayH = document.querySelector('[onclick*="toggleEnglishTemplateBox(\'roleplay\')"] span:first-child');
+      if (roleplayH) roleplayH.innerText = '🎭 Tình huống nhập vai (' + filteredRoleplay.length + ')';
+
+      // Update box open/close classes
+      lessonBox.classList.toggle('open', previewTutorBoxState.lesson);
+      roleplayBox.classList.toggle('open', previewTutorBoxState.roleplay);
+      const iconL = document.getElementById('icon-english-lesson');
+      if (iconL) iconL.style.transform = previewTutorBoxState.lesson ? 'rotate(90deg)' : '';
+      const iconR = document.getElementById('icon-english-roleplay');
+      if (iconR) iconR.style.transform = previewTutorBoxState.roleplay ? 'rotate(90deg)' : '';
+    }
+
+    function toggleEnglishTemplateBox(type) {
+      previewTutorBoxState[type] = !previewTutorBoxState[type];
+      const box = document.getElementById(type === 'lesson' ? 'englishLessonTemplateList' : 'englishRoleplayTemplateList');
+      const icon = document.getElementById(type === 'lesson' ? 'icon-english-lesson' : 'icon-english-roleplay');
+      if (box) box.classList.toggle('open', previewTutorBoxState[type]);
+      if (icon) icon.style.transform = previewTutorBoxState[type] ? 'rotate(90deg)' : '';
+    }
+
+    function onEnglishTemplateLevelChange() {
+      renderPreviewEnglishTemplates();
+    }
+
+    function selectPreviewTemplate(id, type) {
+      currentPreviewTutorId = id;
+      const all = PREVIEW_LESSONS.concat(PREVIEW_ROLEPLAY);
+      const item = all.find(x => x.id === id);
+      if (item) {
+        showPreviewTemplateDetail(item, type);
+      }
+      renderPreviewEnglishTemplates();
+    }
+
+    function showPreviewTemplateDetail(t, type) {
+      const container = document.getElementById('englishTemplateDetail');
+      if (!container) return;
+
+      const words = Array.isArray(t.target_words) ? t.target_words : [];
+      const phrases = Array.isArray(t.target_phrases) ? t.target_phrases : [];
+      const isRoleplay = type === 'roleplay' || t.mode === 'roleplay';
+
+      container.innerHTML = `
+        <div style="background:#0f2140; padding:16px; border-radius:10px; border:1px solid rgba(37,99,235,0.3);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="font-size:16px; color:white;">${isRoleplay ? '🎭' : '📚'} ${t.title}</strong>
+            <span style="font-size:11px; background:#2563eb; color:white; padding:2px 8px; border-radius:20px; font-weight:bold;">
+              ${(t.level || 'starter').toUpperCase()}
+            </span>
+          </div>
+          <div style="font-size:12px; color:#94a3b8; margin-bottom:12px;">
+            Chủ đề: <strong style="color:#e2e8f0;">${t.topic || 'General'}</strong> · Chế độ: <strong style="color:#e2e8f0;">${isRoleplay ? 'Nhập vai luyện nói' : 'Bài học'}</strong>
+          </div>
+
+          ${t.scenario ? `
+            <div style="margin-bottom:12px; padding:10px; border-radius:8px; background:rgba(168,85,247,0.15); border:1px solid rgba(216,180,254,0.2); font-size:13px; line-height:1.5;">
+              <strong style="color:#d8b4fe;">🎭 Tình huống:</strong><br>${t.scenario}
+            </div>
+          ` : ''}
+
+          <div style="margin-bottom:12px; font-size:13px; line-height:1.6; background:#07152b; padding:12px; border-radius:8px;">
+            <div style="font-weight:bold; color:#60a5fa; margin-bottom:4px;">🎯 Từ mục tiêu:</div>
+            <div>${words.length ? words.map(w => '<span style="display:inline-block; background:rgba(59,130,246,0.2); color:#93c5fd; padding:2px 8px; border-radius:12px; margin:2px 4px 2px 0;">' + w + '</span>').join('') : 'Không có'}</div>
+
+            <div style="font-weight:bold; color:#60a5fa; margin-top:10px; margin-bottom:4px;">💬 Câu luyện nói:</div>
+            <div>${phrases.length ? phrases.map(p => '<div style="color:#e2e8f0;">• ' + p + '</div>').join('') : 'Không có'}</div>
+          </div>
+
+          ${t.tutor_note ? `
+            <div style="margin-bottom:14px; padding:10px; border-radius:8px; background:rgba(59,130,246,0.12); border:1px solid rgba(96,165,250,0.2); font-size:12px; line-height:1.5; color:#cbd5e1;">
+              <strong style="color:#93c5fd;">📝 Ghi chú gia sư:</strong><br>${t.tutor_note}
+            </div>
+          ` : ''}
+
+          <div style="display:flex; gap:10px;">
+            <button class="primary" onclick="alert('Đã áp dụng bài học: ' + '${t.title}');" style="flex:1; padding:10px; font-weight:bold; border-radius:8px; background:#2563eb; color:white; border:none; cursor:pointer;">
+              🚀 Áp dụng bài này
+            </button>
+            <a href="english-tutor-app.html" style="display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; font-weight:bold; font-size:12px; border-radius:8px; background:#1e293b; color:#93c5fd; border:1px solid rgba(147,197,253,0.3); text-decoration:none;">
+              Mở App Full ↗
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    // Hook vào render khi vào tab englishTutor
+    const prevHookSwitch = window.switchSection;
+    window.switchSection = function(sectionId, el) {
+      prevHookSwitch(sectionId, el);
+      if (sectionId === 'englishTutor') {
+        renderPreviewEnglishTemplates();
+        if (PREVIEW_LESSONS.length > 0) {
+          selectPreviewTemplate(PREVIEW_LESSONS[0].id, 'lesson');
+        }
+      }
+    };
+  </script>
+  
+</body>
+
+</html>

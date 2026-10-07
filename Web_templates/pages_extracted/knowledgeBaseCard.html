@@ -1,0 +1,77 @@
+<div class="card" id="knowledgeBaseCard" style="display:none;">
+    <h3>📚 Cơ sở tri thức</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách dùng:</strong><br>
+        Tải lên tài liệu tri thức để yêu cầu AI tra cứu tài liệu có sẵn. Đây là nơi lưu tài liệu tham khảo lâu dài như:
+        thời khóa biểu học tập, hướng dẫn sử dụng, mô tả sản phẩm, kịch bản tư vấn...
+        Sử dụng câu lệnh
+        <span class="voice-keyword">Tìm trong cơ sở tri thức +Nội dung cần tra cứu</span>
+        để yêu cầu AI tra cứu trước khi trả lời.<br>
+        <span class="voice-keyword">Mẹo :</span>
+        Viết câu này trong mô tả vai trò : "BẮT BUỘC PHẢI tìm thông tin trong Cơ sở tri thức trước khi trả lời." =&gt; giúp AI tự động tra cứu thông tin trước khi trả lời câu hỏi mà không cần nói câu lệnh "tìm trong cơ sở tri thức"
+
+    </div>
+
+    <div class="curriculum-layout">
+
+        <div class="curriculum-left">
+            <div class="card" style="margin-bottom:12px;">
+                <h3 style="font-size:15px;">➕ Tải tài liệu cơ sở tri thức</h3>
+
+                <div class="form-group">
+                    <label>Tiêu đề tài liệu (không bắt buộc)</label>
+                <input id="kbTitle" maxlength="150" placeholder="Để trống = lấy theo tên file">
+                </div>
+
+                <div class="form-group">
+                    <label>Tài liệu</label>
+
+                    <input id="kbDocumentFile" type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" onchange="handleKnowledgeDocumentChange(event)" style="display:none;">
+
+                    <div class="action-row" id="kbUploadActionRow" style="margin-top:12px;">
+                        <button id="kbPickBtn" type="button" class="secondary" onclick="openKnowledgeDocumentPicker()">
+                            📄 Chọn tài liệu
+                        </button>
+
+                        <button id="kbResetBtn" type="button" class="danger" onclick="resetKnowledgeDocumentInput()">
+                            Xóa file
+                        </button>
+                    </div>
+
+                    <div id="kbSelectedFileInfo" class="helper-note">
+                        Chưa chọn tài liệu
+                    </div>
+
+                    <div class="helper-note">
+                        Hỗ trợ file DOCX, TXT, MD. Tối đa 3MB.
+                    </div>
+
+                    <div id="kbLimitNotice" class="voice-hint" style="display:none;">
+                        Bạn đã có 1 cơ sở tri thức. Muốn dùng tài liệu khác, hãy xóa cơ sở tri thức cũ trước.
+                    </div>
+                </div>
+
+                <button id="kbUploadBtn" class="primary full-width" onclick="createKnowledgeDocument()">Tải lên cơ sở tri thức</button>
+                <div id="kbMessage" style="margin-top:10px;"></div>
+            </div>
+
+            <div class="curriculum-group">
+                <div class="curriculum-header">
+                    <span>📂 Danh sách tài liệu</span>
+                </div>
+                <div id="kbDocumentList" class="curriculum-list open"></div>
+            </div>
+        </div>
+
+        <div class="curriculum-right">
+            <div class="card" id="kbDetailCard">
+                <h3>📘 Chi tiết tài liệu</h3>
+                <div id="kbDetail">
+                    <div style="opacity:0.6;">👉 Chọn tài liệu để xem</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

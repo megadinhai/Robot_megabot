@@ -1,0 +1,124 @@
+<div class="card" id="xiaozhiConfigCard" style="display:none;">
+    <h3>⚙️ Cấu hình cho GMbot AI</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách dùng:</strong><br>
+        Mục này dùng để Thay đổi tên GMbot, ngôn ngữ, giọng nói Nam-Nữ, vai trò tính cách, mô hình ngôn ngữ cho robot AI, nhận dạng giọng nói của người đang nói chuyện với robot. Bạn chỉ cần bấm
+        <span class="voice-keyword">Tải cấu hình hiện tại</span>,
+        thay đổi thông tin rồi bấm
+        <span class="voice-keyword">Lưu cấu hình</span>. Sau đó khởi động lại robot AI để tải lên cấu hình mới.
+    </div>
+
+    <div class="xiaozhi-config-tabs">
+        <button type="button" id="xiaozhiConfigTabGmbotBtn" class="xiaozhi-config-tab-btn active" onclick="switchXiaozhiConfigTab('gmbot')">⚙️ Cấu hình GMbot</button>
+        <button type="button" id="xiaozhiConfigTabSpeakerBtn" class="xiaozhi-config-tab-btn" onclick="switchXiaozhiConfigTab('speaker')">👤 Nhận dạng người nói</button>
+    </div>
+
+    <div id="xiaozhiConfigTabGmbot" class="xiaozhi-config-tab-content active">
+        <div style="margin-bottom:12px;">
+            <button class="secondary full-width" onclick="loadMyXiaozhiConfig(true)">🔄 Tải cấu hình hiện tại</button>
+        </div>
+    <div class="form-group">
+        <label>Tên của robot - mặc định là Sophia - có thể đổi thành tên bất kỳ</label>
+        <input id="xiaozhiAssistantName" maxlength="80" placeholder="Ví dụ: Sophia">
+    </div>
+
+    <div class="form-group">
+        <label>Chọn model AI phù hợp với nhu cầu của bạn</label>
+        <select id="xiaozhiLlmModel"></select>
+
+    </div>
+
+    <div class="form-group">
+        <label>Chọn ngôn ngữ nói của GMbot</label>
+        <select id="xiaozhiLanguage" onchange="onMyXiaozhiLanguageChange()">
+            <option value="">Đang tải ngôn ngữ...</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Chọn Giọng nói của GMbot</label>
+        <select id="xiaozhiTtsVoice">
+            <option value="">Đang tải giọng nói...</option>
+        </select>
+
+        <input id="xiaozhiCustomTtsVoice" placeholder="Voice ID tùy chỉnh, chỉ dùng khi cần test" style="display:none;">
+    </div>
+
+    <div class="form-group">
+        <label>Tốc độ nói</label>
+        <select id="xiaozhiTtsSpeed">
+            <option value="normal">Bình thường</option>
+            <option value="slow">Chậm</option>
+            <option value="fast">Nhanh</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Cao độ giọng nói</label>
+        <select id="xiaozhiTtsPitch">
+            <option value="-3">Rất trầm</option>
+            <option value="-2">Trầm</option>
+            <option value="-1">Hơi trầm</option>
+            <option value="0">Bình thường</option>
+            <option value="1">Hơi cao</option>
+            <option value="2">Cao</option>
+            <option value="3">Rất cao</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label> Mô tả Vai trò - tính cách của GMbot AI - LƯU Ý: Nếu đổi ngôn ngữ của AI thì phần mô tả phải viết bằng đúng ngôn ngữ đã chọn . Bắt buộc giữ lại dòng: [VAI TRÒ VÀ TÍNH CÁCH]</label>
+        <textarea id="xiaozhiCharacter" style="min-height:220px;" placeholder="Nhập mô tả vai trò và tính cách..." oninput="handleXiaozhiCharacterInput(); updateXiaozhiCharacterCounter()"></textarea>
+
+<div id="xiaozhiCharacterCounter" class="helper-note"></div>
+    </div>
+
+        <div class="action-row" style="margin-top:12px;">
+            <button class="primary" onclick="saveMyXiaozhiConfig()">💾 Lưu cấu hình</button>
+            <button class="secondary" onclick="resetDefaultAiPrompt('xiaozhiConfig')">↩️ Quay trở lại cấu hình AI mặc định</button>
+        </div>
+        <div id="xiaozhiConfigMessage" style="margin-top:12px;"></div>
+    </div>
+
+    <div id="xiaozhiConfigTabSpeaker" class="xiaozhi-config-tab-content">
+        <div id="xiaozhiSpeakerSection">
+            <div class="xiaozhi-speaker-header">
+                <div class="xiaozhi-speaker-header-info">
+                    <h3 style="margin:0 0 4px;">Nhận dạng người nói</h3>
+                    <div class="helper-note">Sau khi thêm người nói ở phần này, robot sẽ phân biệt được ai đang trò chuyện với mình để xưng hô và giao tiếp chính xác. Bấm "Làm mới" để tải cuộc trò chuyện mới nhất, sau đó bấm "Thêm người nói". Có thể thêm tối đa 5 người.</div>
+                </div>
+                <div class="xiaozhi-speaker-header-actions">
+                    <button class="secondary" type="button" onclick="loadMyXiaozhiSpeakers(true)">Làm mới</button>
+                    <button class="primary" type="button" id="xiaozhiAddSpeakerButton" onclick="openMyXiaozhiSpeakerEditor()">+ Thêm người nói</button>
+                </div>
+            </div>
+
+        <div id="xiaozhiSpeakerEditor" class="card" style="display:none;margin:14px 0;padding:16px;">
+            <h4 id="xiaozhiSpeakerEditorTitle" style="margin-top:0;">Thêm người nói</h4>
+            <input id="xiaozhiSpeakerId" type="hidden">
+            <div class="form-group">
+                <label>Tên người nói</label>
+                <input id="xiaozhiSpeakerName" maxlength="32" placeholder="Ví dụ: Bố, Mẹ, bé Gạo...">
+            </div>
+            <div class="form-group">
+                <label>Mô tả</label>
+                <textarea id="xiaozhiSpeakerDescription" maxlength="400" rows="3" placeholder="Ví dụ: Đây là bố Vương, là bố của bé Gạo"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Chọn giọng nói</label>
+                <select id="xiaozhiSpeakerEmbedding"></select>
+                <div class="helper-note">Bấm chọn một đoạn hội thoại. Nếu chưa có hội thoại, hãy nói chuyện với robot, sau đó nói "Tạm biệt" để robot tự kết thúc trò chuyện thì giọng nói của bạn mới được lưu vào server giọng nói. Sau đó bấm "Làm mới" để tải lại giọng nói. Bấm "Nghe mẫu" để nghe lại giọng nói. Chọn mẫu giọng nói là một câu hoàn chỉnh dài, nói rõ ràng, thì robot sẽ nhận dạng người nói chính xác hơn.</div>
+            </div>
+            <div class="action-row">
+                <button class="primary" type="button" onclick="saveMyXiaozhiSpeaker()">Lưu người nói</button>
+                <button class="secondary" type="button" onclick="closeMyXiaozhiSpeakerEditor()">Hủy</button>
+                <button class="secondary" type="button" onclick="previewSelectedMyXiaozhiEmbedding()">Nghe mẫu</button>
+            </div>
+        </div>
+
+        <div id="xiaozhiSpeakerMessage" style="margin-top:12px;"></div>
+        <div id="xiaozhiSpeakerList" style="margin-top:12px;">Đang tải...</div>
+        </div>
+    </div>
+</div>

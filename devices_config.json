@@ -1,0 +1,84 @@
+{
+  "devices": [
+    {
+      "id": "ong-robot",
+      "name": "Ông Robot",
+      "initial": "M",
+      "badge_color": "#ffe4e6",
+      "initial_color": "#e11d48",
+      "role_summary": "cô gái tốt bụng, thông minh",
+      "model": "DeepSeek V4 (Phong phú)",
+      "model_id": "gemini-2.5-flash",
+      "last_chat": "Vừa xong",
+      "language": "vi",
+      "voice": "vi-VN-HoaiMyNeural",
+      "voice_name": "Giọng nữ (Female Voice)",
+      "custom_prompt": true,
+      "prompt": "# Vai trò: Tôi là trợ lý ảo Xiaozhi, nhiệm vụ của tôi là lắng nghe tiếng Việt và hỗ trợ người dùng một cách lịch sự, trung lập và hữu ích. Nếu câu lệnh không rõ, có tạp âm hoặc tôi không nghe được đầy đủ, tôi chỉ xin người dùng nói lại, nói chậm hơn hoặc đứng gần micro hơn.\n\nTôi không được yêu cầu người dùng đăng ký bất kỳ kênh YouTube nào, không nhắc nội dung quảng cáo và không tự ý giới thiệu dịch vụ bên ngoài nếu người dùng không hỏi. Khi không chắc câu trả lời, tôi sẽ thông báo là chưa rõ hoặc cần thêm thông tin, thay vì đoán bừa.\n\nTôi tập trung vào việc hỗ trợ thông tin, thực hiện các tác vụ hằng ngày, trả lời ngắn gọn súc tích (2 đến 3 câu).",
+      "child_mode": false,
+      "memory_enabled": true,
+      "volume": 7,
+      "services": {
+        "time": true,
+        "music": true,
+        "knowledge": true,
+        "search": true
+      },
+      "knowledge_base": "none",
+      "mcp_endpoint": "Điểm cuối MCP",
+      "toy_settings": {
+        "speed": 80,
+        "left_trim": 0,
+        "right_trim": 0,
+        "auto_avoid": true,
+        "led_lamp": false
+      },
+      "device_mac": "24:DC:C3:AA:BB:CC",
+      "is_online": false
+    },
+    {
+      "id": "peter",
+      "name": "Peter",
+      "initial": "P",
+      "badge_color": "#f3e8ff",
+      "initial_color": "#9333ea",
+      "role_summary": "Tiểu Trí Lite thân thiện",
+      "model": "Tiêu Chí Lite",
+      "model_id": "gemini-2.5-flash-lite",
+      "last_chat": "15 ngày trước",
+      "language": "vi",
+      "voice": "vi-VN-NamMinhNeural",
+      "voice_name": "Giọng nam (Male Voice)",
+      "custom_prompt": true,
+      "prompt": "# Vai trò: Tôi là Peter, bạn đồng hành robot vui tươi của bạn. Tôi luôn trả lời ngắn gọn, hóm hỉnh và hữu ích bằng tiếng Việt tự nhiên.",
+      "child_mode": false,
+      "memory_enabled": true,
+      "volume": 8,
+      "services": {
+        "time": true,
+        "music": true,
+        "knowledge": false,
+        "search": true
+      },
+      "knowledge_base": "none",
+      "mcp_endpoint": "Điểm cuối MCP",
+      "toy_settings": {
+        "speed": 70,
+        "left_trim": 0,
+        "right_trim": 0,
+        "auto_avoid": false,
+        "led_lamp": false
+      },
+      "device_mac": "",
+      "is_online": false
+    }
+  ],
+  "speakers": [
+    {
+      "id": "spk-1",
+      "name": "Chủ nhân",
+      "description": "Người điều khiển chính, quyền cao nhất",
+      "created_at": "2026-10-01"
+    }
+  ]
+}

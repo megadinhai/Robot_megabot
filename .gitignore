@@ -1,0 +1,29 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Local environment & secrets
+.env
+.env.local
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Node modules & frontend caches
+node_modules/
+**/node_modules/
+package-lock.json
+
+# Backup & large temp archives
+Web_templates_Backup/
+_archive/
+**/_archive/
+test_output.mp3
+
+# IDE
+.vscode/
+.idea/

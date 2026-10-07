@@ -1,0 +1,129 @@
+<div class="card" id="englishTutorCard" style="display:none;">
+    <h3>🇬🇧 Học tiếng Anh cùng GMbot</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách dùng:</strong><br>
+        Chọn trình độ, chủ đề, từ vựng và câu mẫu. Sau đó bấm
+        <span class="voice-keyword">Tạo và áp dụng giáo trình tiếng Anh</span>.
+        Khi bé gọi <span class="voice-keyword">Sophia</span> hoặc
+        <span class="voice-keyword">Xin chào</span>, robot sẽ tự đẩy ngữ cảnh học tiếng Anh vào GMbot AI.
+    </div>
+
+    <h3 style="font-size:15px;">📚 Chọn giáo trình tiếng Anh</h3>
+
+
+<div class="form-group">
+    <select id="englishTemplateLevel" onchange="onEnglishTemplateLevelChange()">
+        <option value="">Tất cả trình độ</option>
+        <option value="starter">Starter - mới bắt đầu</option>
+        <option value="a1">A1 - cơ bản</option>
+        <option value="a2">A2 - sơ cấp</option>
+        <option value="b1">B1 - trung cấp</option>
+        <option value="b2">B2 - trung cấp cao</option>
+    </select>
+</div>
+
+    <div class="curriculum-layout">
+
+        <!-- LEFT -->
+        <div class="curriculum-left">
+
+            <div class="curriculum-group">
+                <div class="curriculum-header" onclick="toggleEnglishTemplateBox('lesson')">
+                    <span>📚 Giáo trình có sẵn</span>
+                    <span id="icon-english-lesson" style="transition: transform 0.3s;">▶</span>
+                </div>
+                <div id="englishLessonTemplateList" class="curriculum-list"></div>
+            </div>
+
+            <div class="curriculum-group">
+                <div class="curriculum-header" onclick="toggleEnglishTemplateBox('roleplay')">
+                    <span>🎭 Tình huống nhập vai</span>
+                    <span id="icon-english-roleplay" style="transition: transform 0.3s;">▶</span>
+                </div>
+                <div id="englishRoleplayTemplateList" class="curriculum-list"></div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="curriculum-right">
+
+            <div class="card" id="englishTemplateDetailCard">
+                <h3>📘 Chi tiết giáo trình</h3>
+                <div id="englishTemplateDetail">
+                    <div style="opacity:0.6;">👉 Chọn giáo trình hoặc tình huống nhập vai để xem</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+<h3 style="font-size:15px;">📚 Tự tạo giáo trình tiếng Anh</h3>
+
+    <div class="form-group">
+        <label>Tiêu đề bài học</label>
+        <input id="englishTutorTitle" maxlength="100" placeholder="Ví dụ: Food - Bài 1">
+    </div>
+
+    <div class="form-group">
+        <label>Trình độ</label>
+        <select id="englishTutorLevel" onchange="onEnglishTutorLevelChange()">
+    <option value="starter">Starter - mới bắt đầu</option>
+    <option value="a1">A1 - cơ bản</option>
+    <option value="a2">A2 - sơ cấp</option>
+    <option value="b1">B1 - trung cấp</option>
+    <option value="b2">B2 - trung cấp cao</option>
+</select>
+    </div>
+
+    <div class="form-group">
+        <label>Chủ đề</label>
+        <select id="englishTutorTopic"></select>
+    </div>
+
+    <div class="form-group">
+        <label>Từ mục tiêu, cách nhau bằng dấu phẩy</label>
+        <input id="englishTutorWords" placeholder="Ví dụ: apple, banana, milk">
+    </div>
+
+    <div class="form-group">
+        <label>Câu mẫu, mỗi dòng 1 câu</label>
+        <textarea id="englishTutorPhrases" style="min-height:120px;" placeholder="Ví dụ:
+I like apples.
+I want milk.
+Thank you."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Ghi chú cho AI gia sư</label>
+        <textarea id="englishTutorNote" style="min-height:100px;" placeholder="Ví dụ: Bé thích khủng long, hãy dùng ví dụ vui nhộn. Bé mới học nên nói chậm và hỏi từng câu."></textarea>
+    </div>
+
+    <div class="action-row">
+        <button class="primary" onclick="activateEnglishTutor()">🚀 Tạo và áp dụng giáo trình tiếng Anh</button>
+        <button class="secondary" onclick="loadActiveEnglishTutor()">🔄 Tải trạng thái</button>
+        <button class="danger" onclick="deleteActiveEnglishTutor()">Tắt chế độ</button>
+    </div>
+
+    <div id="englishTutorMessage" style="margin-top:12px;"></div>
+
+        <div style="margin-top:18px;">
+        <h3 style="font-size:15px;">📌 Bài tiếng Anh đang áp dụng</h3>
+        <div id="englishTutorActiveBox" class="generated-lesson-box">Chưa tải dữ liệu</div>
+    </div>
+
+    <div style="margin-top:18px;">
+        <h3 style="font-size:15px;">📊 Báo cáo học tiếng Anh</h3>
+
+    <div class="action-row" style="margin-bottom:12px;">
+        <button class="secondary" onclick="loadEnglishTutorReport()">📊 Tải báo cáo</button>
+    </div>
+
+    <div id="englishTutorReportBox" class="generated-lesson-box">
+        Chưa tải báo cáo
+    </div>
+
+</div>
+</div>

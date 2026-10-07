@@ -1,0 +1,26 @@
+<div class="card" id="wssRequestCard" style="display:none;">
+    <h3>🔗 Yêu cầu kết nối Home Assistant</h3>
+
+    <div class="voice-hint">
+        Nhập email của bạn. Admin sẽ gửi token WSS endpoint của thiết bị
+        cho bạn để cấu hình Home Assistant trong vòng 24h từ khi nhận được yêu cầu.
+    </div>
+
+    <div class="form-group">
+        <label>Email nhận WSS</label>
+        <input id="wssRequestEmail" type="email" maxlength="150" placeholder="Ví dụ: your-email@gmail.com">
+    </div>
+
+    <button class="primary full-width" onclick="submitWssRequest()">
+        📨 Gửi yêu cầu kết nối Home Assistant
+    </button>
+
+    <div id="wssRequestMessage" style="margin-top:10px;"></div>
+
+    <div id="wssRequestAdminSection" style="display:none; margin-top:24px;">
+        <h3>📋 Danh sách yêu cầu của khách hàng</h3>
+        <div class="voice-hint">Nhập WSS endpoint đúng yêu cầu rồi bấm gửi. Hệ thống dùng email SMTP đang cấu hình cho mục Góp ý - Báo lỗi.</div>
+        <button class="secondary" style="margin-bottom:12px;" onclick="loadWssRequests()">🔄 Tải lại danh sách</button>
+        <div id="wssRequestAdminList"></div>
+    </div>
+</div>

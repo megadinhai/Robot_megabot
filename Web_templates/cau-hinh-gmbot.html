@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRUNG TÂM QUẢN LÝ GMBOT AI - Cấu hình & Nhận dạng người nói</title>
+  <style>
+    body {
+      background: #0b1f3d;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: white;
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 10px; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px;
+      background: #0b1220;
+      position: fixed;
+      top: 0; bottom: 0; left: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .user-box { padding: 16px; }
+    .user-name { font-size: 15px; font-weight: bold; }
+    .user-device { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .status-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 4px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; }
+    .vip-pill { background: #fbbf24; color: black; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 20px; }
+    
+    .menu { flex: 1; overflow-y: auto; padding: 0 10px; }
+    .menu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px;
+      font-size: 14px; color: #9ca3af; cursor: pointer;
+      margin-bottom: 3px; transition: all 0.2s;
+    }
+    .menu-item:hover { background: rgba(255,255,255,0.05); color: white; }
+    .menu-item.active { background: #13294b; color: white; font-weight: 600; }
+
+    /* MAIN */
+    .main-content {
+      margin-left: 240px;
+      flex: 1;
+      padding: 16px 24px;
+      box-sizing: border-box;
+      max-width: 1400px;
+    }
+    .topbar {
+      display: flex; justify-content: flex-end; align-items: center;
+      font-size: 12px; color: #9ca3af; margin-bottom: 16px;
+    }
+    .topbar strong { color: white; }
+
+    /* CARD CHÍNH */
+    .card {
+      background: #13294b;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+    .card-title {
+      margin: 0 0 12px 0;
+      font-size: 19px;
+      font-weight: bold;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* VOICE HINT */
+    .voice-hint {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(59,130,246,0.10);
+      border: 1px solid rgba(96,165,250,0.22);
+      color: #dbeafe;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .voice-keyword { color: #4ade80; font-weight: bold; }
+
+    /* SUB TABS */
+    .tab-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      background: #0f2140;
+      padding: 4px;
+      border-radius: 10px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: white; }
+    .tab-btn.active {
+      background: #2563eb;
+      color: white;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+    }
+
+    /* FORM STYLES */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #e2e8f0;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      background: white;
+      color: #0f172a;
+      font-size: 14px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+    }
+    button.primary {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    button.primary:hover { background: #1d4ed8; }
+    button.secondary {
+      background: #374151;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button.secondary:hover { background: #4b5563; }
+
+    /* SPEAKER TAB */
+    .speaker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+    .speaker-info h3 {
+      margin: 0 0 6px 0;
+      font-size: 18px;
+      color: white;
+    }
+    .speaker-info .helper-note {
+      font-size: 13px;
+      color: #9ca3af;
+      line-height: 1.5;
+    }
+    .speaker-actions {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .empty-state {
+      padding: 16px;
+      font-size: 13.5px;
+      color: #9ca3af;
+      background: #0f2140;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="user-box">
+      <div class="user-name">Xin chào, 330730</div>
+      <div class="user-device">330730</div>
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span style="color: #4ade80;">connected</span>
+      </div>
+      <div style="margin-top: 6px;">
+        <span class="vip-pill">👑 VIP</span>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <div class="menu-item active">⚙️ Cấu hình GMbot AI</div>
+      <div class="menu-item">📚 HỌC TIẾNG ANH</div>
+      <div class="menu-item">🧠 Bộ nhớ</div>
+      <div class="menu-item">📗 Tạo nhiệm vụ</div>
+      <div class="menu-item">📖 Chọn Bài học</div>
+      <div class="menu-item">✍️ Tự tạo bài học</div>
+      <div class="menu-item">📷 Chụp ảnh tạo bài học</div>
+      <div class="menu-item">🎒 Chụp ảnh giải bài tập</div>
+      <div class="menu-item">📗 Cơ sở tri thức</div>
+      <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 8px 0;"></div>
+      <div class="menu-item">⚙️ Hướng dẫn sử dụng</div>
+      <div class="menu-item">🏠 Hướng dẫn kết nối Home Assistant</div>
+      <div class="menu-item">🔗 Yêu cầu kết nối Home Assistant</div>
+      <div class="menu-item">💬 Góp ý - Báo lỗi</div>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="topbar">
+      &lt;=== Bấm nút bên trái mở MENU điều khiển (<strong>330730</strong>) (user)
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">⚙️ Cấu hình cho GMbot AI</h2>
+
+      <!-- VOICE HINT -->
+      <div class="voice-hint">
+        💡 <strong>Cách dùng:</strong><br>
+        Mục này dùng để Thay đổi tên GMbot, ngôn ngữ, giọng nói Nam-Nữ, vai trò tính cách, mô hình ngôn ngữ cho robot AI, nhận dạng giọng nói của người đang nói chuyện với robot. Bạn chỉ cần bấm <span class="voice-keyword">Tải cấu hình hiện tại</span>, thay đổi thông tin rồi bấm <span class="voice-keyword">Lưu cấu hình</span>. Sau đó khởi động lại robot AI để tải lên cấu hình mới.
+      </div>
+
+      <!-- SUB TABS -->
+      <div class="tab-nav">
+        <button class="tab-btn" id="btnTabGmbot" onclick="switchTab('gmbot')">
+          ⚙️ Cấu hình GMbot
+        </button>
+        <button class="tab-btn active" id="btnTabSpeaker" onclick="switchTab('speaker')">
+          👤 Nhận dạng người nói
+        </button>
+      </div>
+
+      <!-- TAB 1: CẤU HÌNH GMBOT -->
+      <div id="contentTabGmbot" style="display: none;">
+        <div style="margin-bottom: 14px;">
+          <button class="secondary" style="width:100%;" onclick="alert('Đã tải cấu hình hiện tại!')">
+            🔄 Tải cấu hình hiện tại
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Tên của robot - mặc định là Sophia - có thể đổi thành tên bất kỳ</label>
+          <input type="text" value="Sophia" placeholder="Ví dụ: Sophia">
+        </div>
+
+        <div class="form-group">
+          <label>Chọn model AI phù hợp với nhu cầu của bạn</label>
+          <select>
+            <option>DeepSeek-V3 (Mặc định - Nhanh, thông minh)</option>
+            <option>GPT-4o Mini (OpenAI)</option>
+            <option>Claude 3.5 Haiku</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Chọn ngôn ngữ nói của GMbot</label>
+          <select>
+            <option>Tiếng Việt (vi-VN)</option>
+            <option>Tiếng Anh (en-US)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Chọn Giọng nói của GMbot</label>
+          <select>
+            <option>Nữ - Miền Nam (Ấm áp, truyền cảm)</option>
+            <option>Nữ - Miền Bắc (Rõ ràng, chuẩn mực)</option>
+            <option>Nam - Miền Bắc (Trầm ấm)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tốc độ nói</label>
+          <select>
+            <option>Bình thường (1.0x)</option>
+            <option>Chậm (0.85x)</option>
+            <option>Nhanh (1.15x)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Mô tả Vai trò - tính cách của GMbot AI</label>
+          <textarea placeholder="Nhập mô tả vai trò và tính cách...">Bạn là Sophia, trợ lý robot AI thông minh, thân thiện, kiên nhẫn và luôn đồng hành cùng gia đình.</textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 16px;">
+          <button class="primary" style="flex:1;" onclick="alert('Đã lưu cấu hình!')">💾 Lưu cấu hình</button>
+          <button class="secondary" style="flex:1;" onclick="alert('Đã khôi phục mặc định!')">↩ Quay trở lại cấu hình AI mặc định</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: NHẬN DẠNG NGƯỜI NÓI (KHỚP 100% VỚI ẢNH CHỤP) -->
+      <div id="contentTabSpeaker" style="display: block;">
+        
+        <div class="speaker-header">
+          <div class="speaker-info">
+            <h3>Nhận dạng người nói</h3>
+            <div class="helper-note">
+              Sau khi thêm người nói ở phần này, robot sẽ phân biệt được ai đang trò chuyện với mình để xưng hô và giao tiếp chính xác. Bấm "Làm mới" để tải cuộc trò chuyện mới nhất, sau đó bấm "Thêm người nói". Có thể thêm tối đa 5 người.
+            </div>
+          </div>
+          
+          <div class="speaker-actions">
+            <button class="secondary" type="button" onclick="refreshSpeakers()">Làm mới</button>
+            <button class="primary" type="button" onclick="openSpeakerModal()">+ Thêm người nói</button>
+          </div>
+        </div>
+
+        <!-- Trạng thái trống -->
+        <div class="empty-state">
+          Chưa có người nói được nhận dạng.
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function switchTab(tab) {
+      const btnGmbot = document.getElementById('btnTabGmbot');
+      const btnSpeaker = document.getElementById('btnTabSpeaker');
+      const contentGmbot = document.getElementById('contentTabGmbot');
+      const contentSpeaker = document.getElementById('contentTabSpeaker');
+
+      if (tab === 'gmbot') {
+        btnGmbot.classList.add('active');
+        btnSpeaker.classList.remove('active');
+        contentGmbot.style.display = 'block';
+        contentSpeaker.style.display = 'none';
+      } else {
+        btnSpeaker.classList.add('active');
+        btnGmbot.classList.remove('active');
+        contentSpeaker.style.display = 'block';
+        contentGmbot.style.display = 'none';
+      }
+    }
+
+    function refreshSpeakers() {
+      alert('Đang làm mới danh sách người nói...');
+    }
+
+    function openSpeakerModal() {
+      const name = prompt('Nhập tên người nói cần thêm (Ví dụ: Bố, Mẹ, Bé Bon):');
+      if (name && name.trim()) {
+        alert('Đã gửi yêu cầu nhận diện cho người nói: ' + name.trim());
+      }
+    }
+  </script>
+</body>
+</html>
+

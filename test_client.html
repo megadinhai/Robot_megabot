@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xiaozhi Robot WebSocket Test Client</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #121826;
+            color: #e2e8f0;
+            padding: 24px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h1 { color: #38bdf8; margin-top: 0; }
+        .status-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: #0f172a;
+            border-radius: 8px;
+        }
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+        .dot.connected { background: #22c55e; }
+        input[type="text"] {
+            width: 70%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #fff;
+            font-size: 15px;
+        }
+        button {
+            padding: 10px 18px;
+            border-radius: 6px;
+            border: none;
+            background: #0284c7;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #0369a1; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        .log-box {
+            margin-top: 20px;
+            height: 320px;
+            overflow-y: auto;
+            background: #090d16;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            border: 1px solid #334155;
+        }
+        .emotion-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            background: #334155;
+            color: #38bdf8;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Xiaozhi ESP32 Test Client (Web Demo)</h1>
+        <p>Giả lập robot kết nối tới WebSocket Server: <code>ws://localhost:8000/ws/xiaozhi</code></p>
+
+        <div class="status-box">
+            <div id="statusDot" class="dot"></div>
+            <span id="statusText">Chưa kết nối</span>
+            <span id="emotionBadge" class="emotion-badge" style="display: none;">Biểu cảm: neutral</span>
+            <div style="margin-left: auto;">
+                <button id="btnConnect" onclick="toggleConnect()">Kết nối Server</button>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+            <input type="text" id="inputQuery" placeholder="Nhập câu hỏi để thử (ví dụ: Xin chào, bạn là ai?)..." disabled>
+            <button id="btnSend" onclick="sendQuery()" disabled>Gửi câu hỏi</button>
+            <button id="btnAbort" onclick="sendAbort()" style="background: #dc2626;" disabled>Ngắt lời</button>
+        </div>
+
+        <div class="log-box" id="logBox"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        let audioCtx = null;
+        const logBox = document.getElementById("logBox");
+        const statusDot = document.getElementById("statusDot");
+        const statusText = document.getElementById("statusText");
+        const emotionBadge = document.getElementById("emotionBadge");
+        const btnConnect = document.getElementById("btnConnect");
+        const btnSend = document.getElementById("btnSend");
+        const btnAbort = document.getElementById("btnAbort");
+        const inputQuery = document.getElementById("inputQuery");
+
+        function log(msg, color = "#94a3b8") {
+            const time = new Date().toLocaleTimeString();
+            const el = document.createElement("div");
+            el.style.color = color;
+            el.textContent = `[${time}] ${msg}`;
+            logBox.appendChild(el);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function toggleConnect() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+                return;
+            }
+
+            const url = `ws://${window.location.hostname || "localhost"}:8000/ws/xiaozhi`;
+            log(`Đang kết nối tới ${url}...`, "#38bdf8");
+
+            ws = new WebSocket(url);
+            ws.binaryType = "arraybuffer";
+
+            ws.onopen = () => {
+                statusDot.classList.add("connected");
+                statusText.textContent = "Đã kết nối";
+                btnConnect.textContent = "Ngắt kết nối";
+                btnSend.disabled = false;
+                btnAbort.disabled = false;
+                inputQuery.disabled = false;
+                log("Đã kết nối thành công tới WebSocket Server!", "#22c55e");
+
+                // Gửi gói hello giả lập ESP32
+                const helloMsg = {
+                    type: "hello",
+                    version: 1,
+                    transport: "websocket",
+                    audio_params: {
+                        format: "mp3",
+                        sample_rate: 24000,
+                        channels: 1
+                    }
+                };
+                ws.send(JSON.stringify(helloMsg));
+                log("Đã gửi gói hello tới server", "#a855f7");
+            };
+
+            ws.onmessage = async (event) => {
+                if (typeof event.data === "string") {
+                    try {
+                        const data = JSON.parse(event.data);
+                        log(`[NHẬN JSON] ${JSON.stringify(data)}`, "#facc15");
+
+                        if (data.type === "llm" && data.emotion) {
+                            emotionBadge.style.display = "inline-block";
+                            emotionBadge.textContent = `Biểu cảm: ${data.emotion}`;
+                        } else if (data.type === "tts" && data.state === "stop") {
+                            emotionBadge.textContent = `Biểu cảm: neutral`;
+                        }
+                    } catch (e) {
+                        log(`[NHẬN TEXT] ${event.data}`);
+                    }
+                } else {
+                    // Dữ liệu Binary (Audio từ Edge-TTS stream về)
+                    log(`[NHẬN AUDIO] Nhận chunk MP3: ${event.data.byteLength} bytes`, "#38bdf8");
+                    playAudioChunk(event.data);
+                }
+            };
+
+            ws.onclose = () => {
+                statusDot.classList.remove("connected");
+                statusText.textContent = "Đã ngắt kết nối";
+                btnConnect.textContent = "Kết nối Server";
+                btnSend.disabled = true;
+                btnAbort.disabled = true;
+                inputQuery.disabled = true;
+                emotionBadge.style.display = "none";
+                log("Kết nối đã đóng.", "#ef4444");
+            };
+
+            ws.onerror = (err) => {
+                log("Lỗi WebSocket connection", "#ef4444");
+            };
+        }
+
+        // Phát âm thanh MP3 stream
+        let audioQueue = [];
+        let isPlaying = false;
+
+        async function playAudioChunk(arrayBuffer) {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            try {
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+                const source = audioCtx.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioCtx.destination);
+                source.start();
+            } catch (e) {
+                // Ignore partial frame decode errors in browser for raw chunks
+            }
+        }
+
+        function sendQuery() {
+            const text = inputQuery.value.trim();
+            if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            // Giả lập gói tin client nói xong câu hỏi
+            const msg = {
+                type: "listen",
+                state: "detect",
+                text: text
+            };
+            ws.send(JSON.stringify(msg));
+            log(`[GỬI CÂU HỎI] ${text}`, "#38bdf8");
+            inputQuery.value = "";
+        }
+
+        function sendAbort() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            const msg = {
+                type: "abort",
+                reason: "wake_word_detected"
+            };
+            ws.send(JSON.stringify(msg));
+            log("[GỬI LỆNH] Ngắt lời robot (Abort)", "#ef4444");
+        }
+
+        inputQuery.addEventListener("keyup", (e) => {
+            if (e.key === "Enter") sendQuery();
+        });
+    </script>
+</body>
+</html>
