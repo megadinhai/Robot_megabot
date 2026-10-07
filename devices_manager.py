@@ -103,6 +103,22 @@ DEFAULT_SPEAKERS = [
 ]
 
 
+def generate_device_code(identifier: str) -> str:
+    """Tạo mã PIN 6 chữ số cố định duy nhất từ MAC hoặc ID robot."""
+    if not identifier:
+        return "100000"
+    raw = "".join([c for c in str(identifier).lower() if c in "0123456789abcdef"])
+    if not raw:
+        val = sum(ord(c) * (31 ** (i % 5)) for i, c in enumerate(str(identifier)))
+    else:
+        try:
+            val = int(raw, 16)
+        except ValueError:
+            val = sum(ord(c) for c in raw)
+    code = (val % 900000) + 100000
+    return str(code)
+
+
 class DeviceManager:
     """Quản lý dữ liệu thiết bị, người nói và cấu hình lưu trữ JSON."""
 
@@ -118,6 +134,9 @@ class DeviceManager:
                     data = json.load(f)
                     self.devices = data.get("devices", DEFAULT_DEVICES)
                     self.speakers = data.get("speakers", DEFAULT_SPEAKERS)
+                    for dev in self.devices:
+                        if not dev.get("device_code"):
+                            dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
                     logger.info(f"Đã nạp {len(self.devices)} thiết bị từ {CONFIG_FILE_PATH}")
                     return
             except Exception as e:
@@ -125,6 +144,9 @@ class DeviceManager:
 
         self.devices = list(DEFAULT_DEVICES)
         self.speakers = list(DEFAULT_SPEAKERS)
+        for dev in self.devices:
+            if not dev.get("device_code"):
+                dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
         self.save_data()
 
     def save_data(self):
@@ -140,11 +162,22 @@ class DeviceManager:
             logger.error(f"Lỗi khi lưu dữ liệu thiết bị: {e}")
 
     def get_all_devices(self) -> List[Dict[str, Any]]:
+        for dev in self.devices:
+            if not dev.get("device_code"):
+                dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
         return self.devices
 
-    def get_device(self, device_id: str) -> Optional[Dict[str, Any]]:
+    def get_device(self, query: str) -> Optional[Dict[str, Any]]:
+        if not query:
+            return None
+        query_str = str(query).strip()
         for dev in self.devices:
-            if dev.get("id") == device_id or dev.get("device_mac") == device_id:
+            # Khớp theo ID, MAC, hoặc Mã PIN 6 số
+            if (
+                dev.get("id") == query_str
+                or dev.get("device_mac") == query_str
+                or str(dev.get("device_code", "")).strip() == query_str
+            ):
                 return dev
         return None
 
@@ -155,18 +188,25 @@ class DeviceManager:
 
     def update_device(self, device_id: str, new_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         for dev in self.devices:
-            if dev.get("id") == device_id:
+            if dev.get("id") == device_id or dev.get("device_code") == device_id:
                 dev.update(new_data)
+                if not dev.get("device_code"):
+                    dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
                 self.save_data()
                 logger.info(f"Đã cập nhật cấu hình thiết bị: {dev.get('name')}")
                 return dev
         return None
 
     def add_device(self, device_data: Dict[str, Any]) -> Dict[str, Any]:
+        dev_code = device_data.get("device_code")
+        if not dev_code:
+            dev_code = generate_device_code(device_data.get("device_mac") or f"robot-{len(self.devices) + 1}")
+        device_data["device_code"] = str(dev_code).strip()
+
         dev_id = device_data.get("id") or f"robot-{len(self.devices) + 1}"
         device_data["id"] = dev_id
-        if "name" not in device_data:
-            device_data["name"] = f"Robot {len(self.devices) + 1}"
+        if "name" not in device_data or not device_data["name"]:
+            device_data["name"] = f"Robot {device_data['device_code']}"
         if "initial" not in device_data:
             device_data["initial"] = device_data["name"][0].upper()
         self.devices.append(device_data)

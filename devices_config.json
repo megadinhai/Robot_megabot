@@ -34,6 +34,7 @@
         "led_lamp": false
       },
       "device_mac": "14:c1:9f:c4:ee:d0",
+      "device_code": "927184",
       "is_online": false
     },
     {
@@ -58,18 +59,19 @@
         "time": true,
         "music": true,
         "knowledge": false,
-        "search": true
+        "search": false
       },
       "knowledge_base": "none",
       "mcp_endpoint": "Điểm cuối MCP",
       "toy_settings": {
-        "speed": 70,
+        "speed": 75,
         "left_trim": 0,
         "right_trim": 0,
-        "auto_avoid": false,
+        "auto_avoid": true,
         "led_lamp": false
       },
-      "device_mac": "",
+      "device_mac": "24:DC:C3:11:22:33",
+      "device_code": "654321",
       "is_online": false
     }
   ],

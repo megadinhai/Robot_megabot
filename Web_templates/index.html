@@ -1669,7 +1669,7 @@ body {
     </div>
 
     <div id="deviceSearchWrapper" style="margin-bottom: 16px;">
-        <input id="deviceSearch" placeholder="🔍 Tìm theo tên thiết bị hoặc địa chỉ MAC..." oninput="filterDevicesList()" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: #07152b; color: white; font-size: 13px;">
+        <input id="deviceSearch" placeholder="🔍 Tìm theo tên robot hoặc Mã thiết bị 6 số (Ví dụ: 927184)..." oninput="filterDevicesList()" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: #07152b; color: white; font-size: 13px;">
     </div>
 
     <div id="devicesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
@@ -2879,7 +2879,7 @@ Ví dụ:
       const textEl = document.getElementById("sidebarStatusText");
 
       if (nameEl) nameEl.innerText = `${dev.name} (ESP32-S3)`;
-      if (macEl) macEl.innerText = dev.device_mac || "14:c1:9f:c4:ee:d0";
+      if (macEl) macEl.innerText = `PIN: ${dev.device_code || '927184'} (${dev.device_mac || 'ESP32'})`;
       
       const isOnline = dev.is_online === true;
       if (dotEl) {
@@ -2924,8 +2924,8 @@ Ví dụ:
                     ${d.name}
                     <span style="font-size:10px;background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:10px;color:#cbd5e1;">${d.id}</span>
                   </h4>
-                  <div style="font-size:11px;color:#94a3b8;margin-top:2px;font-family:monospace;">
-                    MAC: ${d.device_mac || 'Chưa nhận diện'}
+                  <div style="font-size:11px;color:#38bdf8;margin-top:2px;font-family:monospace;font-weight:600;">
+                    🔢 Mã kết nối: <span style="background:rgba(56,189,248,0.15);padding:1px 6px;border-radius:4px;color:#7dd3fc;border:1px solid rgba(56,189,248,0.3);">${d.device_code || '927184'}</span>
                   </div>
                 </div>
               </div>
@@ -2941,7 +2941,7 @@ Ví dụ:
             <div style="background:#07152b;border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
               <div>
                 <span style="color:#64748b;font-size:11px;">Mô hình AI:</span><br>
-                <strong style="color:#93c5fd;">${d.model_id || 'gemini-2.5-flash'}</strong>
+                <strong style="color:#93c5fd;">${d.model_id || 'gemini-3.1-flash-lite'}</strong>
               </div>
               <div>
                 <span style="color:#64748b;font-size:11px;">Giọng đọc TTS:</span><br>
@@ -2979,6 +2979,7 @@ Ví dụ:
       const filtered = currentDevices.filter(d => 
         (d.name || "").toLowerCase().includes(q) ||
         (d.id || "").toLowerCase().includes(q) ||
+        (d.device_code || "").includes(q) ||
         (d.device_mac || "").toLowerCase().includes(q)
       );
       renderDeviceCards(filtered);
@@ -3362,19 +3363,25 @@ Ví dụ:
     function openAddDevicePrompt() {
       const name = prompt("Nhập tên Robot mới (Ví dụ: Robot Bé Bon, Xiaozhi S3):");
       if (!name || !name.trim()) return;
-      const mac = prompt("Nhập địa chỉ MAC của robot (Ví dụ: 14:c1:9f:c4:ee:d0) hoặc để trống:", "14:c1:9f:c4:ee:d0");
-      addDeviceReal(name.trim(), mac ? mac.trim() : "");
+      const defaultCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const code = prompt("Nhập MÃ THIẾT BỊ 6 SỐ của robot (Ví dụ: 927184) hoặc giữ mã tạo tự động sau:", defaultCode);
+      if (!code || !code.trim()) return;
+      addDeviceReal(name.trim(), code.trim());
     }
 
-    async function addDeviceReal(name, mac) {
+    async function addDeviceReal(name, code) {
       try {
         const res = await fetch("/api/devices", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name, device_mac: mac })
+          body: JSON.stringify({ 
+            name: name, 
+            device_code: code,
+            device_mac: code.includes(":") ? code : ""
+          })
         });
         if (res.ok) {
-          showToast(`✓ Đã thêm thiết bị mới: ${name}!`);
+          showToast(`✓ Đã thêm thiết bị mới: ${name} (Mã: ${code})!`);
           loadDevices();
         }
       } catch (e) {
