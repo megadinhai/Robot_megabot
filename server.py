@@ -264,6 +264,12 @@ async def control_display(req: Request):
     if not ws:
         return JSONResponse({"status": "offline", "message": "Robot chưa kết nối WebSocket"}, status_code=503)
 
+    emotion_map = {
+        "wink": "winking",
+    }
+    if emotion:
+        emotion = emotion_map.get(emotion, emotion)
+
     try:
         # Gửi biểu cảm mắt / mặt
         if emotion:
