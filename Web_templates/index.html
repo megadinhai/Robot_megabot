@@ -3361,12 +3361,13 @@ Ví dụ:
 
     // 6. THÊM / XÓA THIẾT BỊ
     function openAddDevicePrompt() {
-      const name = prompt("Nhập tên Robot mới (Ví dụ: Robot Bé Bon, Xiaozhi S3):");
-      if (!name || !name.trim()) return;
-      const defaultCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const code = prompt("Nhập MÃ THIẾT BỊ 6 SỐ của robot (Ví dụ: 927184) hoặc giữ mã tạo tự động sau:", defaultCode);
+      const code = prompt("Nhập MÃ THIẾT BỊ 6 SỐ hiển thị trên màn hình Robot (hoặc xem tại trang http://IP_ROBOT:8080 - Ví dụ: 927184):");
       if (!code || !code.trim()) return;
-      addDeviceReal(name.trim(), code.trim());
+      const cleanCode = code.trim();
+      const defaultName = cleanCode === "927184" ? "Ông Robot" : `Robot ${cleanCode}`;
+      const name = prompt("Đặt tên gọi cho Robot này:", defaultName);
+      if (!name || !name.trim()) return;
+      addDeviceReal(name.trim(), cleanCode);
     }
 
     async function addDeviceReal(name, code) {
