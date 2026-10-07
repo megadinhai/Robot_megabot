@@ -3042,6 +3042,67 @@ Ví dụ:
       else if (e.key === " " || e.key === "Spacebar") { e.preventDefault(); sendRobotCommand("stop"); }
     });
 
+    // 2.2 GỬI BIỂU CẢM & CHỮ HIỂN THỊ LÊN MÀN HÌNH OLED
+    async function sendOledDisplay(emotion, text) {
+      const feedback = document.getElementById("controlStatusText");
+      if (feedback) feedback.innerText = `Đang gửi biểu cảm '${emotion}' tới màn hình OLED robot...`;
+
+      try {
+        const res = await fetch("/api/robot/display", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ device_id: activeDeviceId, emotion: emotion, text: text })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === "ok") {
+          if (feedback) feedback.innerText = `✓ Đã cập nhật màn hình OLED: Biểu cảm '${emotion}'` + (text ? ` | Chữ: "${text}"` : '');
+          showToast(`✓ Đã đổi màn hình OLED sang '${emotion}'!`);
+        } else {
+          if (feedback) feedback.innerText = `⚠ ${data.message || 'Lỗi gửi lệnh tới màn hình'}`;
+          showToast(data.message || "Lỗi gửi lệnh", false);
+        }
+      } catch (err) {
+        if (feedback) feedback.innerText = `✗ Lỗi mạng: ${err.message}`;
+        showToast("Lỗi kết nối tới Server: " + err.message, false);
+      }
+    }
+
+    async function sendCustomTextToOled() {
+      const input = document.getElementById("oledCustomTextInput");
+      const text = input ? input.value.trim() : "";
+      if (!text) {
+        showToast("Vui lòng nhập câu chữ muốn hiển thị", false);
+        return;
+      }
+      sendOledDisplay("happy", text);
+    }
+
+    async function sendSpeakAndDisplay() {
+      const input = document.getElementById("oledCustomTextInput");
+      const text = input ? input.value.trim() : "Xin chao chu nhan!";
+      const feedback = document.getElementById("controlStatusText");
+      if (feedback) feedback.innerText = `Đang gửi câu nói & phát loa: "${text}"...`;
+
+      try {
+        const res = await fetch("/api/robot/speak", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ device_id: activeDeviceId, text: text, emotion: "happy" })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === "ok") {
+          if (feedback) feedback.innerText = `✓ Đã phát âm thanh và hiển thị lên màn hình OLED: "${text}"`;
+          showToast(`✓ Robot đang phát âm thanh & hiển thị!`);
+        } else {
+          if (feedback) feedback.innerText = `⚠ ${data.message || 'Lỗi phát âm thanh'}`;
+          showToast(data.message || "Lỗi phát âm thanh", false);
+        }
+      } catch (err) {
+        if (feedback) feedback.innerText = `✗ Lỗi mạng: ${err.message}`;
+        showToast("Lỗi kết nối tới Server: " + err.message, false);
+      }
+    }
+
     // 3. CHAT TRỰC TIẾP VỚI GEMINI AI
     async function sendChatMessage() {
       const input = document.getElementById("chatInputText");
