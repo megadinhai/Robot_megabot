@@ -16,8 +16,8 @@ logger = logging.getLogger("LLMHandler")
 
 # 1. Đọc API Key và cấu hình model từ .env
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-FALLBACK_MODEL = "gemini-3.5-flash-lite"
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+FALLBACK_MODEL = "gemini-flash-latest"
 
 # 2. System Prompt định hình tính cách cho robot Xiaozhi
 SYSTEM_INSTRUCTION = """Bạn là trợ lý robot thông minh Xiaozhi (Tiểu Trí) trên phần cứng ESP32.
@@ -101,20 +101,19 @@ async def chat_with_gemini(
     # Sử dụng system instruction tùy chỉnh hoặc mặc định
     active_system_instruction = system_instruction.strip() if system_instruction and system_instruction.strip() else SYSTEM_INSTRUCTION
 
-    # Cấu hình gọi model với System Instruction, tắt suy nghĩ thừa để tối ưu tốc độ và tránh bị cắt câu
+    # Cấu hình gọi model với System Instruction, tối ưu tốc độ và tránh bị cắt câu
     config = types.GenerateContentConfig(
         system_instruction=active_system_instruction,
         temperature=0.7,
         max_output_tokens=300,
-        thinking_config=types.ThinkingConfig(thinking_budget=0),
-        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
     )
 
-    # Thử model chính, nếu 503 (quá tải) tự động fallback sang flash-lite
+    # Thử model chính, nếu gặp sự cố tự động fallback sang các model flash ổn định
     primary_model = model_override or MODEL_NAME
     models_to_try = [primary_model]
-    if FALLBACK_MODEL not in models_to_try:
-        models_to_try.append(FALLBACK_MODEL)
+    for candidate in ["gemini-3.8-flash", "gemini-flash-latest"]:
+        if candidate not in models_to_try:
+            models_to_try.append(candidate)
 
     last_error = None
     for model in models_to_try:
