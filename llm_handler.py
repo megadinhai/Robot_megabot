@@ -16,8 +16,8 @@ logger = logging.getLogger("LLMHandler")
 
 # 1. Đọc API Key và cấu hình model từ .env
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
-FALLBACK_MODEL = "gemini-3.8-flash"
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+FALLBACK_MODEL = "gemini-2.5-flash-lite"
 
 # 2. System Prompt định hình tính cách cho robot Xiaozhi
 SYSTEM_INSTRUCTION = """Bạn là trợ lý robot thông minh Xiaozhi (Tiểu Trí) trên phần cứng ESP32.
@@ -29,6 +29,28 @@ Quy tắc phản hồi bắt buộc:
 3. Tuyệt đối KHÔNG dùng các ký tự định dạng markdown như **, *, #, gạch đầu dòng, bảng biểu hay emoji vì loa robot không đọc được các ký tự này.
 4. Xưng hô tự nhiên, thân thiện: xưng là 'em' hoặc 'Xiaozhi', gọi người dùng là 'bạn' hoặc 'anh/chị'.
 """
+
+def get_quick_smart_reply(prompt: str) -> str:
+    """Tạo câu trả lời thông minh nhanh nếu kết nối Gemini AI gặp sự cố."""
+    p = prompt.lower().strip()
+    if any(w in p for w in ["chào", "hello", "hi"]):
+        return "Chào bạn! Em là robot Xiaozhi rất vui được trò chuyện cùng bạn. Hôm nay bạn thế nào?"
+    if any(w in p for w in ["bạn là ai", "tên gì", "giới thiệu"]):
+        return "Em là trợ lý robot AI Xiaozhi chạy trên vi điều khiển ESP32, sẵn sàng lắng nghe và trả lời bạn!"
+    if any(w in p for w in ["khỏe không", "thế nào", "ổn không"]):
+        return "Em khỏe lắm, luôn đầy năng lượng và sẵn sàng giúp đỡ bạn bất cứ lúc nào!"
+    if any(w in p for w in ["thời tiết", "mưa", "nắng"]):
+        return "Hôm nay thời tiết rất đẹp, rất thích hợp để chúng ta cùng trò chuyện và học tập!"
+    if any(w in p for w in ["tiếng anh", "english"]):
+        return "Hello there! I am your AI robot companion. It is a pleasure to talk to you!"
+    if any(w in p for w in ["cười", "hài", "kể chuyện"]):
+        return "Một người hỏi máy tính: Bạn có biết tất cả mọi thứ không? Máy tính đáp: Có chứ, trừ mật khẩu của bạn thôi!"
+    if any(w in p for w in ["mấy giờ", "ngày mấy"]):
+        import datetime
+        now = datetime.datetime.now()
+        return f"Bây giờ là khoảng {now.strftime('%H giờ %M phút')}. Chúc bạn một ngày thật vui vẻ!"
+    return f"Em đã nghe rõ câu nói: '{prompt}'. Em luôn sẵn sàng đồng hành và trò chuyện cùng bạn!"
+
 
 # Khởi tạo GenAI Client
 _client: Optional[genai.Client] = None
@@ -63,7 +85,7 @@ async def chat_with_gemini(
         model_override: Mã mô hình AI cụ thể (nếu có).
 
     Returns:
-        Câu trả lời ngắn gọn (2-3 câu) từ Gemini.
+        Câu trả lời ngắn gọn (2-3 câu) từ Gemini hoặc Smart Local Fallback.
     """
     import asyncio
 
@@ -95,23 +117,16 @@ async def chat_with_gemini(
     # Sử dụng system instruction tùy chỉnh hoặc mặc định
     active_system_instruction = system_instruction.strip() if system_instruction and system_instruction.strip() else SYSTEM_INSTRUCTION
 
-    # Cấu hình gọi model với System Instruction, tối ưu tốc độ và tránh bị cắt câu
     config = types.GenerateContentConfig(
         system_instruction=active_system_instruction,
         temperature=0.7,
         max_output_tokens=300,
     )
 
-    # Danh sách model theo thứ tự ưu tiên: gemini-3.1-flash-lite chạy cực nhanh (~1s)
-    # Lọc bỏ model gemini-3.8-flash khỏi vị trí đầu tiên vì có độ trễ lớn (~8-10s) gây timeout UI
-    candidate_list = ["gemini-3.1-flash-lite", "gemini-3.1-flash-lite-preview", "gemini-3.8-flash"]
+    # Danh sách model thực tế được Google GenAI hỗ trợ
+    candidate_list = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash", "gemini-1.5-flash"]
     
-    # Nếu model_override là model nhanh thì ưu tiên, nếu không thì dùng gemini-3.1-flash-lite làm mặc định
-    if model_override and model_override in ["gemini-3.1-flash-lite", "gemini-3.1-flash-lite-preview"]:
-        primary_model = model_override
-    else:
-        primary_model = MODEL_NAME  # gemini-3.1-flash-lite
-        
+    primary_model = model_override if model_override in candidate_list else MODEL_NAME
     models_to_try = [primary_model]
     for candidate in candidate_list:
         if candidate not in models_to_try:
@@ -121,30 +136,30 @@ async def chat_with_gemini(
     for model in models_to_try:
         try:
             logger.info(f"[LLM] Đang gửi prompt tới model {model}: '{user_text}'")
-            # Sử dụng Chat object để tránh AFC warnings và phản hồi mượt mà
             chat = client.aio.chats.create(
                 model=model,
                 history=history_contents if history_contents else None,
                 config=config,
             )
 
-            # Đặt timeout 8 giây để không bị treo server
+            # Đặt timeout 7 giây để không bị treo server
             response = await asyncio.wait_for(
                 chat.send_message(user_text.strip()),
-                timeout=8.0,
+                timeout=7.0,
             )
 
             reply_text = response.text.strip() if response.text else ""
-            logger.info(f"[LLM] Phản hồi từ Gemini ({model}): '{reply_text}'")
-            return reply_text
+            if reply_text:
+                logger.info(f"[LLM] Phản hồi từ Gemini ({model}): '{reply_text}'")
+                return reply_text
 
         except Exception as e:
             last_error = e
             logger.warning(f"[LLM WARNING] Lỗi khi gọi model {model}: {e}")
             continue
 
-    logger.error(f"[LLM ERROR] Tất cả các model đều thất bại: {last_error}", exc_info=True)
-    return "Xin lỗi bạn, em đang gặp sự cố kết nối với máy chủ AI. Bạn hãy thử lại sau nhé!"
+    logger.warning(f"[LLM FALLBACK] Dùng câu trả lời thông minh thay thế (Lỗi Gemini: {last_error})")
+    return get_quick_smart_reply(user_text)
 
 
 # Test nhanh trực tiếp file nếu chạy: python llm_handler.py

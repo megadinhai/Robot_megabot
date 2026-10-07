@@ -127,6 +127,22 @@ async def test_page():
     return JSONResponse({"error": "test_client.html not found"})
 
 
+def get_active_socket(device_id: Optional[str] = None) -> Optional[WebSocket]:
+    """Tìm WebSocket đang kết nối linh hoạt theo ID, MAC, PIN hoặc bất kỳ kết nối online nào."""
+    if not active_websockets:
+        return None
+    if device_id:
+        if device_id in active_websockets:
+            return active_websockets[device_id]
+        dev = device_manager.get_device(device_id)
+        if dev:
+            for k in [dev.get("id"), dev.get("device_mac"), str(dev.get("device_code", "")).strip()]:
+                if k and k in active_websockets:
+                    return active_websockets[k]
+    # Fallback: Nếu có robot kết nối, lấy robot đầu tiên
+    return next(iter(active_websockets.values()), None)
+
+
 # ==========================================
 # REST APIS QUẢN LÝ THIẾT BỊ & CẤU HÌNH
 # ==========================================
@@ -137,17 +153,41 @@ async def list_devices():
     devices = device_manager.get_all_devices()
     for dev in devices:
         dev_id = dev.get("id")
+        dev_mac = dev.get("device_mac")
+        dev_code = str(dev.get("device_code", "")).strip()
         last_seen = dev.get("last_seen_ts", 0)
         recently_active = (time.time() - last_seen) < 300
-        dev["is_online"] = dev_id in active_websockets or recently_active
+        has_socket = bool(
+            (dev_id and dev_id in active_websockets)
+            or (dev_mac and dev_mac in active_websockets)
+            or (dev_code and dev_code in active_websockets)
+        )
+        dev["is_online"] = has_socket or recently_active
     return JSONResponse(devices)
 
 
 @app.post("/api/devices")
 async def create_device(req: Request):
-    """Tạo thiết bị robot mới."""
+    """Tạo hoặc liên kết thiết bị robot mới."""
     data = await req.json()
     new_dev = device_manager.add_device(data)
+    dev_id = new_dev.get("id")
+    dev_mac = new_dev.get("device_mac")
+    dev_code = str(new_dev.get("device_code", "")).strip()
+
+    # Tự động gán WebSocket nếu robot đang online
+    ws = get_active_socket(dev_code) or get_active_socket(dev_mac) or (active_websockets and next(iter(active_websockets.values()), None))
+    if ws:
+        if dev_id:
+            active_websockets[dev_id] = ws
+        if dev_code:
+            active_websockets[dev_code] = ws
+        if dev_mac:
+            active_websockets[dev_mac] = ws
+        new_dev["is_online"] = True
+        new_dev["last_seen_ts"] = time.time()
+        device_manager.save_data()
+
     return JSONResponse(new_dev)
 
 
@@ -216,8 +256,8 @@ async def control_robot(req: Request):
     device_id = data.get("device_id")
     action = data.get("action", "stop")
 
-    # Tìm websocket kết nối
-    ws = active_websockets.get(device_id) or next(iter(active_websockets.values()), None)
+    # Tìm websocket kết nối linh hoạt
+    ws = get_active_socket(device_id)
     if not ws:
         return JSONResponse({"status": "offline", "message": "Robot chưa kết nối WebSocket"}, status_code=503)
 
@@ -260,7 +300,7 @@ async def control_display(req: Request):
     emotion = data.get("emotion")  # happy, laughing, thinking, loving, wink, shocked, sad, neutral, cool, sleepy
     text = data.get("text")  # Phụ đề chữ trên màn hình
 
-    ws = active_websockets.get(device_id) or next(iter(active_websockets.values()), None)
+    ws = get_active_socket(device_id)
     if not ws:
         return JSONResponse({"status": "offline", "message": "Robot chưa kết nối WebSocket"}, status_code=503)
 
@@ -302,7 +342,7 @@ async def speak_to_robot(req: Request):
     text = data.get("text", "Xin chào! Tôi là robot Xiaozhi.")
     emotion = data.get("emotion", "happy")
 
-    ws = active_websockets.get(device_id) or next(iter(active_websockets.values()), None)
+    ws = get_active_socket(device_id)
     if not ws:
         return JSONResponse({"status": "offline", "message": "Robot chưa kết nối WebSocket"}, status_code=503)
 
@@ -351,6 +391,15 @@ async def test_chat_api(req: Request):
     model_override = dev.get("model_id")
 
     reply = await chat_with_gemini(user_text, system_instruction=prompt, model_override=model_override)
+
+    # Nếu có robot đang kết nối, hiển thị câu trả lời lên màn hình OLED của robot
+    ws = get_active_socket(device_id)
+    if ws:
+        try:
+            await ws.send_text(json.dumps({"type": "tts", "state": "sentence_start", "text": reply}))
+        except Exception:
+            pass
+
     return JSONResponse({"reply": reply})
 
 
@@ -370,20 +419,40 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
     device_mac = headers.get("device-id", "Unknown")
     client_id = headers.get("client-id", "Unknown")
     protocol_version = headers.get("protocol-version", "Unknown")
+    pin_code = generate_device_code(device_mac)
 
-    # Xác định hồ sơ cấu hình robot đang kết nối
-    matched_dev = device_manager.get_device(device_mac) or device_manager.get_default_device()
+    # Xác định hồ sơ cấu hình robot đang kết nối (khớp MAC hoặc khớp Mã PIN)
+    matched_dev = None
+    for d in device_manager.get_all_devices():
+        if (d.get("device_mac") and d.get("device_mac").lower() == device_mac.lower()) or (str(d.get("device_code", "")).strip() == pin_code):
+            matched_dev = d
+            break
+
+    if not matched_dev:
+        matched_dev = device_manager.add_device({
+            "name": f"Robot AI ({pin_code})",
+            "device_code": pin_code,
+            "device_mac": device_mac,
+        })
+    else:
+        matched_dev["device_mac"] = device_mac
+        matched_dev["device_code"] = pin_code
+
     target_device_id = matched_dev.get("id", "ong-robot")
-    active_websockets[target_device_id] = websocket
     matched_dev["is_online"] = True
-    matched_dev["device_mac"] = device_mac
     matched_dev["last_seen_ts"] = time.time()
     matched_dev["last_chat"] = "Vừa xong"
+    device_manager.save_data()
+
+    # Đăng ký kết nối WebSocket theo ID, MAC và PIN
+    active_websockets[target_device_id] = websocket
+    active_websockets[device_mac] = websocket
+    active_websockets[pin_code] = websocket
 
     logger.info("=" * 60)
     logger.info(f"[CONNECT] Thiết bị kết nối từ {client_host}:{client_port}")
     logger.info(f"          - Hồ sơ Robot: '{matched_dev.get('name')}' (ID: {target_device_id})")
-    logger.info(f"          - Device-MAC: {device_mac} | Session: {session_id}")
+    logger.info(f"          - Device-MAC: {device_mac} | PIN: {pin_code} | Session: {session_id}")
     logger.info("=" * 60)
 
     audio_buffer = bytearray()
@@ -667,7 +736,10 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
         heartbeat_task.cancel()
         await cancel_active_task("Đóng kết nối")
         active_websockets.pop(target_device_id, None)
+        active_websockets.pop(device_mac, None)
+        active_websockets.pop(pin_code, None)
         matched_dev["is_online"] = False
+        device_manager.save_data()
         logger.info(f"[SESSION CLOSED] Phiên {session_id} đã kết thúc.")
 
 

@@ -175,7 +175,7 @@ class DeviceManager:
             # Khớp theo ID, MAC, hoặc Mã PIN 6 số
             if (
                 dev.get("id") == query_str
-                or dev.get("device_mac") == query_str
+                or (dev.get("device_mac") and dev.get("device_mac").lower() == query_str.lower())
                 or str(dev.get("device_code", "")).strip() == query_str
             ):
                 return dev
@@ -183,6 +183,10 @@ class DeviceManager:
 
     def get_default_device(self) -> Dict[str, Any]:
         if self.devices:
+            # Ưu tiên thiết bị đang online
+            online_dev = next((d for d in self.devices if d.get("is_online")), None)
+            if online_dev:
+                return online_dev
             return self.devices[0]
         return DEFAULT_DEVICES[0]
 
@@ -198,19 +202,44 @@ class DeviceManager:
         return None
 
     def add_device(self, device_data: Dict[str, Any]) -> Dict[str, Any]:
-        dev_code = device_data.get("device_code")
-        if not dev_code:
-            dev_code = generate_device_code(device_data.get("device_mac") or f"robot-{len(self.devices) + 1}")
-        device_data["device_code"] = str(dev_code).strip()
+        dev_code = str(device_data.get("device_code", "")).strip()
+        dev_mac = str(device_data.get("device_mac", "")).strip()
 
+        # Nếu có device_code mà chưa có MAC, thử tìm MAC từ thiết bị đã biết
+        if dev_code and not dev_mac:
+            for d in self.devices:
+                if str(d.get("device_code", "")).strip() == dev_code and d.get("device_mac"):
+                    dev_mac = d.get("device_mac")
+                    break
+
+        # Nếu thiết bị với mã PIN hoặc MAC này đã tồn tại, cập nhật thay vì tạo trùng lặp
+        for existing in self.devices:
+            code_match = dev_code and str(existing.get("device_code", "")).strip() == dev_code
+            mac_match = dev_mac and existing.get("device_mac") and existing.get("device_mac").lower() == dev_mac.lower()
+            if code_match or mac_match:
+                existing.update(device_data)
+                if dev_mac:
+                    existing["device_mac"] = dev_mac
+                if dev_code:
+                    existing["device_code"] = dev_code
+                self.save_data()
+                logger.info(f"Đã cập nhật hồ sơ thiết bị hiện có: {existing.get('name')} (Mã: {existing.get('device_code')})")
+                return existing
+
+        # Tạo mới hồ sơ
+        if not dev_code:
+            dev_code = generate_device_code(dev_mac or f"robot-{len(self.devices) + 1}")
+        device_data["device_code"] = dev_code
+        device_data["device_mac"] = dev_mac
         dev_id = device_data.get("id") or f"robot-{len(self.devices) + 1}"
         device_data["id"] = dev_id
         if "name" not in device_data or not device_data["name"]:
-            device_data["name"] = f"Robot {device_data['device_code']}"
+            device_data["name"] = f"Robot AI ({dev_code})"
         if "initial" not in device_data:
             device_data["initial"] = device_data["name"][0].upper()
         self.devices.append(device_data)
         self.save_data()
+        logger.info(f"Đã thêm hồ sơ thiết bị mới: {device_data.get('name')} (Mã: {dev_code})")
         return device_data
 
     def delete_device(self, device_id: str) -> bool:

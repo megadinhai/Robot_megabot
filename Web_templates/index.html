@@ -2870,7 +2870,12 @@ Ví dụ:
     }
 
     function updateSidebarRobotInfo(devices) {
-      const dev = devices.find(d => d.id === activeDeviceId) || devices[0];
+      if (!devices || devices.length === 0) return;
+      let dev = devices.find(d => d.id === activeDeviceId || d.device_code === activeDeviceId);
+      if (!dev) {
+        dev = devices.find(d => d.is_online) || devices[0];
+        if (dev) activeDeviceId = dev.id;
+      }
       if (!dev) return;
       
       const nameEl = document.getElementById("sidebarRobotName");
@@ -2906,12 +2911,19 @@ Ví dụ:
 
       container.innerHTML = devices.map(d => {
         const isOnline = d.is_online === true;
+        const isSelected = d.id === activeDeviceId || d.device_code === activeDeviceId;
         const initial = d.initial || (d.name ? d.name[0] : "R");
         const badgeBg = d.badge_color || "#1e3a8a";
         const initialColor = d.initial_color || "#38bdf8";
+        const borderStyle = isSelected 
+          ? '2px solid #38bdf8' 
+          : (isOnline ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.08)');
+        const shadowStyle = isSelected 
+          ? '0 0 16px rgba(56,189,248,0.35)' 
+          : '0 4px 14px rgba(0,0,0,0.25)';
 
         return `
-          <div style="background:#0f2140;border:1px solid ${isOnline ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.08)'};border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 14px rgba(0,0,0,0.25);position:relative;">
+          <div style="background:#0f2140;border:${borderStyle};border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:${shadowStyle};position:relative;">
             
             <!-- Hàng tiêu đề -->
             <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -2922,7 +2934,7 @@ Ví dụ:
                 <div>
                   <h4 style="margin:0;font-size:15px;color:#f8fafc;display:flex;align-items:center;gap:6px;">
                     ${d.name}
-                    <span style="font-size:10px;background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:10px;color:#cbd5e1;">${d.id}</span>
+                    ${isSelected ? '<span style="font-size:10px;background:#0284c7;color:white;padding:1px 6px;border-radius:6px;font-weight:bold;">👑 Đang chọn</span>' : ''}
                   </h4>
                   <div style="font-size:11px;color:#38bdf8;margin-top:2px;font-family:monospace;font-weight:600;">
                     🔢 Mã kết nối: <span style="background:rgba(56,189,248,0.15);padding:1px 6px;border-radius:4px;color:#7dd3fc;border:1px solid rgba(56,189,248,0.3);">${d.device_code || '927184'}</span>
@@ -2941,7 +2953,7 @@ Ví dụ:
             <div style="background:#07152b;border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
               <div>
                 <span style="color:#64748b;font-size:11px;">Mô hình AI:</span><br>
-                <strong style="color:#93c5fd;">${d.model_id || 'gemini-3.1-flash-lite'}</strong>
+                <strong style="color:#93c5fd;">${d.model_id || 'gemini-2.5-flash'}</strong>
               </div>
               <div>
                 <span style="color:#64748b;font-size:11px;">Giọng đọc TTS:</span><br>
@@ -3361,10 +3373,12 @@ Ví dụ:
 
     // 6. THÊM / XÓA THIẾT BỊ
     function openAddDevicePrompt() {
-      const code = prompt("Nhập MÃ THIẾT BỊ 6 SỐ hiển thị trên màn hình Robot (hoặc xem tại trang http://IP_ROBOT:8080 - Ví dụ: 927184):");
+      const onlineDev = (currentDevices || []).find(d => d.is_online);
+      const hintCode = onlineDev ? (onlineDev.device_code || "927184") : "927184";
+      const code = prompt("Nhập MÃ THIẾT BỊ 6 SỐ hiển thị trên màn hình Robot (Ví dụ: " + hintCode + "):", hintCode);
       if (!code || !code.trim()) return;
       const cleanCode = code.trim();
-      const defaultName = cleanCode === "927184" ? "Ông Robot" : `Robot ${cleanCode}`;
+      const defaultName = cleanCode === "927184" ? "Robot AI" : `Robot ${cleanCode}`;
       const name = prompt("Đặt tên gọi cho Robot này:", defaultName);
       if (!name || !name.trim()) return;
       addDeviceReal(name.trim(), cleanCode);
@@ -3382,11 +3396,17 @@ Ví dụ:
           })
         });
         if (res.ok) {
-          showToast(`✓ Đã thêm thiết bị mới: ${name} (Mã: ${code})!`);
-          loadDevices();
+          const newDev = await res.json();
+          if (newDev && newDev.id) {
+            activeDeviceId = newDev.id;
+          }
+          showToast(`✓ Đã kết nối thiết bị: ${name} (Mã: ${code})!`);
+          await loadDevices();
+        } else {
+          showToast("Lỗi thêm thiết bị", false);
         }
       } catch (e) {
-        showToast("Lỗi thêm thiết bị", false);
+        showToast("Lỗi kết nối tới máy chủ", false);
       }
     }
 
