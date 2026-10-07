@@ -334,7 +334,7 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
             cur_cfg = device_manager.get_device(target_device_id) or matched_dev
             custom_prompt = cur_cfg.get("prompt") if cur_cfg.get("custom_prompt") else None
             voice_code = cur_cfg.get("voice", "vi-VN-HoaiMyNeural")
-            model_id = cur_cfg.get("model_id", "gemini-2.5-flash")
+            model_id = cur_cfg.get("model_id", "gemini-3.8-flash")
             use_memory = cur_cfg.get("memory_enabled", True)
 
             logger.info(f"[CONVERSATION] Xử lý câu hỏi: '{user_prompt}'")
@@ -451,6 +451,18 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
             except Exception:
                 pass
 
+    async def heartbeat_loop():
+        try:
+            while True:
+                await asyncio.sleep(20)
+                await websocket.send_text(json.dumps({"type": "ping"}))
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            pass
+
+    heartbeat_task = asyncio.create_task(heartbeat_loop())
+
     try:
         while True:
             message = await websocket.receive()
@@ -476,6 +488,15 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
                         }
                         await websocket.send_text(json.dumps(hello_ack))
                         logger.info(f"[SENT] Gửi phản hồi handshake 'hello' -> ESP32")
+
+                    elif msg_type == "ping":
+                        matched_dev["last_seen_ts"] = time.time()
+                        matched_dev["is_online"] = True
+                        await websocket.send_text(json.dumps({"type": "pong"}))
+
+                    elif msg_type == "pong":
+                        matched_dev["last_seen_ts"] = time.time()
+                        matched_dev["is_online"] = True
 
                     elif msg_type == "listen":
                         state = payload.get("state")
@@ -558,6 +579,7 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"[ERROR] Ngoại lệ WebSocket: {e}", exc_info=True)
     finally:
+        heartbeat_task.cancel()
         await cancel_active_task("Đóng kết nối")
         active_websockets.pop(target_device_id, None)
         matched_dev["is_online"] = False
