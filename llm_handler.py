@@ -103,9 +103,17 @@ async def chat_with_gemini(
     )
 
     # Danh sách model theo thứ tự ưu tiên: gemini-3.1-flash-lite chạy cực nhanh (~1s)
-    primary_model = model_override or MODEL_NAME
+    # Lọc bỏ model gemini-3.8-flash khỏi vị trí đầu tiên vì có độ trễ lớn (~8-10s) gây timeout UI
+    candidate_list = ["gemini-3.1-flash-lite", "gemini-3.1-flash-lite-preview", "gemini-3.8-flash"]
+    
+    # Nếu model_override là model nhanh thì ưu tiên, nếu không thì dùng gemini-3.1-flash-lite làm mặc định
+    if model_override and model_override in ["gemini-3.1-flash-lite", "gemini-3.1-flash-lite-preview"]:
+        primary_model = model_override
+    else:
+        primary_model = MODEL_NAME  # gemini-3.1-flash-lite
+        
     models_to_try = [primary_model]
-    for candidate in ["gemini-3.1-flash-lite", "gemini-3.1-flash-lite-preview", "gemini-3.8-flash"]:
+    for candidate in candidate_list:
         if candidate not in models_to_try:
             models_to_try.append(candidate)
 

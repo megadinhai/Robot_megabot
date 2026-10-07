@@ -3118,7 +3118,7 @@ Ví dụ:
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -3135,7 +3135,7 @@ Ví dụ:
         }
       } catch (err) {
         if (err.name === 'AbortError') {
-          appendChatMessage("model", "⏱ Yêu cầu quá thời gian chờ (12s). Vui lòng thử lại!");
+          appendChatMessage("model", "⏱ Yêu cầu quá thời gian chờ (20s). Vui lòng thử lại!");
         } else {
           appendChatMessage("model", `✗ Lỗi kết nối: ${err.message}`);
         }
@@ -3195,11 +3195,11 @@ Ví dụ:
         // Điền model options nếu rỗng
         if (modelSelect) {
           modelSelect.innerHTML = `
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Nhanh & Tự nhiên - Khuyên dùng)</option>
-            <option value="gemini-2.5-flash-lite">Gemini Flash Lite (Siêu tiết kiệm)</option>
-            <option value="deepseek-v4">DeepSeek V4 (Phong phú)</option>
+            <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Phản hồi tức thì ~1s - Khuyên dùng)</option>
+            <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite Preview (Tối ưu hội thoại)</option>
+            <option value="gemini-3.8-flash">Gemini 3.8 Flash (Suy luận chi tiết)</option>
           `;
-          modelSelect.value = dev.model_id || "gemini-2.5-flash";
+          modelSelect.value = dev.model_id && dev.model_id.startsWith("gemini-3.") ? dev.model_id : "gemini-3.1-flash-lite";
         }
 
         if (langSelect) {
