@@ -41,29 +41,85 @@ app.add_middleware(
 )
 
 HOST = os.getenv("HOST", "0.0.0.0")
-PORT = int(os.getenv("PORT", "7860"))
+PORT = int(os.getenv("PORT", "10000"))
 
 # Lưu trữ các WebSocket đang hoạt động để gửi lệnh điều khiển robot
 active_websockets: Dict[str, WebSocket] = {}
 
 
 # ==========================================
-# GIAO DIỆN WEB DASHBOARD (XIAOZHI.ME CLONE)
+# GIAO DIỆN WEB DASHBOARD GMBOT AI (memory.gmbot.name.vn CLONE)
 # ==========================================
+
+WEB_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "Web_templates")
 
 @app.get("/")
 @app.get("/dashboard")
 async def dashboard_page():
-    """Phục vụ giao diện Bảng điều khiển Xiaozhi chuẩn theo ảnh chụp xiaozhi.me."""
+    """Phục vụ giao diện Bảng điều khiển GMBOT AI (memory.gmbot.name.vn clone)."""
+    html_path = os.path.join(WEB_TEMPLATES_DIR, "preview.html")
+    if not os.path.exists(html_path):
+        html_path = os.path.join(WEB_TEMPLATES_DIR, "index.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return JSONResponse({"status": "online", "message": "GMBOT Dashboard HTML not found"})
+
+
+@app.get("/english-tutor")
+@app.get("/english-tutor.html")
+@app.get("/english-tutor-app.html")
+async def english_tutor_page():
+    """Phục vụ ứng dụng GMBOT English Tutor."""
+    html_path = os.path.join(WEB_TEMPLATES_DIR, "english-tutor-app.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return JSONResponse({"error": "english-tutor-app.html not found"}, status_code=404)
+
+
+@app.get("/chon-bai-hoc.html")
+async def chon_bai_hoc_page():
+    html_path = os.path.join(WEB_TEMPLATES_DIR, "chon-bai-hoc.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return JSONResponse({"error": "File not found"}, status_code=404)
+
+
+@app.get("/cau-hinh-gmbot.html")
+async def cau_hinh_gmbot_page():
+    html_path = os.path.join(WEB_TEMPLATES_DIR, "cau-hinh-gmbot.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return JSONResponse({"error": "File not found"}, status_code=404)
+
+
+@app.get("/huong-dan.html")
+async def huong_dan_page():
+    html_path = os.path.join(WEB_TEMPLATES_DIR, "huong-dan.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return JSONResponse({"error": "File not found"}, status_code=404)
+
+
+@app.get("/ha-mcp-guide.html")
+async def ha_mcp_guide_page():
+    html_path = os.path.join(WEB_TEMPLATES_DIR, "ha-mcp-guide.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return JSONResponse({"error": "File not found"}, status_code=404)
+
+
+@app.get("/xiaozhi-me")
+async def xiaozhi_me_old_page():
+    """Giao diện xiaozhi.me cũ (nếu cần xem lại)."""
     html_path = os.path.join(os.path.dirname(__file__), "web", "index.html")
     if os.path.exists(html_path):
         return FileResponse(html_path)
-    return JSONResponse({"status": "online", "message": "Dashboard HTML not found"})
+    return JSONResponse({"error": "Old dashboard not found"})
 
 
 @app.get("/test")
 async def test_page():
-    """Giao diện debug chat websocket cũ."""
+    """Giao diện debug chat websocket."""
     html_path = os.path.join(os.path.dirname(__file__), "test_client.html")
     if os.path.exists(html_path):
         return FileResponse(html_path)

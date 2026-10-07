@@ -65,3 +65,4 @@ Cuối cùng, nhấn nút **Create Web Service** ở cuối trang.
    wss://xiaozhi-server-gemini.onrender.com/ws/xiaozhi
    ```
 5. Nạp link này vào mục cấu hình Server của ESP32 (qua giao diện cấu hình WiFi Captive Portal của robot hoặc mã nguồn). Robot sẽ tự động kết nối và hội thoại AI ngay lập tức!
+
