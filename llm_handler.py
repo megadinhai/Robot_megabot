@@ -16,8 +16,8 @@ logger = logging.getLogger("LLMHandler")
 
 # 1. Đọc API Key và cấu hình model từ .env
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
-FALLBACK_MODEL = "gemini-flash-latest"
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+FALLBACK_MODEL = "gemini-3.8-flash"
 
 # 2. System Prompt định hình tính cách cho robot Xiaozhi
 SYSTEM_INSTRUCTION = """Bạn là trợ lý robot thông minh Xiaozhi (Tiểu Trí) trên phần cứng ESP32.
@@ -65,38 +65,32 @@ async def chat_with_gemini(
     Returns:
         Câu trả lời ngắn gọn (2-3 câu) từ Gemini.
     """
+    import asyncio
+
     if not user_text or not user_text.strip():
         return ""
 
     client = get_genai_client()
 
-    # Chuẩn bị danh sách nội dung hội thoại theo chuẩn SDK mới
-    contents: List[types.Content] = []
+    # Chuẩn bị danh sách nội dung lịch sử hội thoại
+    history_contents: List[types.Content] = []
 
     if chat_history:
         for item in chat_history:
             if isinstance(item, types.Content):
-                contents.append(item)
+                history_contents.append(item)
             elif isinstance(item, dict):
                 role = item.get("role", "user")
                 if role == "assistant":
                     role = "model"
                 text = item.get("text") or item.get("content", "")
                 if text:
-                    contents.append(
+                    history_contents.append(
                         types.Content(
                             role=role,
                             parts=[types.Part.from_text(text=str(text))],
                         )
                     )
-
-    # Thêm câu nói hiện tại của người dùng
-    contents.append(
-        types.Content(
-            role="user",
-            parts=[types.Part.from_text(text=user_text.strip())],
-        )
-    )
 
     # Sử dụng system instruction tùy chỉnh hoặc mặc định
     active_system_instruction = system_instruction.strip() if system_instruction and system_instruction.strip() else SYSTEM_INSTRUCTION
@@ -108,10 +102,10 @@ async def chat_with_gemini(
         max_output_tokens=300,
     )
 
-    # Thử model chính, nếu gặp sự cố tự động fallback sang các model flash ổn định
+    # Danh sách model theo thứ tự ưu tiên: gemini-3.1-flash-lite chạy cực nhanh (~1s)
     primary_model = model_override or MODEL_NAME
     models_to_try = [primary_model]
-    for candidate in ["gemini-3.8-flash", "gemini-flash-latest"]:
+    for candidate in ["gemini-3.1-flash-lite", "gemini-3.1-flash-lite-preview", "gemini-3.8-flash"]:
         if candidate not in models_to_try:
             models_to_try.append(candidate)
 
@@ -119,10 +113,17 @@ async def chat_with_gemini(
     for model in models_to_try:
         try:
             logger.info(f"[LLM] Đang gửi prompt tới model {model}: '{user_text}'")
-            response = await client.aio.models.generate_content(
+            # Sử dụng Chat object để tránh AFC warnings và phản hồi mượt mà
+            chat = client.aio.chats.create(
                 model=model,
-                contents=contents,
+                history=history_contents if history_contents else None,
                 config=config,
+            )
+
+            # Đặt timeout 8 giây để không bị treo server
+            response = await asyncio.wait_for(
+                chat.send_message(user_text.strip()),
+                timeout=8.0,
             )
 
             reply_text = response.text.strip() if response.text else ""
