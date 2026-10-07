@@ -252,6 +252,81 @@ async def control_robot(req: Request):
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
 
+@app.post("/api/robot/display")
+async def control_display(req: Request):
+    """Gửi biểu cảm khuôn mặt (emotion) hoặc dòng chữ hiển thị trực tiếp lên màn hình OLED của robot."""
+    data = await req.json()
+    device_id = data.get("device_id")
+    emotion = data.get("emotion")  # happy, laughing, thinking, loving, wink, shocked, sad, neutral, cool, sleepy
+    text = data.get("text")  # Phụ đề chữ trên màn hình
+
+    ws = active_websockets.get(device_id) or next(iter(active_websockets.values()), None)
+    if not ws:
+        return JSONResponse({"status": "offline", "message": "Robot chưa kết nối WebSocket"}, status_code=503)
+
+    try:
+        # Gửi biểu cảm mắt / mặt
+        if emotion:
+            await ws.send_text(json.dumps({
+                "type": "llm",
+                "emotion": emotion,
+                "text": "😊"
+            }))
+
+        # Gửi phụ đề chữ hiển thị lên màn hình
+        if text:
+            await ws.send_text(json.dumps({
+                "type": "tts",
+                "state": "sentence_start",
+                "text": text
+            }))
+
+        logger.info(f"[ROBOT DISPLAY] Đã đổi biểu cảm '{emotion}' và hiển thị chữ '{text}' trên OLED")
+        return JSONResponse({"status": "ok", "emotion": emotion, "text": text})
+    except Exception as e:
+        logger.error(f"[ROBOT DISPLAY ERROR] {e}")
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+
+@app.post("/api/robot/speak")
+async def speak_to_robot(req: Request):
+    """Gửi câu nói: hiển thị phụ đề lên màn hình OLED và stream âm thanh giọng đọc xuống loa robot."""
+    data = await req.json()
+    device_id = data.get("device_id")
+    text = data.get("text", "Xin chào! Tôi là robot Xiaozhi.")
+    emotion = data.get("emotion", "happy")
+
+    ws = active_websockets.get(device_id) or next(iter(active_websockets.values()), None)
+    if not ws:
+        return JSONResponse({"status": "offline", "message": "Robot chưa kết nối WebSocket"}, status_code=503)
+
+    dev = device_manager.get_device(device_id) or device_manager.get_default_device()
+    voice = dev.get("voice", "vi-VN-HoaiMyNeural")
+
+    try:
+        # 1. Đổi biểu cảm
+        await ws.send_text(json.dumps({"type": "llm", "emotion": emotion, "text": "🗣️"}))
+
+        # 2. Bắt đầu phiên TTS và hiện phụ đề trên OLED
+        await ws.send_text(json.dumps({"type": "tts", "state": "start"}))
+        await ws.send_text(json.dumps({"type": "tts", "state": "sentence_start", "text": text}))
+
+        # 3. Stream gói âm thanh nếu robot có loa
+        async for chunk in text_to_speech_stream(text, voice=voice, chunk_size=1024):
+            await ws.send_bytes(chunk)
+            await asyncio.sleep(0.001)
+
+        # 4. Kết thúc và chuyển về neutral
+        await ws.send_text(json.dumps({"type": "tts", "state": "stop"}))
+        await ws.send_text(json.dumps({"type": "llm", "emotion": "neutral", "text": "😊"}))
+
+        logger.info(f"[ROBOT SPEAK] Đã gửi phát giọng nói '{text}' tới robot")
+        return JSONResponse({"status": "ok", "text": text})
+    except Exception as e:
+        logger.error(f"[ROBOT SPEAK ERROR] {e}")
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+
 @app.post("/api/chat")
 async def test_chat_api(req: Request):
     """Test trò chuyện trực tiếp với AI theo System Prompt của thiết bị."""
