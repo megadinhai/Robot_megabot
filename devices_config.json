@@ -35,6 +35,7 @@
       },
       "device_mac": "14:c1:9f:c4:ee:d0",
       "device_code": "927184",
+      "password": "123456",
       "is_online": false,
       "last_seen_ts": 1791367525.7845986,
       "active_curriculum_id": "3f8bd773-38e1-4077-990e-47e2dc6b919e",
@@ -60,7 +61,9 @@
           "created_at": "2026-10-08T09:13:07.431962"
         }
       ],
-      "active_english_template": null
+      "active_english_template": null,
+      "auth_token": "token_ong-robot_1791453577",
+      "last_login_at": "2026-10-08T16:59:37.131530"
     }
   ],
   "speakers": [

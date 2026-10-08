@@ -140,6 +140,161 @@ def get_active_socket(device_id: Optional[str] = None) -> Optional[WebSocket]:
 
 
 # ==========================================
+# AUTHENTICATION & QUẢN TRỊ TÀI KHOẢN ROBOT RIÊNG (GMBOT MODEL)
+# ==========================================
+
+@app.post("/api/auth/login")
+async def auth_login(req: Request):
+    """
+    Đăng nhập vào tài khoản quản trị của từng Robot riêng biệt (tương tự GMBot).
+    Tên đăng nhập: Mã PIN 6 số (927184), ID thiết bị (ong-robot), hoặc địa chỉ MAC.
+    Mật khẩu: Mật khẩu robot đã đặt (mặc định: 123456).
+    """
+    try:
+        data = await req.json()
+    except Exception:
+        data = {}
+
+    username = str(data.get("username", "")).strip()
+    password = str(data.get("password", "")).strip()
+
+    if not username:
+        return JSONResponse({"success": False, "error": "Vui lòng nhập Mã PIN 6 số hoặc Tên Robot!"}, status_code=400)
+
+    auth_res = device_manager.authenticate_device(username, password)
+    if not auth_res:
+        return JSONResponse({"success": False, "error": "Mã PIN/Tên Robot hoặc Mật khẩu không chính xác!"}, status_code=401)
+
+    dev = auth_res["device"]
+    # Kiểm tra trạng thái online thời gian thực
+    dev_id = dev.get("id")
+    dev_mac = str(dev.get("device_mac", "")).strip()
+    dev_code = str(dev.get("device_code", "")).strip()
+    has_socket = bool(
+        (dev_id and dev_id in active_websockets)
+        or (dev_mac and (dev_mac in active_websockets or dev_mac.lower() in active_websockets))
+        or (dev_code and dev_code in active_websockets)
+    )
+    dev["is_online"] = has_socket
+
+    return JSONResponse({
+        "success": True,
+        "token": auth_res["token"],
+        "device": dev,
+        "message": f"Đăng nhập thành công vào quản trị {dev.get('name')}!"
+    })
+
+
+@app.post("/api/auth/register")
+async def auth_register(req: Request):
+    """
+    Kích hoạt / Đăng ký tài khoản quản trị cho một Robot mới.
+    """
+    try:
+        data = await req.json()
+    except Exception:
+        data = {}
+
+    name = str(data.get("name", "")).strip()
+    code = str(data.get("device_code", "")).strip()
+    password = str(data.get("password", "123456")).strip() or "123456"
+
+    if not code and not data.get("device_mac"):
+        return JSONResponse({"success": False, "error": "Vui lòng nhập Mã PIN 6 số hoặc Địa chỉ MAC của Robot!"}, status_code=400)
+
+    auth_res = device_manager.register_device_account(data)
+    dev = auth_res["device"]
+
+    dev_id = dev.get("id")
+    dev_mac = str(dev.get("device_mac", "")).strip()
+    dev_code = str(dev.get("device_code", "")).strip()
+    has_socket = bool(
+        (dev_id and dev_id in active_websockets)
+        or (dev_mac and (dev_mac in active_websockets or dev_mac.lower() in active_websockets))
+        or (dev_code and dev_code in active_websockets)
+    )
+    dev["is_online"] = has_socket
+
+    return JSONResponse({
+        "success": True,
+        "token": auth_res["token"],
+        "device": dev,
+        "message": f"Đã kích hoạt tài khoản Robot '{dev.get('name')}' thành công!"
+    })
+
+
+@app.get("/api/auth/accounts")
+async def auth_list_accounts():
+    """Lấy danh sách các tài khoản robot đang có trên server (hỗ trợ chuyển đổi nhanh)."""
+    accounts = device_manager.get_accounts_summary()
+    for acc in accounts:
+        acc_id = acc.get("id")
+        acc_code = acc.get("device_code")
+        acc_mac = acc.get("device_mac")
+        acc["is_online"] = bool(
+            (acc_id and acc_id in active_websockets)
+            or (acc_code and acc_code in active_websockets)
+            or (acc_mac and (acc_mac in active_websockets or acc_mac.lower() in active_websockets))
+        )
+    return JSONResponse(accounts)
+
+
+@app.get("/api/auth/me")
+async def auth_me(req: Request):
+    """Lấy thông tin tài khoản robot hiện tại qua Token hoặc Query ID."""
+    token = req.headers.get("Authorization", "").replace("Bearer ", "").strip()
+    if not token:
+        token = req.query_params.get("token", "").strip()
+    device_id = req.query_params.get("device_id", "").strip()
+
+    dev = None
+    if token:
+        dev = device_manager.get_device_by_token(token)
+    if not dev and device_id:
+        dev = device_manager.get_device(device_id)
+
+    if not dev:
+        # Mặc định lấy robot đầu tiên nếu có
+        dev = device_manager.get_default_device()
+
+    if not dev:
+        return JSONResponse({"success": False, "error": "Chưa đăng nhập tài khoản robot nào!"}, status_code=401)
+
+    dev_id = dev.get("id")
+    dev_mac = str(dev.get("device_mac", "")).strip()
+    dev_code = str(dev.get("device_code", "")).strip()
+    dev["is_online"] = bool(
+        (dev_id and dev_id in active_websockets)
+        or (dev_code and dev_code in active_websockets)
+        or (dev_mac and (dev_mac in active_websockets or dev_mac.lower() in active_websockets))
+    )
+    return JSONResponse({"success": True, "device": dev})
+
+
+@app.post("/api/auth/logout")
+async def auth_logout():
+    """Đăng xuất tài khoản robot."""
+    return JSONResponse({"success": True, "message": "Đã đăng xuất thành công!"})
+
+
+@app.post("/api/auth/change-password")
+async def auth_change_password(req: Request):
+    """Đổi mật khẩu quản trị cho robot."""
+    try:
+        data = await req.json()
+    except Exception:
+        data = {}
+    device_id = str(data.get("device_id", "")).strip()
+    new_pwd = str(data.get("password", "")).strip()
+    if not device_id or not new_pwd:
+        return JSONResponse({"success": False, "error": "Thiếu thông tin thiết bị hoặc mật khẩu mới!"}, status_code=400)
+    ok = device_manager.change_device_password(device_id, new_pwd)
+    if ok:
+        return JSONResponse({"success": True, "message": "Đổi mật khẩu thành công!"})
+    return JSONResponse({"success": False, "error": "Không tìm thấy thiết bị!"}, status_code=404)
+
+
+# ==========================================
 # REST APIS QUẢN LÝ THIẾT BỊ & CẤU HÌNH
 # ==========================================
 

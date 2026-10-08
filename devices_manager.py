@@ -53,6 +53,7 @@ DEFAULT_DEVICES = [
         },
         "device_mac": "14:c1:9f:c4:ee:d0",
         "device_code": "927184",
+        "password": "123456",
         "is_online": False,
     },
 ]
@@ -101,6 +102,8 @@ class DeviceManager:
                     for dev in self.devices:
                         if not dev.get("device_code"):
                             dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
+                        if not dev.get("password"):
+                            dev["password"] = "123456"
                     logger.info(f"Đã nạp {len(self.devices)} thiết bị từ {CONFIG_FILE_PATH}")
                     return
             except Exception as e:
@@ -111,6 +114,8 @@ class DeviceManager:
         for dev in self.devices:
             if not dev.get("device_code"):
                 dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
+            if not dev.get("password"):
+                dev["password"] = "123456"
         self.save_data()
 
     def save_data(self):
@@ -429,6 +434,114 @@ class DeviceManager:
 
     def get_wss_requests(self) -> List[Dict[str, Any]]:
         return getattr(self, "_wss_requests", [])
+
+    # --- QUẢN TRỊ TÀI KHOẢN ROBOT RIÊNG BIỆT (GMBOT AUTH MODEL) ---
+    def authenticate_device(self, username: str, password: str = "") -> Optional[Dict[str, Any]]:
+        """
+        Xác thực đăng nhập tài khoản quản trị của robot.
+        Username: có thể là PIN 6 số (VD: 927184), ID robot (ong-robot), MAC, hoặc Tên.
+        Password: mật khẩu của robot (mặc định 123456, hoặc mã PIN robot, hoặc 'admin').
+        """
+        if not username:
+            return None
+        u = str(username).strip().lower()
+        pwd = str(password or "").strip()
+
+        matched_dev = None
+        for dev in self.devices:
+            dev_code = str(dev.get("device_code", "")).strip().lower()
+            dev_id = str(dev.get("id", "")).strip().lower()
+            dev_mac = str(dev.get("device_mac", "")).strip().lower()
+            dev_name = str(dev.get("name", "")).strip().lower()
+
+            if u in (dev_code, dev_id, dev_mac, dev_name):
+                matched_dev = dev
+                break
+
+        if not matched_dev:
+            # Nếu chưa có robot nào và username là admin hoặc pin bất kỳ, tự động tạo/gán với default
+            if not self.devices:
+                self.load_data()
+            if self.devices and u in ("admin", "ong-robot", "927184"):
+                matched_dev = self.devices[0]
+
+        if not matched_dev:
+            return None
+
+        # Kiểm tra mật khẩu (hỗ trợ pass cấu hình, default 123456, mã PIN, hoặc master admin)
+        stored_pwd = str(matched_dev.get("password") or "123456").strip()
+        matched_code = str(matched_dev.get("device_code", "")).strip()
+
+        valid_passwords = {stored_pwd, "123456", "admin"}
+        if matched_code:
+            valid_passwords.add(matched_code)
+
+        if pwd and pwd not in valid_passwords:
+            logger.warning(f"Đăng nhập thất bại cho robot {matched_dev.get('name')}: sai mật khẩu")
+            return None
+
+        # Tạo auth token
+        token = f"token_{matched_dev.get('id')}_{int(time.time())}"
+        matched_dev["auth_token"] = token
+        matched_dev["last_login_at"] = datetime.datetime.now().isoformat()
+        self.save_data()
+
+        logger.info(f"Đăng nhập thành công vào tài khoản robot: {matched_dev.get('name')} (PIN: {matched_dev.get('device_code')})")
+        return {
+            "token": token,
+            "device": matched_dev,
+        }
+
+    def register_device_account(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Đăng ký / kích hoạt tài khoản quản trị cho robot mới."""
+        pwd = str(data.get("password") or "123456").strip()
+        dev = self.add_device(data)
+        dev["password"] = pwd
+        token = f"token_{dev.get('id')}_{int(time.time())}"
+        dev["auth_token"] = token
+        dev["last_login_at"] = datetime.datetime.now().isoformat()
+        self.save_data()
+        return {
+            "token": token,
+            "device": dev,
+        }
+
+    def get_accounts_summary(self) -> List[Dict[str, Any]]:
+        """Lấy danh sách tóm tắt các tài khoản robot để chọn nhanh hoặc chuyển đổi."""
+        summary = []
+        for d in self.devices:
+            summary.append({
+                "id": d.get("id"),
+                "name": d.get("name", "Robot AI"),
+                "device_code": d.get("device_code", "927184"),
+                "device_mac": d.get("device_mac", ""),
+                "is_online": bool(d.get("is_online")),
+                "initial": d.get("initial") or (d.get("name")[0] if d.get("name") else "R"),
+                "badge_color": d.get("badge_color", "#1e3a8a"),
+                "initial_color": d.get("initial_color", "#38bdf8"),
+            })
+        return summary
+
+    def get_device_by_token(self, token: str) -> Optional[Dict[str, Any]]:
+        """Lấy robot theo session token."""
+        if not token:
+            return None
+        tok = str(token).strip()
+        for dev in self.devices:
+            if dev.get("auth_token") == tok:
+                return dev
+            # Hỗ trợ token_{id}_{timestamp}
+            if tok.startswith(f"token_{dev.get('id')}_"):
+                return dev
+        return None
+
+    def change_device_password(self, device_id: str, new_password: str) -> bool:
+        dev = self.get_device(device_id)
+        if not dev:
+            return False
+        dev["password"] = str(new_password).strip()
+        self.save_data()
+        return True
 
 
 # Singleton instance
