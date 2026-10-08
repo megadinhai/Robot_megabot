@@ -110,15 +110,6 @@ async def ha_mcp_guide_page():
     return JSONResponse({"error": "File not found"}, status_code=404)
 
 
-@app.get("/megabot-me")
-@app.get("/xiaozhi-me")
-async def xiaozhi_me_old_page():
-    """Giao diện Megabot/xiaozhi cũ (nếu cần xem lại)."""
-    html_path = os.path.join(os.path.dirname(__file__), "web", "index.html")
-    if os.path.exists(html_path):
-        return FileResponse(html_path)
-    return JSONResponse({"error": "Old dashboard not found"})
-
 
 @app.get("/test")
 async def test_page():
