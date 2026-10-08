@@ -162,7 +162,7 @@ export default function App() {
         {/* Chân Sidebar */}
         <div className="p-3 border-t border-gray-800 bg-[#070d18] text-xs space-y-2">
           <div className="text-gray-300 px-2">
-            Zalo: <strong className="text-amber-400">0938.396.290</strong>
+            Zalo: <strong className="text-amber-400">0855133443</strong>
           </div>
           <button className="w-full flex items-center gap-2 px-2 py-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors font-semibold">
             <span>🚪</span>
