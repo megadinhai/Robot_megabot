@@ -130,7 +130,7 @@ async def test_page():
 
 
 def get_active_socket(device_id: Optional[str] = None) -> Optional[WebSocket]:
-    """Tìm WebSocket đang kết nối linh hoạt theo ID, MAC, PIN hoặc bất kỳ kết nối online nào."""
+    """Tìm WebSocket đang kết nối linh hoạt theo ID, MAC, PIN. Không mượn nhầm socket của robot khác."""
     if not active_websockets:
         return None
     if device_id:
@@ -141,7 +141,10 @@ def get_active_socket(device_id: Optional[str] = None) -> Optional[WebSocket]:
             for k in [dev.get("id"), dev.get("device_mac"), str(dev.get("device_code", "")).strip()]:
                 if k and k in active_websockets:
                     return active_websockets[k]
-    # Fallback: Nếu có robot kết nối, lấy robot đầu tiên
+                if k and isinstance(k, str) and k.lower() in active_websockets:
+                    return active_websockets[k.lower()]
+        return None
+    # Fallback: Chỉ khi không chỉ định robot cụ thể và có robot kết nối, lấy robot đầu tiên
     return next(iter(active_websockets.values()), None)
 
 
@@ -153,15 +156,16 @@ def get_active_socket(device_id: Optional[str] = None) -> Optional[WebSocket]:
 async def list_devices():
     """Danh sách thiết bị robot."""
     devices = device_manager.get_all_devices()
+    now = time.time()
     for dev in devices:
         dev_id = dev.get("id")
-        dev_mac = dev.get("device_mac")
+        dev_mac = str(dev.get("device_mac", "")).strip()
         dev_code = str(dev.get("device_code", "")).strip()
-        last_seen = dev.get("last_seen_ts", 0)
-        recently_active = (time.time() - last_seen) < 300
+        last_seen = float(dev.get("last_seen_ts") or 0)
+        recently_active = (now - last_seen) < 120 if last_seen > 0 else False
         has_socket = bool(
             (dev_id and dev_id in active_websockets)
-            or (dev_mac and dev_mac in active_websockets)
+            or (dev_mac and (dev_mac in active_websockets or dev_mac.lower() in active_websockets))
             or (dev_code and dev_code in active_websockets)
         )
         dev["is_online"] = has_socket or recently_active
@@ -174,11 +178,16 @@ async def create_device(req: Request):
     data = await req.json()
     new_dev = device_manager.add_device(data)
     dev_id = new_dev.get("id")
-    dev_mac = new_dev.get("device_mac")
+    dev_mac = str(new_dev.get("device_mac", "")).strip()
     dev_code = str(new_dev.get("device_code", "")).strip()
 
-    # Tự động gán WebSocket nếu robot đang online
-    ws = get_active_socket(dev_code) or get_active_socket(dev_mac) or (active_websockets and next(iter(active_websockets.values()), None))
+    # Kiểm tra xem chính robot này có đang mở WebSocket không
+    ws = None
+    if dev_code and dev_code in active_websockets:
+        ws = active_websockets[dev_code]
+    elif dev_mac:
+        ws = active_websockets.get(dev_mac.lower()) or active_websockets.get(dev_mac)
+
     if ws:
         if dev_id:
             active_websockets[dev_id] = ws
@@ -186,9 +195,12 @@ async def create_device(req: Request):
             active_websockets[dev_code] = ws
         if dev_mac:
             active_websockets[dev_mac] = ws
+            active_websockets[dev_mac.lower()] = ws
         new_dev["is_online"] = True
         new_dev["last_seen_ts"] = time.time()
         device_manager.save_data()
+    else:
+        new_dev["is_online"] = False
 
     return JSONResponse(new_dev)
 
@@ -1159,6 +1171,8 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
     # Đăng ký kết nối WebSocket theo ID, MAC và PIN
     active_websockets[target_device_id] = websocket
     active_websockets[device_mac] = websocket
+    if device_mac and isinstance(device_mac, str):
+        active_websockets[device_mac.lower()] = websocket
     active_websockets[pin_code] = websocket
 
     logger.info("=" * 60)
@@ -1455,6 +1469,8 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
         await cancel_active_task("Đóng kết nối")
         active_websockets.pop(target_device_id, None)
         active_websockets.pop(device_mac, None)
+        if device_mac and isinstance(device_mac, str):
+            active_websockets.pop(device_mac.lower(), None)
         active_websockets.pop(pin_code, None)
         matched_dev["is_online"] = False
         device_manager.save_data()

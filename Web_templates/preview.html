@@ -1542,11 +1542,92 @@ body {
     <!-- CONTAINER TẤT CẢ CÁC TRANG CARD ĐƯỢC BÓC TÁCH -->
     <div id="cardsContainer">
 <div class="card" id="addDeviceCard" style="display: none;">
-    <h3>Thêm thiết bị Robot</h3>
-    <input id="name" placeholder="Tên thiết bị (Ví dụ: Robot Bé Bon)">
-    <input id="url" placeholder="Mã thiết bị 6 số trên màn hình robot (Ví dụ: 927184)">
-    <button class="primary full-width" onclick="addDeviceFromForm()">Thêm thiết bị</button>
-    <div id="message"></div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+        <div>
+            <h3 style="margin: 0; font-size: 19px; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+                <span>➕</span> Thêm thiết bị Robot Megabot / Xiaozhi
+            </h3>
+            <div style="font-size: 12.5px; color: #94a3b8; margin-top: 4px;">
+                Thêm nhiều Robot ESP32-S3 / Xiaozhi vào máy chủ và điều khiển đồng bộ qua WebSocket
+            </div>
+        </div>
+        <button id="btnToggleGuide" onclick="toggleSetupGuide()" style="padding: 7px 14px; border-radius: 8px; background: #1e293b; border: 1px solid #3b82f6; color: #93c5fd; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+            <span>📖</span> <span id="toggleGuideText">Xem hướng dẫn cài đặt robot Xiaozhi</span>
+        </button>
+    </div>
+
+    <!-- FORM NHẬP THIẾT BỊ -->
+    <div style="background: #07152b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 18px; margin-bottom: 16px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                    🤖 Tên gợi nhớ cho Robot <span style="color: #ef4444;">*</span>
+                </label>
+                <input id="deviceNameInput" placeholder="Ví dụ: Megabot Bé Bon, Robot Bàn Học..." style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: #0c1a32; color: white; font-size: 13.5px; transition: border-color 0.2s;">
+                <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">Tên hiển thị trên bảng điều khiển và trong ứng dụng</div>
+            </div>
+            <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                    🔢 Mã PIN 6 số hoặc Địa chỉ MAC <span style="color: #ef4444;">*</span>
+                </label>
+                <input id="deviceCodeInput" placeholder="Mã PIN 6 số (VD: 927184) hoặc MAC (VD: 24:DC:C3:...)" style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: #0c1a32; color: white; font-size: 13.5px; font-family: monospace; font-weight: 600; transition: border-color 0.2s;">
+                <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">Hiển thị trên màn hình LCD/OLED của robot khi khởi động</div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px;">
+            <div style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+                <span>💡</span> <span>Robot đã kết nối tới server sẽ tự động liên kết ngay khi bạn bấm Thêm.</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" onclick="clearAddDeviceForm()" style="padding: 10px 16px; border-radius: 8px; background: #1e293b; color: #cbd5e1; font-size: 13px; font-weight: 600; border: 1px solid #475569; cursor: pointer;">
+                    Làm trống
+                </button>
+                <button id="btnAddDeviceSubmit" class="primary" onclick="addDeviceFromForm()" style="padding: 10px 22px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; font-size: 13px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.4); display: flex; align-items: center; gap: 8px;">
+                    <span>✨</span> Xác nhận thêm thiết bị
+                </button>
+            </div>
+        </div>
+
+        <div id="addDeviceAlert" style="display: none; margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: 13px; line-height: 1.5;"></div>
+    </div>
+
+    <!-- HƯỚNG DẪN CẤU HÌNH ROBOT XIAOZHI KHÁC (CÓ THỂ BẬT/TẮT) -->
+    <div id="setupGuideSection" style="background: linear-gradient(180deg, #0d1e38 0%, #07152b 100%); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 18px; margin-top: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div style="font-size: 14px; font-weight: bold; color: #60a5fa; display: flex; align-items: center; gap: 6px;">
+                <span>📡</span> Địa chỉ WebSocket Server để nạp vào các Robot Xiaozhi khác:
+            </div>
+            <span style="font-size: 11px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid #22c55e; padding: 3px 10px; border-radius: 12px; font-weight: 600;">
+                ● WebSocket Render Trực Tuyến
+            </span>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+            <input id="wsServerUrlDisplay" readonly value="wss://robot-megabot.onrender.com/ws/megabot" style="flex: 1; min-width: 260px; padding: 10px 14px; border-radius: 8px; border: 1px solid #3b82f6; background: #040d1a; color: #38bdf8; font-family: monospace; font-size: 13.5px; font-weight: bold;">
+            <button onclick="copyWsServerUrl()" style="padding: 10px 18px; border-radius: 8px; background: #2563eb; color: white; font-size: 13px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(37,99,235,0.35);">
+                <span id="copyIcon">📋</span> <span id="copyText">Sao chép WebSocket URL</span>
+            </button>
+        </div>
+
+        <div style="background: #040d1a; border-radius: 10px; padding: 16px; border: 1px solid rgba(255,255,255,0.06); font-size: 13px; line-height: 1.6; color: #cbd5e1;">
+            <strong style="color: #f8fafc; font-size: 13.5px; display: block; margin-bottom: 8px;">🛠️ Cách kết nối robot Xiaozhi mới vào server này trong 3 bước:</strong>
+            <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <li>
+                    <strong>Bước 1 (Mở trang cấu hình robot):</strong> Nhấn giữ nút BOOT hoặc phím âm lượng khi cấp nguồn robot để phát ra mạng WiFi cấu hình (thường tên là <code style="color: #38bdf8; background: #1e293b; padding: 2px 6px; border-radius: 4px;">Xiaozhi-XXXX</code> hoặc <code style="color: #38bdf8; background: #1e293b; padding: 2px 6px; border-radius: 4px;">ESP32-Setup</code>). Dùng điện thoại kết nối vào WiFi này rồi mở trình duyệt vào <code style="color: #38bdf8; background: #1e293b; padding: 2px 6px; border-radius: 4px;">192.168.4.1</code>.
+                </li>
+                <li>
+                    <strong>Bước 2 (Điền WebSocket URL):</strong> Tại ô <em>WebSocket URL</em> hoặc <em>Server Address</em>, dán URL <code style="color: #38bdf8; background: #1e293b; padding: 2px 6px; border-radius: 4px;">wss://robot-megabot.onrender.com/ws/megabot</code>. Nhập tên và mật khẩu WiFi gia đình rồi bấm <strong>Lưu & Khởi động lại (Save & Reboot)</strong>.
+                </li>
+                <li>
+                    <strong>Bước 3 (Nhận diện & Đặt tên):</strong> Khi robot khởi động và kết nối internet thành công, màn hình robot sẽ hiển thị <strong>Mã PIN 6 chữ số</strong>. Bạn nhập mã vào ô bên trên rồi bấm <em>"Xác nhận thêm thiết bị"</em>. Robot sẽ kết nối trực tiếp và chuyển sang trạng thái 🟢 Trực tuyến!
+                </li>
+            </ol>
+            <div style="margin-top: 12px; padding: 10px 14px; background: rgba(234,179,8,0.12); border-left: 4px solid #eab308; border-radius: 6px; color: #fef08a; font-size: 12.5px;">
+                💡 <strong>Tự động nhận diện (Zero-Config):</strong> Nếu robot của bạn đã nạp firmware Megabot / Xiaozhi trỏ về server này, ngay khi bạn bật nguồn, robot sẽ <strong>tự động xuất hiện trong danh sách bên dưới</strong>! Bạn chỉ cần nhấn nút ✏️ Đổi tên trên thẻ robot để sử dụng ngay mà không cần nhập mã thủ công.
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="card" id="aiRoleSelectCard" style="display:none;">
@@ -2943,12 +3024,14 @@ Ví dụ:
                   ${initial}
                 </div>
                 <div>
-                  <h4 style="margin:0;font-size:15px;color:#f8fafc;display:flex;align-items:center;gap:6px;">
+                  <h4 style="margin:0;font-size:15px;color:#f8fafc;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                     ${d.name}
                     ${isSelected ? '<span style="font-size:10px;background:#0284c7;color:white;padding:1px 6px;border-radius:6px;font-weight:bold;">👑 Đang chọn</span>' : ''}
+                    ${d.name.startsWith("Robot AI (") ? `<span onclick="renameDeviceQuick('${d.id}', '${d.name.replace(/'/g, "\\'")}')" style="font-size:10px;background:rgba(234,179,8,0.2);color:#facc15;border:1px solid #ca8a04;padding:1px 6px;border-radius:4px;font-weight:bold;cursor:pointer;" title="Nhấn để đặt tên cho robot mới">✨ Mới kết nối - Đổi tên</span>` : ''}
                   </h4>
-                  <div style="font-size:11px;color:#38bdf8;margin-top:2px;font-family:monospace;font-weight:600;">
-                    🔢 Mã kết nối: <span style="background:rgba(56,189,248,0.15);padding:1px 6px;border-radius:4px;color:#7dd3fc;border:1px solid rgba(56,189,248,0.3);">${d.device_code || '927184'}</span>
+                  <div style="font-size:11px;color:#38bdf8;margin-top:3px;font-family:monospace;font-weight:600;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <span>🔢 PIN: <strong style="background:rgba(56,189,248,0.15);padding:1px 6px;border-radius:4px;color:#7dd3fc;border:1px solid rgba(56,189,248,0.3);">${d.device_code || '927184'}</strong></span>
+                    ${d.device_mac ? `<span style="color:#64748b;">| MAC: <span style="color:#94a3b8;">${d.device_mac}</span></span>` : ''}
                   </div>
                 </div>
               </div>
@@ -2978,14 +3061,17 @@ Ví dụ:
 
             <!-- Các nút hành động -->
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;">
-              <button onclick="selectAndControlDevice('${d.id}')" style="flex:1;min-width:90px;padding:8px 10px;border-radius:8px;background:#1e3a8a;border:1px solid #3b82f6;color:#bfdbfe;font-size:12px;font-weight:600;cursor:pointer;">
+              <button onclick="selectAndControlDevice('${d.id}')" style="flex:1;min-width:85px;padding:8px 10px;border-radius:8px;background:#1e3a8a;border:1px solid #3b82f6;color:#bfdbfe;font-size:12px;font-weight:600;cursor:pointer;">
                 🎮 Lái D-Pad
               </button>
-              <button onclick="selectAndConfigDevice('${d.id}')" style="flex:1;min-width:90px;padding:8px 10px;border-radius:8px;background:#1e293b;border:1px solid #475569;color:#e2e8f0;font-size:12px;font-weight:600;cursor:pointer;">
+              <button onclick="selectAndConfigDevice('${d.id}')" style="flex:1;min-width:85px;padding:8px 10px;border-radius:8px;background:#1e293b;border:1px solid #475569;color:#e2e8f0;font-size:12px;font-weight:600;cursor:pointer;">
                 ⚙️ Cấu hình
               </button>
               <button onclick="selectAndChatDevice('${d.id}')" style="flex:1;min-width:70px;padding:8px 10px;border-radius:8px;background:#0369a1;border:1px solid #0284c7;color:white;font-size:12px;font-weight:600;cursor:pointer;">
                 💬 Chat
+              </button>
+              <button onclick="renameDeviceQuick('${d.id}', '${d.name.replace(/'/g, "\\'")}')" style="padding:8px 10px;border-radius:8px;background:#1e293b;border:1px solid #38bdf8;color:#38bdf8;font-size:12px;cursor:pointer;" title="Đổi tên robot">
+                ✏️
               </button>
               <button onclick="deleteDevice('${d.id}')" style="padding:8px 10px;border-radius:8px;background:#450a0a;border:1px solid #991b1b;color:#fca5a5;font-size:12px;cursor:pointer;" title="Xóa thiết bị">
                 🗑️
@@ -3432,48 +3518,173 @@ Ví dụ:
       }
     }
 
-    // 6. THÊM / XÓA THIẾT BỊ
+    // 6. THÊM / ĐỔI TÊN / XÓA THIẾT BỊ ROBOT
     function openAddDevicePrompt() {
-      const onlineDev = (currentDevices || []).find(d => d.is_online);
-      const hintCode = onlineDev ? (onlineDev.device_code || "927184") : "927184";
-      const code = prompt("Nhập MÃ THIẾT BỊ 6 SỐ hiển thị trên màn hình Robot (Ví dụ: " + hintCode + "):", hintCode);
-      if (!code || !code.trim()) return;
-      const cleanCode = code.trim();
-      const defaultName = cleanCode === "927184" ? "Robot AI" : `Robot ${cleanCode}`;
-      const name = prompt("Đặt tên gọi cho Robot này:", defaultName);
-      if (!name || !name.trim()) return;
-      addDeviceReal(name.trim(), cleanCode);
+      const card = document.getElementById("addDeviceCard");
+      if (card) {
+        card.style.display = "block";
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+        const nameInput = document.getElementById("deviceNameInput") || document.getElementById("name");
+        if (nameInput) {
+          nameInput.focus();
+          nameInput.style.borderColor = "#38bdf8";
+          nameInput.style.boxShadow = "0 0 12px rgba(56,189,248,0.5)";
+          setTimeout(() => {
+            nameInput.style.borderColor = "rgba(255,255,255,0.12)";
+            nameInput.style.boxShadow = "none";
+          }, 2000);
+        }
+      }
     }
 
-    function addDeviceFromForm() {
-      const name = document.getElementById("name")?.value.trim() || "Robot AI";
-      const code = document.getElementById("url")?.value.trim() || "927184";
-      addDeviceReal(name, code);
+    function toggleSetupGuide() {
+      const guide = document.getElementById("setupGuideSection");
+      const text = document.getElementById("toggleGuideText");
+      if (!guide) return;
+      if (guide.style.display === "none") {
+        guide.style.display = "block";
+        if (text) text.innerText = "Ẩn hướng dẫn cài đặt robot";
+      } else {
+        guide.style.display = "none";
+        if (text) text.innerText = "Xem hướng dẫn cài đặt robot Xiaozhi";
+      }
     }
 
-    async function addDeviceReal(name, code) {
+    function copyWsServerUrl() {
+      const input = document.getElementById("wsServerUrlDisplay");
+      const url = input ? input.value : "wss://robot-megabot.onrender.com/ws/megabot";
+      navigator.clipboard.writeText(url).then(() => {
+        const copyText = document.getElementById("copyText");
+        const copyIcon = document.getElementById("copyIcon");
+        if (copyText) copyText.innerText = "✓ Đã sao chép URL!";
+        if (copyIcon) copyIcon.innerText = "✅";
+        showToast("✓ Đã sao chép link WebSocket Server!");
+        setTimeout(() => {
+          if (copyText) copyText.innerText = "Sao chép WebSocket URL";
+          if (copyIcon) copyIcon.innerText = "📋";
+        }, 2500);
+      }).catch(() => {
+        if (input) {
+          input.select();
+          document.execCommand("copy");
+          showToast("✓ Đã sao chép WebSocket URL!");
+        }
+      });
+    }
+
+    function clearAddDeviceForm() {
+      const nameInput = document.getElementById("deviceNameInput") || document.getElementById("name");
+      const codeInput = document.getElementById("deviceCodeInput") || document.getElementById("url");
+      const alertBox = document.getElementById("addDeviceAlert");
+      if (nameInput) nameInput.value = "";
+      if (codeInput) codeInput.value = "";
+      if (alertBox) alertBox.style.display = "none";
+    }
+
+    async function addDeviceFromForm() {
+      const nameInput = document.getElementById("deviceNameInput") || document.getElementById("name");
+      const codeInput = document.getElementById("deviceCodeInput") || document.getElementById("url");
+      const alertBox = document.getElementById("addDeviceAlert");
+      const submitBtn = document.getElementById("btnAddDeviceSubmit");
+
+      const name = nameInput ? nameInput.value.trim() : "";
+      const code = codeInput ? codeInput.value.trim() : "";
+
+      if (!code) {
+        if (alertBox) {
+          alertBox.style.display = "block";
+          alertBox.style.background = "rgba(239,68,68,0.15)";
+          alertBox.style.color = "#fca5a5";
+          alertBox.style.border = "1px solid #ef4444";
+          alertBox.innerHTML = "⚠️ <strong>Vui lòng nhập:</strong> Mã PIN 6 số trên màn hình robot hoặc địa chỉ MAC (VD: 927184 hoặc 24:DC:C3:...)!";
+        }
+        if (codeInput) codeInput.focus();
+        showToast("Vui lòng nhập Mã PIN hoặc MAC robot", false);
+        return;
+      }
+
+      const isMac = code.includes(":") || code.includes("-") || code.length > 8;
+      const finalName = name || (isMac ? `Robot Megabot (${code.slice(-5)})` : `Robot AI (${code})`);
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span>⏳</span> Đang lưu vào hệ thống...`;
+      }
+
       try {
         const res = await fetch("/api/devices", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            name: name, 
-            device_code: code,
-            device_mac: code.includes(":") ? code : ""
+          body: JSON.stringify({
+            name: finalName,
+            device_code: isMac ? "" : code,
+            device_mac: isMac ? code : ""
           })
         });
+
         if (res.ok) {
           const newDev = await res.json();
           if (newDev && newDev.id) {
             activeDeviceId = newDev.id;
           }
-          showToast(`✓ Đã kết nối thiết bị: ${name} (Mã: ${code})!`);
+          if (alertBox) {
+            alertBox.style.display = "block";
+            alertBox.style.background = "rgba(34,197,94,0.15)";
+            alertBox.style.color = "#4ade80";
+            alertBox.style.border = "1px solid #22c55e";
+            alertBox.innerHTML = `🎉 <strong>Thêm thành công!</strong> Đã đăng ký hồ sơ robot <strong>${newDev.name || finalName}</strong> (Mã kết nối: <code>${newDev.device_code || code}</code>). Robot sẽ tự động chuyển sang 🟢 Trực tuyến khi kết nối WebSocket đến server!`;
+          }
+          showToast(`✓ Đã thêm robot: ${newDev.name || finalName}!`);
+          if (nameInput) nameInput.value = "";
+          if (codeInput) codeInput.value = "";
           await loadDevices();
+          updateSidebarRobotInfo(currentDevices);
         } else {
+          const errData = await res.json().catch(() => ({}));
+          if (alertBox) {
+            alertBox.style.display = "block";
+            alertBox.style.background = "rgba(239,68,68,0.15)";
+            alertBox.style.color = "#fca5a5";
+            alertBox.style.border = "1px solid #ef4444";
+            alertBox.innerHTML = `✗ Lỗi máy chủ: ${errData.detail || errData.message || 'Không thể lưu hồ sơ'}`;
+          }
           showToast("Lỗi thêm thiết bị", false);
         }
       } catch (e) {
+        if (alertBox) {
+          alertBox.style.display = "block";
+          alertBox.style.background = "rgba(239,68,68,0.15)";
+          alertBox.style.color = "#fca5a5";
+          alertBox.style.border = "1px solid #ef4444";
+          alertBox.innerHTML = `✗ Lỗi kết nối tới máy chủ: ${e.message}`;
+        }
         showToast("Lỗi kết nối tới máy chủ", false);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<span>✨</span> Xác nhận thêm thiết bị`;
+        }
+      }
+    }
+
+    async function renameDeviceQuick(id, currentName) {
+      const newName = prompt(`Nhập tên mới cho robot (${currentName}):`, currentName);
+      if (!newName || !newName.trim() || newName.trim() === currentName) return;
+      try {
+        const res = await fetch(`/api/devices/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newName.trim(), initial: newName.trim()[0].toUpperCase() })
+        });
+        if (res.ok) {
+          showToast(`✓ Đã đổi tên robot thành: ${newName.trim()}`);
+          await loadDevices();
+          updateSidebarRobotInfo(currentDevices);
+        } else {
+          showToast("Lỗi đổi tên thiết bị", false);
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối: " + e.message, false);
       }
     }
 

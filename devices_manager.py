@@ -204,10 +204,21 @@ class DeviceManager:
         return None
 
     def add_device(self, device_data: Dict[str, Any]) -> Dict[str, Any]:
-        dev_code = str(device_data.get("device_code", "")).strip()
-        dev_mac = str(device_data.get("device_mac", "")).strip()
+        raw_code = str(device_data.get("device_code", "")).strip()
+        raw_mac = str(device_data.get("device_mac", "")).strip()
 
-        # Nếu có device_code mà chưa có MAC, thử tìm MAC từ thiết bị đã biết
+        dev_mac = raw_mac
+        dev_code = raw_code
+
+        # Chuẩn hóa nếu mã nhập vào thực chất là địa chỉ MAC (chứa : hoặc - hoặc độ dài > 6 ký tự)
+        if raw_code and (":" in raw_code or "-" in raw_code or len(raw_code) > 6):
+            if not dev_mac:
+                dev_mac = raw_code
+            dev_code = generate_device_code(dev_mac)
+        elif dev_mac and not dev_code:
+            dev_code = generate_device_code(dev_mac)
+
+        # Nếu có device_code mà chưa có MAC, thử tìm MAC từ thiết bị đã biết trong cấu hình
         if dev_code and not dev_mac:
             for d in self.devices:
                 if str(d.get("device_code", "")).strip() == dev_code and d.get("device_mac"):
@@ -224,25 +235,79 @@ class DeviceManager:
                     existing["device_mac"] = dev_mac
                 if dev_code:
                     existing["device_code"] = dev_code
+                if device_data.get("name"):
+                    existing["name"] = device_data["name"]
+                    existing["initial"] = device_data["name"][0].upper()
                 self.save_data()
                 logger.info(f"Đã cập nhật hồ sơ thiết bị hiện có: {existing.get('name')} (Mã: {existing.get('device_code')})")
                 return existing
 
-        # Tạo mới hồ sơ
+        # Tạo mới hồ sơ với đầy đủ cấu hình chuẩn
         if not dev_code:
             dev_code = generate_device_code(dev_mac or f"robot-{len(self.devices) + 1}")
-        device_data["device_code"] = dev_code
-        device_data["device_mac"] = dev_mac
-        dev_id = device_data.get("id") or f"robot-{len(self.devices) + 1}"
-        device_data["id"] = dev_id
-        if "name" not in device_data or not device_data["name"]:
-            device_data["name"] = f"Robot AI ({dev_code})"
-        if "initial" not in device_data:
-            device_data["initial"] = device_data["name"][0].upper()
-        self.devices.append(device_data)
+
+        dev_id = device_data.get("id")
+        if not dev_id:
+            dev_id = f"robot-{dev_code}"
+            existing_ids = {d.get("id") for d in self.devices}
+            if dev_id in existing_ids:
+                dev_id = f"robot-{dev_code}-{len(self.devices) + 1}"
+
+        name = device_data.get("name") or f"Robot AI ({dev_code})"
+        initial = name[0].upper() if name else "R"
+
+        full_device: Dict[str, Any] = {
+            "id": dev_id,
+            "name": name,
+            "initial": initial,
+            "badge_color": "#e0f2fe",
+            "initial_color": "#0284c7",
+            "role_summary": "Trợ lý thông minh Megabot AI",
+            "model": "Gemini 3.8 Flash (Thông minh)",
+            "model_id": "gemini-3.8-flash",
+            "last_chat": "Vừa thêm mới",
+            "language": "vi",
+            "voice": "vi-VN-HoaiMyNeural",
+            "voice_name": "Giọng nữ (Female Voice)",
+            "custom_prompt": True,
+            "prompt": DEFAULT_DEVICES[0]["prompt"] if DEFAULT_DEVICES else (
+                "# Vai trò: Tôi là trợ lý ảo Megabot, nhiệm vụ của tôi là lắng nghe tiếng Việt và hỗ trợ "
+                "người dùng một cách lịch sự, trung lập và hữu ích. Khi trả lời, tôi luôn nói ngắn gọn súc tích (1-2 câu)."
+            ),
+            "child_mode": False,
+            "memory_enabled": True,
+            "volume": 8,
+            "services": {
+                "time": True,
+                "music": True,
+                "knowledge": True,
+                "search": True,
+            },
+            "knowledge_base": "none",
+            "mcp_endpoint": "Điểm cuối MCP",
+            "toy_settings": {
+                "speed": 80,
+                "left_trim": 0,
+                "right_trim": 0,
+                "auto_avoid": True,
+                "led_lamp": False,
+            },
+            "device_mac": dev_mac,
+            "device_code": dev_code,
+            "is_online": False,
+        }
+        # Merge các thuộc tính bổ sung từ device_data nếu có
+        full_device.update(device_data)
+        full_device["id"] = dev_id
+        full_device["name"] = name
+        full_device["initial"] = initial
+        full_device["device_code"] = dev_code
+        full_device["device_mac"] = dev_mac
+
+        self.devices.append(full_device)
         self.save_data()
-        logger.info(f"Đã thêm hồ sơ thiết bị mới: {device_data.get('name')} (Mã: {dev_code})")
-        return device_data
+        logger.info(f"Đã thêm hồ sơ thiết bị mới: {full_device.get('name')} (Mã: {dev_code}, ID: {dev_id})")
+        return full_device
 
     def delete_device(self, device_id: str) -> bool:
         initial_len = len(self.devices)
