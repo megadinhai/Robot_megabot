@@ -37,11 +37,11 @@ Dưới đây là các bước chi tiết để bạn thiết lập chạy serve
 ## Bước 5: Cấu hình API Key (Environment Variables)
 
 Cuộn xuống mục **Environment Variables** $\rightarrow$ Bấm **Add Environment Variable**:
-- **Key**: `GEMINI_API_KEY`
-- **Value**: Dán mã API Key Gemini của bạn (lấy tại Google AI Studio).
+- **Key**: `GEMINI_API_KEY` $\rightarrow$ **Value**: Dán API Key Gemini của bạn (lấy tại Google AI Studio).
 
-*(Tùy chọn thêm nếu muốn):*
-- **Key**: `GEMINI_MODEL` $\rightarrow$ **Value**: `gemini-2.5-flash`
+*(Tùy chọn - nếu bạn muốn dùng thêm ChatGPT hoặc DeepSeek):*
+- **Key**: `OPENAI_API_KEY` $\rightarrow$ **Value**: Dán mã OpenAI API Key (bắt đầu bằng `sk-...`).
+- **Key**: `DEEPSEEK_API_KEY` $\rightarrow$ **Value**: Dán mã DeepSeek API Key (bắt đầu bằng `sk-...`).
 - **Key**: `TTS_VOICE` $\rightarrow$ **Value**: `vi-VN-HoaiMyNeural`
 
 Cuối cùng, nhấn nút **Create Web Service** ở cuối trang.

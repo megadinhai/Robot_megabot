@@ -2422,8 +2422,16 @@ Ví dụ:
 
     <div class="form-group">
         <label>Chọn model AI phù hợp với nhu cầu của bạn</label>
-        <select id="xiaozhiLlmModel"></select>
-
+        <select id="xiaozhiLlmModel" onchange="onModelChange()"></select>
+        <div id="apiKeyGroup" style="margin-top: 10px; background: rgba(15,23,42,0.6); padding: 10px 12px; border-radius: 8px; border: 1px solid #334155;">
+            <label id="apiKeyLabel" style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">
+                🔑 API Key riêng (Tùy chọn - nếu để trống sẽ tự dùng Key từ hệ thống server/.env):
+            </label>
+            <input type="password" id="customApiKey" placeholder="Nhập API Key nếu bạn muốn dùng key riêng..." style="width: 100%; box-sizing: border-box;">
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+                💡 <em>Để trống để dùng API Key cấu hình sẵn trên server Render / file .env.</em>
+            </div>
+        </div>
     </div>
 
     <div class="form-group">
@@ -3207,14 +3215,37 @@ Ví dụ:
         if (nameInput) nameInput.value = dev.name || "Sophia";
         if (charInput) charInput.value = dev.prompt || "";
         
-        // Điền model options nếu rỗng
+        // Điền model options đa dạng (Gemini, ChatGPT, DeepSeek)
         if (modelSelect) {
           modelSelect.innerHTML = `
-            <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Phản hồi tức thì ~1s - Khuyên dùng)</option>
-            <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite Preview (Tối ưu hội thoại)</option>
-            <option value="gemini-3.8-flash">Gemini 3.8 Flash (Suy luận chi tiết)</option>
+            <optgroup label="🌟 Google Gemini">
+              <option value="gemini-3.8-flash">Gemini 3.8 Flash (Thông minh, phản hồi nhanh - Mặc định)</option>
+              <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite (Phản hồi cực nhanh ~1s)</option>
+            </optgroup>
+            <optgroup label="⚡ OpenAI (ChatGPT)">
+              <option value="gpt-4o-mini">ChatGPT GPT-4o Mini (Phản hồi nhanh, rẻ, thông minh - Khuyên dùng)</option>
+              <option value="gpt-4o">ChatGPT GPT-4o (Đỉnh cao trí tuệ)</option>
+              <option value="gpt-3.5-turbo">ChatGPT GPT-3.5 Turbo</option>
+            </optgroup>
+            <optgroup label="🧠 DeepSeek AI">
+              <option value="deepseek-chat">DeepSeek V3 (deepseek-chat - Tiếng Việt siêu tự nhiên, siêu rẻ)</option>
+              <option value="deepseek-reasoner">DeepSeek R1 (deepseek-reasoner - Suy luận logic sâu)</option>
+            </optgroup>
           `;
-          modelSelect.value = dev.model_id && dev.model_id.startsWith("gemini-3.") ? dev.model_id : "gemini-3.1-flash-lite";
+          modelSelect.value = dev.model_id || "gemini-3.8-flash";
+        }
+
+        const apiKeyInput = document.getElementById("customApiKey");
+        if (apiKeyInput) {
+          const m = dev.model_id || "";
+          if (m.startsWith("gpt-") || m.includes("openai")) {
+            apiKeyInput.value = dev.openai_api_key || "";
+          } else if (m.includes("deepseek")) {
+            apiKeyInput.value = dev.deepseek_api_key || "";
+          } else {
+            apiKeyInput.value = dev.gemini_api_key || "";
+          }
+          onModelChange();
         }
 
         if (langSelect) {
@@ -3241,12 +3272,31 @@ Ví dụ:
       }
     }
 
+    function onModelChange() {
+      const model = document.getElementById("xiaozhiLlmModel")?.value || "";
+      const label = document.getElementById("apiKeyLabel");
+      const input = document.getElementById("customApiKey");
+      if (!label || !input) return;
+
+      if (model.startsWith("gpt-") || model.includes("openai")) {
+        label.innerHTML = '🔑 <strong>OpenAI API Key</strong> (Bắt đầu bằng <code>sk-...</code> - Tùy chọn):';
+        input.placeholder = "Dán OpenAI API Key (Lấy tại platform.openai.com)";
+      } else if (model.includes("deepseek")) {
+        label.innerHTML = '🔑 <strong>DeepSeek API Key</strong> (Bắt đầu bằng <code>sk-...</code> - Tùy chọn):';
+        input.placeholder = "Dán DeepSeek API Key (Lấy tại platform.deepseek.com)";
+      } else {
+        label.innerHTML = '🔑 <strong>Google Gemini API Key</strong> (Tùy chọn):';
+        input.placeholder = "Dán Gemini API Key (Lấy tại aistudio.google.com)";
+      }
+    }
+
     async function saveMyXiaozhiConfig() {
       const name = document.getElementById("xiaozhiAssistantName")?.value || "Ông Robot";
       const prompt = document.getElementById("xiaozhiCharacter")?.value || "";
-      const model = document.getElementById("xiaozhiLlmModel")?.value || "gemini-2.5-flash";
+      const model = document.getElementById("xiaozhiLlmModel")?.value || "gemini-3.8-flash";
       const voice = document.getElementById("xiaozhiTtsVoice")?.value || "vi-VN-HoaiMyNeural";
       const lang = document.getElementById("xiaozhiLanguage")?.value || "vi";
+      const keyVal = document.getElementById("customApiKey")?.value?.trim() || "";
 
       const payload = {
         name: name,
@@ -3258,6 +3308,14 @@ Ví dụ:
         memory_enabled: true
       };
 
+      if (model.startsWith("gpt-") || model.includes("openai")) {
+        payload.openai_api_key = keyVal;
+      } else if (model.includes("deepseek")) {
+        payload.deepseek_api_key = keyVal;
+      } else {
+        payload.gemini_api_key = keyVal;
+      }
+
       try {
         const res = await fetch(`/api/devices/${activeDeviceId}`, {
           method: "PUT",
@@ -3265,7 +3323,7 @@ Ví dụ:
           body: JSON.stringify(payload)
         });
         if (res.ok) {
-          showToast("✓ Đã lưu cấu hình mới thành công vào Server!");
+          showToast(`✓ Đã lưu cấu hình mô hình (${model}) thành công!`);
           loadDevices();
         } else {
           showToast("Không thể lưu cấu hình", false);

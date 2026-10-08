@@ -718,8 +718,13 @@ async def test_chat_api(req: Request):
     dev = device_manager.get_device(device_id) or device_manager.get_default_device()
     prompt = dev.get("prompt")
     model_override = dev.get("model_id")
+    api_keys = {
+        "openai_api_key": dev.get("openai_api_key"),
+        "deepseek_api_key": dev.get("deepseek_api_key"),
+        "gemini_api_key": dev.get("gemini_api_key"),
+    }
 
-    reply = await chat_with_gemini(user_text, system_instruction=prompt, model_override=model_override)
+    reply = await chat_with_gemini(user_text, system_instruction=prompt, model_override=model_override, api_keys=api_keys)
 
     # Nếu có robot đang kết nối, hiển thị câu trả lời lên màn hình OLED của robot
     ws = get_active_socket(device_id)
@@ -845,11 +850,17 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
 
             # 3. Gửi prompt đến LLM với System Instruction động từ Web Dashboard
             active_history = chat_history if use_memory else []
+            api_keys = {
+                "openai_api_key": cur_cfg.get("openai_api_key"),
+                "deepseek_api_key": cur_cfg.get("deepseek_api_key"),
+                "gemini_api_key": cur_cfg.get("gemini_api_key"),
+            }
             reply_text = await chat_with_gemini(
                 user_prompt,
                 chat_history=active_history,
                 system_instruction=custom_prompt,
                 model_override=model_id,
+                api_keys=api_keys,
             )
             if not reply_text:
                 reply_text = "Em chưa nghe rõ, bạn có thể nói lại được không ạ?"
