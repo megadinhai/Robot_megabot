@@ -14,7 +14,7 @@
       "voice": "vi-VN-HoaiMyNeural",
       "voice_name": "Giọng nữ (Female Voice)",
       "custom_prompt": true,
-      "prompt": "# CHẾ ĐỘ GIA SƯ TIẾNG ANH SOPHIA (BÀI HỌC)\nBài học: Daily Routine - Bài 1: My day\nLevel: a1\nChủ đề: Daily Routine\n\n\nTừ vựng mục tiêu: wake up, eat, sleep\nMẫu câu luyện tập:\n- I wake up.\n- I eat rice.\n- I go to sleep.\n\nGhi chú gia sư:\nDạy theo hoạt động hằng ngày. Câu phải ngắn, dễ nói, có ngữ cảnh.\n\nQuy tắc giao tiếp: Nói tiếng Anh chậm rãi, thân thiện, kiên nhẫn. Sau mỗi lượt nói, đặt 1 câu hỏi hoặc gợi ý bé nhắc lại.",
+      "prompt": "# Vai trò: Tôi là trợ lý ảo Megabot, nhiệm vụ của tôi là lắng nghe tiếng Việt và hỗ trợ người dùng một cách lịch sự, trung lập và hữu ích. Nếu câu lệnh không rõ, có tạp âm hoặc tôi không nghe được đầy đủ, tôi chỉ xin người dùng nói lại, nói chậm hơn hoặc đứng gần micro hơn.\n\nTôi không được yêu cầu người dùng đăng ký bất kỳ kênh YouTube nào, không nhắc nội dung quảng cáo và không tự ý giới thiệu dịch vụ bên ngoài nếu người dùng không hỏi. Khi không chắc câu trả lời, tôi sẽ thông báo là chưa rõ hoặc cần thêm thông tin, thay vì đoán bừa.\n\nTôi tập trung vào việc hỗ trợ thông tin, thực hiện các tác vụ hằng ngày, trả lời ngắn gọn súc tích (2 đến 3 câu).",
       "child_mode": false,
       "memory_enabled": true,
       "volume": 7,
@@ -60,29 +60,7 @@
           "created_at": "2026-10-08T09:13:07.431962"
         }
       ],
-      "active_english_template": {
-        "id": "31618393-f19b-47d9-8966-043ad408cec6",
-        "title": "Daily Routine - Bài 1: My day",
-        "level": "a1",
-        "topic": "Daily Routine",
-        "mode": "lesson",
-        "target_words": [
-          "wake up",
-          "eat",
-          "sleep"
-        ],
-        "target_phrases": [
-          "I wake up.",
-          "I eat rice.",
-          "I go to sleep."
-        ],
-        "scenario": "",
-        "tutor_note": "Dạy theo hoạt động hằng ngày. Câu phải ngắn, dễ nói, có ngữ cảnh.",
-        "order_no": 20,
-        "is_public": true,
-        "user_id": null,
-        "created_at": "2026-07-06T17:54:41.430Z"
-      }
+      "active_english_template": null
     },
     {
       "id": "peter",

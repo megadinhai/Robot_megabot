@@ -3646,14 +3646,33 @@ Ví dụ:
     }
 
     async function deleteActiveEnglishTutor() {
+      showToast("Đang tắt chế độ gia sư tiếng Anh...", true);
       try {
-        const res = await fetch(`/api/english-tutor/active?deviceId=${activeDeviceId}`, { method: "DELETE" });
+        let res = await fetch(`/api/english-tutor/active?deviceId=${activeDeviceId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: activeDeviceId })
+        });
+        if (!res.ok) {
+          res = await fetch("/api/english-tutor/deactivate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceId: activeDeviceId })
+          });
+        }
         if (res.ok) {
-          showToast("Đã tắt chế độ gia sư tiếng Anh");
-          loadActiveEnglishTutor();
+          showToast("✓ Đã tắt chế độ gia sư tiếng Anh!");
+          const box = document.getElementById("englishTutorActiveBox");
+          if (box) {
+            box.innerHTML = `<div style="color:#94a3b8;font-size:13px;">Chưa áp dụng bài học tiếng Anh nào. Hãy chọn bài ở trên và bấm "Áp dụng bài này"!</div>`;
+          }
+          await loadActiveEnglishTutor();
+        } else {
+          showToast("Máy chủ phản hồi lỗi khi tắt", false);
         }
       } catch (e) {
-        showToast("Lỗi tắt chế độ", false);
+        console.error("Lỗi tắt chế độ:", e);
+        showToast("Lỗi kết nối khi tắt chế độ", false);
       }
     }
 

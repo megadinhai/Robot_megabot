@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from audio_handler import text_to_speech_stream, transcribe_audio_gemini
 from llm_handler import chat_with_gemini
-from devices_manager import device_manager, generate_device_code
+from devices_manager import device_manager, generate_device_code, DEFAULT_DEVICES
 
 # Thiết lập mã hóa UTF-8 cho console Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -544,19 +544,35 @@ async def get_active_english_tutor(deviceId: Optional[str] = None):
 
 @app.post("/api/english-tutor/deactivate")
 @app.delete("/api/english-tutor/active")
-async def deactivate_english_tutor(req: Request = None, deviceId: Optional[str] = None):
+async def deactivate_english_tutor(req: Request, deviceId: Optional[str] = None):
     """Tắt chế độ gia sư tiếng Anh trên robot."""
-    dev_id = deviceId
-    if req and not dev_id:
+    dev_id = deviceId or req.query_params.get("deviceId") or req.query_params.get("device_id")
+    if not dev_id:
         try:
             body = await req.json()
             dev_id = body.get("deviceId") or body.get("device_id")
         except Exception:
             pass
     dev = device_manager.get_device(dev_id) or device_manager.get_default_device()
+    target_id = dev.get("id")
     dev["active_english_template"] = None
-    dev["prompt"] = DEFAULT_DEVICES[0]["prompt"]
+    default_prompt = DEFAULT_DEVICES[0].get("prompt", "Bạn là trợ lý robot thông minh Megabot.")
+    dev["prompt"] = default_prompt
     device_manager.save_data()
+
+    # Cập nhật thông báo lên màn hình OLED của robot nếu đang online
+    ws = get_active_socket(target_id)
+    if ws:
+        try:
+            await ws.send_text(json.dumps({
+                "type": "tts",
+                "state": "sentence_start",
+                "text": "Đã tắt chế độ tiếng Anh."
+            }))
+        except Exception:
+            pass
+
+    logger.info(f"[ENGLISH TUTOR DEACTIVATED] Robot {dev.get('name')} đã tắt chế độ gia sư tiếng Anh")
     return JSONResponse({"success": True, "status": "ok", "message": "Đã tắt chế độ gia sư tiếng Anh"})
 
 @app.post("/api/english-tutor/quick-review")
