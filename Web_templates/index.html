@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TRUNG TÂM QUẢN LÝ MEGABOT AI - Đầy đủ tất cả các trang Menu</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
 
 body {
@@ -4078,66 +4079,173 @@ Ví dụ:
     function openHomeworkCropper() {}
     function openLessonCropper() {}
 
-    function previewHomeworkImage(e) {
+    let currentHomeworkBase64 = "";
+    let currentLessonBase64 = "";
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function previewHomeworkImage(e) {
       const file = e.target.files[0];
       if (file) {
-        const url = URL.createObjectURL(file);
+        currentHomeworkBase64 = await fileToBase64(file);
         const img = document.getElementById("photoHomeworkPreview");
         const empty = document.getElementById("photoHomeworkPreviewEmpty");
-        if (img) { img.src = url; img.style.display = "block"; }
+        if (img) { img.src = currentHomeworkBase64; img.style.display = "block"; }
         if (empty) empty.style.display = "none";
         showToast("Đã tải ảnh bài tập lên!");
       }
     }
 
-    function previewLessonImage(e) {
+    async function previewLessonImage(e) {
       const file = e.target.files[0];
       if (file) {
-        const url = URL.createObjectURL(file);
+        currentLessonBase64 = await fileToBase64(file);
         const img = document.getElementById("photoLessonPreview");
         const empty = document.getElementById("photoLessonPreviewEmpty");
-        if (img) { img.src = url; img.style.display = "block"; }
+        if (img) { img.src = currentLessonBase64; img.style.display = "block"; }
         if (empty) empty.style.display = "none";
         showToast("Đã tải ảnh bài học lên!");
       }
     }
 
-    function scanHomeworkImageToText() {
+    async function performOcrWithFallback(base64Image, type, customTitle) {
+      // 1. Thử gửi lên Server AI trước
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const res = await fetch("/api/ocr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: base64Image,
+            type: type,
+            title: customTitle
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.text && data.text.trim()) {
+            return { title: data.title || (type === "homework" ? "Bài tập từ ảnh scan" : "Bài học từ trang sách"), text: data.text.trim() };
+          }
+        }
+      } catch (e) {
+        console.warn("[OCR] Server AI không khả dụng hoặc timeout, chuyển sang nhận dạng trực tiếp trên trình duyệt:", e);
+      }
+
+      // 2. Fallback: Nhận dạng trực tiếp bằng Tesseract OCR trên trình duyệt (hoạt động 100% không phụ thuộc AI API)
+      if (window.Tesseract) {
+        showToast("⚙️ Đang phân tích chữ trực tiếp từ ảnh...", true);
+        const result = await Tesseract.recognize(base64Image, 'vie+eng', {
+          logger: m => {
+            if (m.status === 'recognizing text' && m.progress) {
+              console.log(`[Tesseract OCR] ${Math.round(m.progress * 100)}%`);
+            }
+          }
+        });
+        const extracted = (result?.data?.text || "").trim();
+        if (extracted) {
+          const firstLine = extracted.split('\n')[0].substring(0, 50).trim();
+          const autoTitle = customTitle || (type === "homework" ? `Bài tập: ${firstLine || 'Từ ảnh chụp'}` : `Bài học: ${firstLine || 'Trang sách'}`);
+          return { title: autoTitle, text: extracted };
+        }
+      }
+
+      throw new Error("Không nhận diện được chữ trong ảnh. Vui lòng chụp ảnh góc thẳng, sáng rõ hơn.");
+    }
+
+    async function scanHomeworkImageToText() {
       const wrap = document.getElementById("photoHomeworkOcrWrap");
       const empty = document.getElementById("photoHomeworkOcrEmpty");
       const title = document.getElementById("photoHomeworkOcrTitle");
       const text = document.getElementById("photoHomeworkOcrText");
-      if (wrap) wrap.style.display = "block";
-      if (empty) empty.style.display = "none";
-      if (title) title.value = "Bài tập Toán: Phép cộng có nhớ trong phạm vi 100";
-      if (text) text.value = "Bài 1: Tính 38 + 27 = ?\nBài 2: Một người có 45 quả táo, được cho thêm 19 quả. Hỏi có tất cả bao nhiêu quả táo?";
-      showToast("✓ Scan hoàn tất! AI đã nhận dạng chữ trong ảnh.");
+      const nameInput = document.getElementById("photoHomeworkName");
+
+      if (!currentHomeworkBase64) {
+        showToast("Vui lòng tải hoặc chụp ảnh bài tập trước khi scan!", false);
+        return;
+      }
+
+      showToast("🔍 Đang scan và nhận dạng chữ trong bài tập...", true);
+
+      try {
+        const result = await performOcrWithFallback(currentHomeworkBase64, "homework", nameInput?.value?.trim() || "");
+
+        if (wrap) wrap.style.display = "block";
+        if (empty) empty.style.display = "none";
+        if (title) title.value = result.title;
+        if (text) text.value = result.text;
+        showToast("✓ Scan hoàn tất! Đã trích xuất nội dung bài tập.");
+      } catch (err) {
+        console.error("Lỗi scan bài tập:", err);
+        showToast(`Lỗi scan: ${err.message}`, false);
+      }
     }
 
-    function scanLessonImageToText() {
+    async function scanLessonImageToText() {
       const wrap = document.getElementById("photoLessonOcrWrap");
       const empty = document.getElementById("photoLessonOcrEmpty");
       const title = document.getElementById("photoLessonOcrTitle");
       const text = document.getElementById("photoLessonOcrText");
-      if (wrap) wrap.style.display = "block";
-      if (empty) empty.style.display = "none";
-      if (title) title.value = "Bài học Tự nhiên & Xã hội: Vòng tuần hoàn của nước";
-      if (text) text.value = "Nước dưới sông hồ bốc hơi khi gặp ánh nắng mặt trời, bay lên cao ngưng tụ thành mây. Khi mây nặng hạt sẽ rơi xuống tạo thành mưa.";
-      showToast("✓ Scan hoàn tất! AI đã nhận dạng trang sách.");
+      const nameInput = document.getElementById("photoLessonName");
+
+      if (!currentLessonBase64) {
+        showToast("Vui lòng tải hoặc chụp ảnh trang sách trước khi scan!", false);
+        return;
+      }
+
+      showToast("🔍 Đang scan và trích xuất trang sách...", true);
+
+      try {
+        const result = await performOcrWithFallback(currentLessonBase64, "lesson", nameInput?.value?.trim() || "");
+
+        if (wrap) wrap.style.display = "block";
+        if (empty) empty.style.display = "none";
+        if (title) title.value = result.title;
+        if (text) text.value = result.text;
+        showToast("✓ Scan hoàn tất! Đã trích xuất nội dung bài học.");
+      } catch (err) {
+        console.error("Lỗi scan bài học:", err);
+        showToast(`Lỗi scan: ${err.message}`, false);
+      }
     }
 
     function resetPhotoHomeworkForm() {
+      currentHomeworkBase64 = "";
+      const fileInput = document.getElementById("photoHomeworkFile");
+      const cameraInput = document.getElementById("photoHomeworkCameraFile");
+      if (fileInput) fileInput.value = "";
+      if (cameraInput) cameraInput.value = "";
       const img = document.getElementById("photoHomeworkPreview");
       const empty = document.getElementById("photoHomeworkPreviewEmpty");
-      if (img) img.style.display = "none";
+      if (img) { img.style.display = "none"; img.src = ""; }
       if (empty) empty.style.display = "block";
+      clearHomeworkOcrDraft();
+      showToast("Đã xóa ảnh bài tập.");
     }
 
     function resetPhotoLessonForm() {
+      currentLessonBase64 = "";
+      const fileInput = document.getElementById("photoLessonFile");
+      const cameraInput = document.getElementById("photoLessonCameraFile");
+      if (fileInput) fileInput.value = "";
+      if (cameraInput) cameraInput.value = "";
       const img = document.getElementById("photoLessonPreview");
       const empty = document.getElementById("photoLessonPreviewEmpty");
-      if (img) img.style.display = "none";
+      if (img) { img.style.display = "none"; img.src = ""; }
       if (empty) empty.style.display = "block";
+      clearLessonOcrDraft();
+      clearGeneratedLessonDraft();
+      showToast("Đã xóa ảnh bài học.");
     }
 
     function enableHomeworkOcrEdit() {
@@ -4155,6 +4263,10 @@ Ví dụ:
       const empty = document.getElementById("photoHomeworkOcrEmpty");
       if (wrap) wrap.style.display = "none";
       if (empty) empty.style.display = "block";
+      const title = document.getElementById("photoHomeworkOcrTitle");
+      const text = document.getElementById("photoHomeworkOcrText");
+      if (title) title.value = "";
+      if (text) text.value = "";
     }
 
     function clearLessonOcrDraft() {
@@ -4162,12 +4274,20 @@ Ví dụ:
       const empty = document.getElementById("photoLessonOcrEmpty");
       if (wrap) wrap.style.display = "none";
       if (empty) empty.style.display = "block";
+      const title = document.getElementById("photoLessonOcrTitle");
+      const text = document.getElementById("photoLessonOcrText");
+      if (title) title.value = "";
+      if (text) text.value = "";
     }
 
     async function submitHomeworkFromEditedText() {
       const text = document.getElementById("photoHomeworkOcrText")?.value || "";
-      if (!text) return;
+      if (!text) {
+        showToast("Chưa có nội dung bài tập để giải", false);
+        return;
+      }
       try {
+        showToast("Đang gửi yêu cầu giải bài tới AI...", true);
         const res = await fetch("/api/learning-task", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -4176,27 +4296,58 @@ Ví dụ:
         if (res.ok) {
           showToast("✓ Đã yêu cầu AI giải bài tập này!");
           switchSection("liveChat");
-          sendQuickChat(`Hãy giải chi tiết bài tập này giúp mình:\n${text}`);
+          sendQuickChat(`Hãy hướng dẫn và giải chi tiết bài tập này giúp mình:\n${text}`);
+        } else {
+          showToast("Lỗi gửi yêu cầu giải bài", false);
         }
       } catch (e) {
         showToast("Lỗi gửi yêu cầu", false);
       }
     }
 
-    function generateCurriculumFromEditedText() {
+    async function generateCurriculumFromEditedText() {
       const text = document.getElementById("photoLessonOcrText")?.value || "";
+      const titleInput = document.getElementById("photoLessonOcrTitle")?.value || "Bài học từ ảnh chụp";
       const wrap = document.getElementById("generatedLessonEditorWrap");
       const empty = document.getElementById("generatedLessonEmpty");
       const row = document.getElementById("generatedLessonActionRow");
       const title = document.getElementById("generatedLessonTitle");
       const content = document.getElementById("generatedLessonContent");
 
-      if (wrap) wrap.style.display = "block";
-      if (empty) empty.style.display = "none";
-      if (row) row.style.display = "flex";
-      if (title) title.value = "Bài học từ ảnh chụp";
-      if (content) content.value = `Bạn là gia sư dạy bài học: ${text}.\nHãy hướng dẫn học sinh từng bước, đặt câu hỏi kiểm tra sau mỗi đoạn.`;
-      showToast("✓ AI đã soạn bài dạy từ văn bản scan!");
+      if (!text) {
+        showToast("Chưa có văn bản scan để soạn bài dạy!", false);
+        return;
+      }
+
+      showToast("🤖 AI đang phân tích và soạn giáo án bài dạy...", true);
+
+      try {
+        const res = await fetch("/api/generate-lesson-plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, title: titleInput })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Lỗi tạo bài giảng");
+        }
+
+        if (wrap) wrap.style.display = "block";
+        if (empty) empty.style.display = "none";
+        if (row) row.style.display = "flex";
+        if (title) title.value = data.title || titleInput;
+        if (content) content.value = data.content || "";
+        showToast("✓ AI đã soạn bài dạy tương tác hoàn tất!");
+      } catch (err) {
+        console.error("Lỗi soạn bài:", err);
+        // Fallback nội dung nếu lỗi
+        if (wrap) wrap.style.display = "block";
+        if (empty) empty.style.display = "none";
+        if (row) row.style.display = "flex";
+        if (title) title.value = titleInput;
+        if (content) content.value = `Bạn là gia sư dạy bài học: ${text}.\nHãy hướng dẫn học sinh từng bước, đặt câu hỏi kiểm tra sau mỗi đoạn.`;
+        showToast("✓ Đã tạo bài dạy cơ bản!");
+      }
     }
 
     function enableGeneratedLessonEdit() {
@@ -4206,15 +4357,22 @@ Ví dụ:
     async function saveGeneratedLesson() {
       const name = document.getElementById("generatedLessonTitle")?.value || "Bài học từ ảnh";
       const content = document.getElementById("generatedLessonContent")?.value || "";
+      if (!content) {
+        showToast("Nội dung bài dạy không được để trống", false);
+        return;
+      }
       try {
+        showToast("Đang lưu bài học vào thư viện robot...", true);
         const res = await fetch("/api/curriculums", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, content })
         });
         if (res.ok) {
-          showToast("✓ Đã lưu bài học thành công!");
+          showToast("✓ Đã lưu bài học vào thư viện robot!");
           switchSection("curriculumSelect");
+        } else {
+          showToast("Không thể lưu bài học", false);
         }
       } catch (e) {
         showToast("Lỗi lưu bài học", false);

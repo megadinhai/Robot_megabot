@@ -749,6 +749,133 @@ async def complete_task_endpoint(req: Request):
     return JSONResponse({"success": success, "message": "Nhiệm vụ đã hoàn thành!"})
 
 
+@app.post("/api/ocr")
+async def ocr_image_endpoint(req: Request):
+    """Trích xuất chữ từ ảnh (Sách giáo khoa, bài tập) qua AI Gemini Vision."""
+    try:
+        data = await req.json()
+        image_data = data.get("image", "")  # Base64 data url hoặc raw base64
+        prompt_type = data.get("type", "lesson")  # 'lesson' hoặc 'homework'
+        custom_title = data.get("title", "").strip()
+
+        if not image_data:
+            return JSONResponse({"error": "Vui lòng cung cấp hình ảnh để scan."}, status_code=400)
+
+        # Xử lý base64 data URI
+        import base64
+        import re
+        mime_type = "image/jpeg"
+        if image_data.startswith("data:"):
+            match = re.match(r"data:([^;]+);base64,(.*)", image_data)
+            if match:
+                mime_type = match.group(1)
+                base64_str = match.group(2)
+            else:
+                base64_str = image_data
+        else:
+            base64_str = image_data
+
+        try:
+            image_bytes = base64.b64decode(base64_str)
+        except Exception as e:
+            return JSONResponse({"error": f"Lỗi giải mã ảnh base64: {e}"}, status_code=400)
+
+        from google.genai import types
+        from llm_handler import get_genai_client
+
+        client = get_genai_client()
+        image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+
+        if prompt_type == "homework":
+            prompt = (
+                "Bạn là chuyên gia OCR và trợ lý giáo dục. Hãy nhận diện và trích xuất toàn bộ câu hỏi, "
+                "bài tập, công thức toán học hoặc yêu cầu đề bài trong bức ảnh này. "
+                "Chỉ trả về văn bản đề bài rõ ràng, giữ nguyên cấu trúc các câu hỏi/bài tập, không thêm lời chào."
+            )
+        else:
+            prompt = (
+                "Bạn là chuyên gia OCR và trợ lý giáo dục. Hãy nhận diện và trích xuất toàn bộ văn bản, nội dung bài học, "
+                "đoạn văn, kiến thức trong trang sách giáo khoa này. "
+                "Chỉ trả về nội dung bài học chính xác và mạch lạc, không thêm lời chào."
+            )
+
+        extracted_text = ""
+        candidate_models = ["gemini-3.1-flash-lite-preview", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+        last_err = None
+
+        for m in candidate_models:
+            try:
+                resp = await client.aio.models.generate_content(
+                    model=m,
+                    contents=[image_part, prompt],
+                )
+                if resp.text:
+                    extracted_text = resp.text.strip()
+                    break
+            except Exception as e:
+                last_err = e
+                logger.warning(f"[OCR] Lỗi model {m}: {e}")
+                continue
+
+        if not extracted_text:
+            return JSONResponse({
+                "error": f"Không thể nhận dạng văn bản từ ảnh: {last_err or 'Không có chữ trong ảnh'}"
+            }, status_code=500)
+
+        # Tự động tạo tiêu đề nếu người dùng chưa nhập
+        detected_title = custom_title
+        if not detected_title:
+            first_line = extracted_text.split("\n")[0][:60].strip()
+            first_line = re.sub(r'[*#_]', '', first_line).strip()
+            if prompt_type == "homework":
+                detected_title = f"Bài tập: {first_line or 'Bài tập từ ảnh'}"
+            else:
+                detected_title = f"Bài học: {first_line or 'Nội dung trang sách'}"
+
+        return JSONResponse({
+            "status": "ok",
+            "title": detected_title,
+            "text": extracted_text,
+        })
+    except Exception as e:
+        logger.error(f"[OCR ERROR] {e}", exc_info=True)
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/api/generate-lesson-plan")
+async def generate_lesson_plan_endpoint(req: Request):
+    """Dùng AI soạn bài giảng tương tác chi tiết cho robot từ văn bản đã scan."""
+    try:
+        data = await req.json()
+        text = data.get("text", "").strip()
+        title = data.get("title", "").strip() or "Bài học từ trang sách"
+
+        if not text:
+            return JSONResponse({"error": "Chưa có nội dung văn bản để soạn bài."}, status_code=400)
+
+        prompt = (
+            f"Bạn là chuyên gia sư phạm. Hãy dựa vào nội dung sách giáo khoa sau để soạn một kịch bản bài dạy tương tác "
+            f"cho robot thông minh dạy một em học sinh.\n\n"
+            f"NỘI DUNG SÁCH:\n{text}\n\n"
+            f"YÊU CẦU BÀI DẠY:\n"
+            f"1. Xác định mục tiêu bài học ngắn gọn.\n"
+            f"2. Chia làm 2-3 phần giải thích thật dễ hiểu, dùng ngôn ngữ gần gũi, sinh động.\n"
+            f"3. Sau mỗi phần, đưa ra 1 câu hỏi kiểm tra kèm lời khen ngợi khích lệ.\n"
+            f"4. Trình bày rõ ràng, mạch lạc."
+        )
+
+        plan = await chat_with_gemini(prompt)
+        return JSONResponse({
+            "status": "ok",
+            "title": title,
+            "content": plan
+        })
+    except Exception as e:
+        logger.error(f"[GENERATE LESSON ERROR] {e}", exc_info=True)
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+
 # ==========================================
 # REST APIS GÓP Ý, HOME ASSISTANT & TRI THỨC (FEEDBACK, WSS, KB)
 # ==========================================
