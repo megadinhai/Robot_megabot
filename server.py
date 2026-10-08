@@ -29,9 +29,9 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-logger = logging.getLogger("XiaozhiServer")
+logger = logging.getLogger("MegabotServer")
 
-app = FastAPI(title="Xiaozhi Robot Control Server (xiaozhi.me clone)")
+app = FastAPI(title="Megabot Robot Control Server")
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,7 +49,7 @@ active_websockets: Dict[str, WebSocket] = {}
 
 
 # ==========================================
-# GIAO DIỆN WEB DASHBOARD GMBOT AI (memory.gmbot.name.vn CLONE)
+# GIAO DIỆN WEB DASHBOARD MEGABOT AI
 # ==========================================
 
 WEB_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "Web_templates")
@@ -57,20 +57,20 @@ WEB_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "Web_templates")
 @app.get("/")
 @app.get("/dashboard")
 async def dashboard_page():
-    """Phục vụ giao diện Bảng điều khiển GMBOT AI (memory.gmbot.name.vn clone)."""
+    """Phục vụ giao diện Bảng điều khiển Megabot AI."""
     html_path = os.path.join(WEB_TEMPLATES_DIR, "preview.html")
     if not os.path.exists(html_path):
         html_path = os.path.join(WEB_TEMPLATES_DIR, "index.html")
     if os.path.exists(html_path):
         return FileResponse(html_path)
-    return JSONResponse({"status": "online", "message": "GMBOT Dashboard HTML not found"})
+    return JSONResponse({"status": "online", "message": "Megabot Dashboard HTML not found"})
 
 
 @app.get("/english-tutor")
 @app.get("/english-tutor.html")
 @app.get("/english-tutor-app.html")
 async def english_tutor_page():
-    """Phục vụ ứng dụng GMBOT English Tutor."""
+    """Phục vụ ứng dụng Megabot English Tutor."""
     html_path = os.path.join(WEB_TEMPLATES_DIR, "english-tutor-app.html")
     if os.path.exists(html_path):
         return FileResponse(html_path)
@@ -666,7 +666,7 @@ async def speak_to_robot(req: Request):
     """Gửi câu nói: hiển thị phụ đề lên màn hình OLED và stream âm thanh giọng đọc xuống loa robot."""
     data = await req.json()
     device_id = data.get("device_id")
-    text = data.get("text", "Xin chào! Tôi là robot Xiaozhi.")
+    text = data.get("text", "Xin chào! Tôi là robot Megabot.")
     emotion = data.get("emotion", "happy")
 
     ws = get_active_socket(device_id)
@@ -1072,8 +1072,8 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
 
 if __name__ == "__main__":
     logger.info("=" * 60)
-    logger.info(f"Khởi động Xiaozhi Web Server & WebSocket tại:")
-    logger.info(f" 👉 Web Dashboard (xiaozhi.me): http://localhost:{PORT}")
+    logger.info(f"Khởi động Megabot Web Server & WebSocket tại:")
+    logger.info(f" 👉 Web Dashboard (Megabot): http://localhost:{PORT}")
     logger.info(f" 👉 WebSocket Endpoint:         ws://localhost:{PORT}/ws/xiaozhi")
     logger.info("=" * 60)
     uvicorn.run("server:app", host=HOST, port=PORT, reload=True)

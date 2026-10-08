@@ -53,7 +53,7 @@ export default function App() {
 
   const menuList = [
     { id: 'devices', label: 'Thiết bị', icon: '📡' },
-    { id: 'config', label: 'Cấu hình GMbot AI', icon: '⚙️' },
+    { id: 'config', label: 'Cấu hình Megabot AI', icon: '⚙️' },
     { id: 'english', label: 'HỌC TIẾNG ANH', icon: '📚' },
     { id: 'memory', label: 'Bộ nhớ', icon: '🧠' },
     { id: 'tasks', label: 'Tạo nhiệm vụ', icon: '📗' },

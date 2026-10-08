@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hướng dẫn kết nối Home Assistant với GMbot AI để điều khiển thiết bị nhà thông minh bằng giọng nói</title>
+<title>Hướng dẫn kết nối Home Assistant với Megabot AI để điều khiển thiết bị nhà thông minh bằng giọng nói</title>
 
 <style>
 body {
@@ -133,10 +133,10 @@ ol, ul {
 <div class="container">
 
     <div class="card">
-        <h1>🏠 Hướng dẫn kết nối Home Assistant với GMbot AI</h1>
+        <h1>🏠 Hướng dẫn kết nối Home Assistant với Megabot AI</h1>
         <p>
             Hướng dẫn này giúp bạn cài integration <b>MCP Server for Xiaozhi</b> vào Home Assistant,
-            sau đó kết nối Home Assistant với thiết bị GMbot AI để điều khiển nhà thông minh bằng giọng nói.
+            sau đó kết nối Home Assistant với thiết bị Megabot AI để điều khiển nhà thông minh bằng giọng nói.
         </p>
 
         <div class="top-actions">
@@ -145,7 +145,7 @@ ol, ul {
             </button>
 
             <button class="secondary" onclick="window.location.href='/'">
-                Quay lại trang quản lý GMbot
+                Quay lại trang quản lý Megabot
             </button>
         </div>
     </div>
@@ -155,8 +155,8 @@ ol, ul {
         <ul>
             <li>Home Assistant đã cài và hoạt động bình thường.</li>
             <li>Đã cài HACS trong Home Assistant.</li>
-            <li>Đã có tài khoản GMbot AI hoạt động.</li>
-            <li>Đã có token WSS endpoint của thiết bị GMbot.</li>
+            <li>Đã có tài khoản Megabot AI hoạt động.</li>
+            <li>Đã có token WSS endpoint của thiết bị Megabot.</li>
         </ul>
     </div>
 
@@ -194,7 +194,7 @@ ol, ul {
     </div>
 
     <div class="card">
-        <h2>3. Thêm Thiết bị GMbot vào Home Assistant</h2>
+        <h2>3. Thêm Thiết bị Megabot vào Home Assistant</h2>
 
         <div class="step">
             <ol>
@@ -208,10 +208,10 @@ ol, ul {
     </div>
 
     <div class="card">
-        <h2>4. Nhập token WSS endpoint GMbot</h2>
+        <h2>4. Nhập token WSS endpoint Megabot</h2>
 
         <div class="step">
-            <p>Khi Home Assistant yêu cầu nhập MCP endpoint, dán token WSS endpoint bạn nhận được từ admin GMbot.</p>
+            <p>Khi Home Assistant yêu cầu nhập MCP endpoint, dán token WSS endpoint bạn nhận được từ admin Megabot.</p>
 
             <p>
                 Sau đó chọn MCP / function bạn muốn cho Xiaozhi sử dụng.
@@ -222,7 +222,7 @@ ol, ul {
 
         <div class="step warning">
             <b>Không chia sẻ WSS token cho người khác.</b>
-            Token này giống như khóa kết nối giữa Home Assistant và thiết bị GMbot của bạn.
+            Token này giống như khóa kết nối giữa Home Assistant và thiết bị Megabot của bạn.
         </div>
     </div>
 
@@ -231,7 +231,7 @@ ol, ul {
 
         <div class="step">
             <ol>
-                <li>Sau khi submit cấu hình trong Home Assistant, chờ khoảng 1 phút và thử nói với GMbot: "Kiểm tra các thiết bị trong nhà" => Nếu GMbot cập nhật và đọc được các thiết bị trong Home Assistant là đã kết nối thành công</li>
+                <li>Sau khi submit cấu hình trong Home Assistant, chờ khoảng 1 phút và thử nói với Megabot: "Kiểm tra các thiết bị trong nhà" => Nếu Megabot cập nhật và đọc được các thiết bị trong Home Assistant là đã kết nối thành công</li>
             </ol>
         </div>
 
@@ -241,11 +241,11 @@ ol, ul {
     </div>
 
     <div class="card">
-        <h2>6. Cách yêu cầu WSS endpoint từ admin GMbot</h2>
+        <h2>6. Cách yêu cầu WSS endpoint từ admin Megabot</h2>
 
         <div class="step">
             <ol>
-                <li>Đăng nhập trang quản lý GMbot AI.</li>
+                <li>Đăng nhập trang quản lý Megabot AI.</li>
                 <li>Chọn menu <b>🔗 Yêu cầu kết nối Home Assistant</b>.</li>
                 <li>Nhập email của bạn.</li>
                 <li>Bấm gửi yêu cầu.</li>

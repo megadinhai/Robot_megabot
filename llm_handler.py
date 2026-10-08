@@ -19,24 +19,24 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 FALLBACK_MODEL = "gemini-2.5-flash-lite"
 
-# 2. System Prompt định hình tính cách cho robot Xiaozhi
-SYSTEM_INSTRUCTION = """Bạn là trợ lý robot thông minh Xiaozhi (Tiểu Trí) trên phần cứng ESP32.
+# 2. System Prompt định hình tính cách cho robot Megabot
+SYSTEM_INSTRUCTION = """Bạn là trợ lý robot thông minh Megabot trên phần cứng ESP32.
 Nhiệm vụ của bạn là trò chuyện với người dùng bằng giọng nói qua micro và loa.
 
 Quy tắc phản hồi bắt buộc:
 1. Luôn trả lời bằng tiếng Việt tự nhiên, thân thiện, lễ phép và thông minh.
 2. Vì câu trả lời sẽ được chuyển thành giọng nói (TTS) để phát qua loa robot, bạn PHẢI trả lời ngắn gọn, súc tích (tối đa 2 đến 3 câu).
 3. Tuyệt đối KHÔNG dùng các ký tự định dạng markdown như **, *, #, gạch đầu dòng, bảng biểu hay emoji vì loa robot không đọc được các ký tự này.
-4. Xưng hô tự nhiên, thân thiện: xưng là 'em' hoặc 'Xiaozhi', gọi người dùng là 'bạn' hoặc 'anh/chị'.
+4. Xưng hô tự nhiên, thân thiện: xưng là 'em' hoặc 'Megabot', gọi người dùng là 'bạn' hoặc 'anh/chị'.
 """
 
 def get_quick_smart_reply(prompt: str) -> str:
     """Tạo câu trả lời thông minh nhanh nếu kết nối Gemini AI gặp sự cố."""
     p = prompt.lower().strip()
     if any(w in p for w in ["chào", "hello", "hi"]):
-        return "Chào bạn! Em là robot Xiaozhi rất vui được trò chuyện cùng bạn. Hôm nay bạn thế nào?"
+        return "Chào bạn! Em là robot Megabot rất vui được trò chuyện cùng bạn. Hôm nay bạn thế nào?"
     if any(w in p for w in ["bạn là ai", "tên gì", "giới thiệu"]):
-        return "Em là trợ lý robot AI Xiaozhi chạy trên vi điều khiển ESP32, sẵn sàng lắng nghe và trả lời bạn!"
+        return "Em là trợ lý robot AI Megabot chạy trên vi điều khiển ESP32, sẵn sàng lắng nghe và trả lời bạn!"
     if any(w in p for w in ["khỏe không", "thế nào", "ổn không"]):
         return "Em khỏe lắm, luôn đầy năng lượng và sẵn sàng giúp đỡ bạn bất cứ lúc nào!"
     if any(w in p for w in ["thời tiết", "mưa", "nắng"]):
@@ -170,11 +170,11 @@ if __name__ == "__main__":
         print("Đang kiểm tra kết nối với Gemini...")
         test_history = [
             {"role": "user", "text": "Chào bạn, bạn là ai?"},
-            {"role": "model", "text": "Chào bạn, em là robot Xiaozhi rất vui được trò chuyện cùng bạn!"},
+            {"role": "model", "text": "Chào bạn, em là robot Megabot rất vui được trò chuyện cùng bạn!"},
         ]
         test_prompt = "Hôm nay thời tiết đẹp quá, chúng ta nên làm gì nhỉ?"
         reply = await chat_with_gemini(test_prompt, test_history)
         print(f"User: {test_prompt}")
-        print(f"Xiaozhi: {reply}")
+        print(f"Megabot: {reply}")
 
     asyncio.run(main())

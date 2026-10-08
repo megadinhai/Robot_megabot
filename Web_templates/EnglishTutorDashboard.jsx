@@ -37,7 +37,7 @@ export default function EnglishTutorDashboard({ onBack }) {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="font-bold text-base tracking-wide text-white">GMBOT English</div>
+            <div className="font-bold text-base tracking-wide text-white">MEGABOT English</div>
             <div className="text-xs text-gray-400">Gia sư tiếng Anh cá nhân hóa</div>
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function EnglishTutorDashboard({ onBack }) {
             className="flex items-center gap-2 text-xs text-gray-400 hover:text-white px-3 py-2 rounded-lg hover:bg-[#102544] transition-colors"
           >
             <ArrowLeft size={14} />
-            <span>Về GMBOT</span>
+            <span>Về MEGABOT</span>
           </button>
         </aside>
 

@@ -25,7 +25,7 @@ DEFAULT_DEVICES = [
         "voice_name": "Giọng nữ (Female Voice)",
         "custom_prompt": True,
         "prompt": (
-            "# Vai trò: Tôi là trợ lý ảo Xiaozhi, nhiệm vụ của tôi là lắng nghe tiếng Việt và hỗ trợ "
+            "# Vai trò: Tôi là trợ lý ảo Megabot, nhiệm vụ của tôi là lắng nghe tiếng Việt và hỗ trợ "
             "người dùng một cách lịch sự, trung lập và hữu ích. Nếu câu lệnh không rõ, có tạp âm hoặc "
             "tôi không nghe được đầy đủ, tôi chỉ xin người dùng nói lại, nói chậm hơn hoặc đứng gần micro hơn.\n\n"
             "Tôi không được yêu cầu người dùng đăng ký bất kỳ kênh YouTube nào, không nhắc nội dung quảng cáo "
