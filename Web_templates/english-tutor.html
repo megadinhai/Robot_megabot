@@ -4995,7 +4995,14 @@ window.STARTER_ROADMAP = [
   }
 
   async function requestReport(url) {
-    console.log('[Offline Parent Report]', url);
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn('[Parent Report] Fetch failed, fallback to offline state:', e);
+    }
     const offline = window.__OFFLINE_STATE__ || {};
     return offline.report || {
       profile: { known_words: [], weak_words: [], weak_phrases: [], streak_days: 0 },
@@ -5838,95 +5845,85 @@ function goBackToDashboard() {
     }
 
 async function apiFetch(url, options = {}) {
-    const offline = window.__OFFLINE_STATE__ || {};
     console.log('[API Call]', url, options.method || 'GET');
+    const offline = window.__OFFLINE_STATE__ || {};
 
-    await new Promise(r => setTimeout(r, 100));
+    try {
+        const fetchOptions = {
+            method: options.method || 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            }
+        };
+        if (options.body) {
+            fetchOptions.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+        }
 
+        const response = await fetch(url, fetchOptions);
+        if (response.ok) {
+            return await response.json();
+        }
+        let errorData = {};
+        try {
+            errorData = await response.json();
+        } catch (_) {}
+        console.warn(`[API] Server returned ${response.status}`, errorData);
+        if (response.status !== 404 && response.status !== 500) {
+            throw new Error(errorData.error || errorData.detail || `Máy chủ trả về lỗi ${response.status}`);
+        }
+    } catch (err) {
+        if (err.message && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError')) {
+            console.warn('[API error]', err);
+        }
+    }
+
+    // Fallback sang offline state nếu mạng offline hoặc server lỗi
     if (url.includes('/api/devices')) {
-      return offline.devices || [{ id: 'endpoint-1788747076580-giosy', name: '330730', status: 'connected' }];
+        return offline.devices || [{ id: 'device_01', name: 'Megabot Robot', status: 'connected' }];
     }
     if (url.includes('/api/english-tutor/report')) {
-      return offline.report || {};
+        return offline.report || {};
     }
     if (url.includes('/api/english-tutor/active')) {
-      return offline.active || {};
+        return offline.active || {};
     }
     if (url.includes('/api/english-tutor/recommendation')) {
-      return offline.recommendation || {};
+        return offline.recommendation || {};
     }
     if (url.includes('/api/english-tutor/templates')) {
-      if (url.includes('mode=roleplay')) {
-        return { templates: offline.roleplayTemplates || [] };
-      }
-      return { templates: offline.lessonTemplates || [] };
+        if (url.includes('mode=roleplay')) {
+            return { templates: offline.roleplayTemplates || [] };
+        }
+        return { templates: offline.lessonTemplates || [] };
     }
     if (url.includes('/api/english-tutor/activate-template') || url.includes('/api/english-tutor/activate')) {
-      let body = {};
-      try { body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body; } catch(e){}
-      
-      let title = body.title;
-      let words = body.targetWords || '';
-      let phrases = body.targetPhrases || '';
-      let note = body.note || '';
-
-      if (body.templateId) {
-        const t = (offline.lessonTemplates || []).concat(offline.roleplayTemplates || []).find(item => item.id === body.templateId);
-        if (t) {
-          title = t.title;
-          words = (t.target_words || []).join(', ');
-          phrases = (t.target_phrases || []).join('\n');
-          note = t.tutor_note || t.scenario || '';
-        }
-      }
-
-      offline.active = {
-        activeId: 'active-' + Date.now(),
-        title: title || 'Bài học tiếng Anh',
-        content: '[ENGLISH_TUTOR][' + Date.now() + '] Tiêu đề: ' + (title || 'Bài học tiếng Anh') + '\nTrình độ: ' + (body.level || 'starter') + '\nChủ đề: ' + (body.topic || 'General') + '\n\nTừ mục tiêu:\n' + (words.split(',').map(w => '- ' + w.trim()).join('\n')) + '\n\nCâu mục tiêu:\n' + (phrases.split('\n').map(p => '- ' + p.trim()).join('\n')) + '\n\nGhi chú cho gia sư:\n' + note,
-        createdAt: new Date().toISOString()
-      };
-      offline.recommendation = {
-        success: true,
-        type: 'active',
-        title: title || 'Bài học tiếng Anh',
-        reason: 'Robot đang có một bài học chưa kết thúc. Hãy gọi Sophia để tiếp tục bài này.',
-        estimatedMinutes: 10,
-        level: body.level || 'starter',
-        topic: body.topic || 'General',
-        mode: body.mode || 'lesson',
-        activeId: offline.active.activeId,
-        createdAt: offline.active.createdAt
-      };
-      return { success: true, activeId: offline.active.activeId };
+        let body = {};
+        try { body = typeof options.body === 'string' ? JSON.parse(options.body) : (options.body || {}); } catch(e){}
+        let title = body.title || 'Bài học tiếng Anh';
+        offline.active = {
+            activeId: 'active-' + Date.now(),
+            title: title,
+            content: `[ENGLISH_TUTOR][${Date.now()}] Tiêu đề: ${title}`,
+            createdAt: new Date().toISOString()
+        };
+        return { success: true, activeId: offline.active.activeId };
     }
     if (url.includes('/api/english-tutor/deactivate')) {
-      offline.active = null;
-      offline.recommendation = {
-        success: true,
-        type: 'empty',
-        title: 'Chưa có bài học',
-        reason: 'Hãy chọn một bài trong thư viện hoặc lộ trình để bắt đầu.'
-      };
-      return { success: true };
+        offline.active = null;
+        return { success: true };
     }
     if (url.includes('/api/english-tutor/quick-review')) {
-      offline.active = {
-        activeId: 'review-' + Date.now(),
-        title: '⚡ Ôn nhanh 5 phút',
-        content: '[ENGLISH_TUTOR][' + Date.now() + '] Tiêu đề: Ôn tập nhanh điểm yếu\nThời lượng: 5 phút',
-        createdAt: new Date().toISOString()
-      };
-      return { success: true, activeLesson: offline.active };
+        offline.active = {
+            activeId: 'review-' + Date.now(),
+            title: '⚡ Ôn nhanh 5 phút',
+            content: '[ENGLISH_TUTOR][' + Date.now() + '] Tiêu đề: Ôn tập nhanh điểm yếu',
+            createdAt: new Date().toISOString()
+        };
+        return { success: true, activeLesson: offline.active };
     }
 
-    const data = {};
-
-    if (!response.ok) {
-        throw new Error(data.error || `Máy chủ trả về lỗi ${response.status}`);
-    }
-
-    return data;
+    return {};
 }
 
 async function loadDevices() {
