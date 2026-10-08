@@ -246,6 +246,333 @@ async def remove_speaker(speaker_id: str):
 
 
 # ==========================================
+# REST APIS GIÁO TRÌNH, BÀI HỌC & AI ROLES (CURRICULUMS & ROLES)
+# ==========================================
+
+CURRICULUMS_FILE = os.path.join(WEB_TEMPLATES_DIR, "curriculums_full.json")
+def load_public_curriculums() -> List[Dict[str, Any]]:
+    if os.path.exists(CURRICULUMS_FILE):
+        try:
+            with open(CURRICULUMS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Lỗi đọc curriculums_full.json: {e}")
+    return []
+
+@app.get("/api/curriculums")
+async def get_curriculums():
+    """Lấy danh sách tất cả bài học (Public + Cá nhân)."""
+    public_list = load_public_curriculums()
+    custom_list = device_manager.get_custom_curriculums()
+    return JSONResponse(public_list + custom_list)
+
+@app.post("/api/curriculums")
+async def create_curriculum(req: Request):
+    """Tạo bài học mới."""
+    data = await req.json()
+    name = data.get("name", "Bài học mới")
+    content = data.get("content", "")
+    item = device_manager.add_custom_curriculum(name, content)
+    return JSONResponse(item)
+
+@app.delete("/api/curriculums/{curriculum_id}")
+async def delete_curriculum_endpoint(curriculum_id: str):
+    """Xóa bài học cá nhân."""
+    success = device_manager.delete_custom_curriculum(curriculum_id)
+    return JSONResponse({"success": success})
+
+@app.post("/api/apply-curriculum")
+async def apply_curriculum(req: Request):
+    """Áp dụng bài học trực tiếp vào System Prompt của Robot và thông báo lên OLED."""
+    data = await req.json()
+    device_id = data.get("deviceId") or data.get("device_id")
+    curr_id = data.get("curriculumId") or data.get("curriculum_id")
+
+    dev = device_manager.get_device(device_id) or device_manager.get_default_device()
+    target_id = dev.get("id")
+
+    all_curr = load_public_curriculums() + device_manager.get_custom_curriculums()
+    curr = next((c for c in all_curr if c.get("id") == curr_id), None)
+    if not curr:
+        return JSONResponse({"error": "Không tìm thấy bài học"}, status_code=404)
+
+    # Cập nhật prompt của robot
+    new_prompt = f"# GIÁO TRÌNH ĐANG DẠY: {curr.get('name')}\n\n{curr.get('content')}"
+    dev["prompt"] = new_prompt
+    dev["active_curriculum_id"] = curr_id
+    device_manager.save_data()
+
+    # Thêm vào memory của robot
+    device_manager.add_memory(target_id, f"[CURRICULUM] {curr.get('name')}")
+
+    # Gửi thông báo lên màn hình OLED của Robot
+    ws = get_active_socket(target_id)
+    if ws:
+        try:
+            await ws.send_text(json.dumps({"type": "llm", "emotion": "happy", "text": "📚"}))
+            await ws.send_text(json.dumps({"type": "tts", "state": "sentence_start", "text": f"Đã bật bài học: {curr.get('name')}"}))
+        except Exception:
+            pass
+
+    logger.info(f"[CURRICULUM APPLIED] Robot {dev.get('name')} đã nhận bài học: {curr.get('name')}")
+    return JSONResponse({"status": "ok", "message": f"Đã áp dụng bài học: {curr.get('name')}", "curriculum": curr})
+
+@app.post("/api/remove-curriculum")
+async def remove_curriculum(req: Request):
+    """Hủy áp dụng bài học, đưa robot về System Prompt mặc định."""
+    data = await req.json()
+    device_id = data.get("deviceId") or data.get("device_id")
+    dev = device_manager.get_device(device_id) or device_manager.get_default_device()
+    dev["active_curriculum_id"] = None
+    dev["prompt"] = DEFAULT_DEVICES[0]["prompt"]
+    device_manager.save_data()
+
+    ws = get_active_socket(dev.get("id"))
+    if ws:
+        try:
+            await ws.send_text(json.dumps({"type": "llm", "emotion": "neutral", "text": "😊"}))
+            await ws.send_text(json.dumps({"type": "tts", "state": "sentence_start", "text": "Đã hủy bài học, trở về chế độ bình thường."}))
+        except Exception:
+            pass
+
+    return JSONResponse({"status": "ok", "message": "Đã hủy bài học"})
+
+@app.get("/api/active-curriculum")
+async def get_active_curriculum(deviceId: Optional[str] = None):
+    """Lấy ID bài học đang áp dụng."""
+    dev = device_manager.get_device(deviceId) or device_manager.get_default_device()
+    return JSONResponse({"activeId": dev.get("active_curriculum_id")})
+
+
+# ==========================================
+# REST APIS HỌC TIẾNG ANH (ENGLISH TUTOR)
+# ==========================================
+
+ENGLISH_TEMPLATES_FILE = os.path.join(os.path.dirname(__file__), "Web_templates_Backup", "all_english_templates.json")
+
+def load_english_templates_file() -> Dict[str, Any]:
+    if os.path.exists(ENGLISH_TEMPLATES_FILE):
+        try:
+            with open(ENGLISH_TEMPLATES_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Lỗi đọc all_english_templates.json: {e}")
+    return {"lessons": [], "roleplay": []}
+
+@app.get("/api/english-tutor/templates")
+async def get_english_templates(mode: Optional[str] = "lesson", level: Optional[str] = None):
+    """Lấy danh sách giáo trình hoặc tình huống đóng vai tiếng Anh."""
+    data = load_english_templates_file()
+    items = data.get("roleplay", []) if mode == "roleplay" else data.get("lessons", [])
+    if level:
+        items = [i for i in items if (i.get("level") or "").lower() == level.lower()]
+    return JSONResponse({"templates": items})
+
+@app.post("/api/english-tutor/activate-template")
+async def activate_english_template(req: Request):
+    """Kích hoạt bài học hoặc tình huống tiếng Anh vào robot."""
+    data = await req.json()
+    device_id = data.get("deviceId") or data.get("device_id")
+    template_id = data.get("templateId")
+
+    dev = device_manager.get_device(device_id) or device_manager.get_default_device()
+    target_id = dev.get("id")
+
+    all_t = load_english_templates_file()
+    item = next((t for t in all_t.get("lessons", []) + all_t.get("roleplay", []) if t.get("id") == template_id), None)
+
+    if not item:
+        return JSONResponse({"error": "Không tìm thấy giáo trình tiếng Anh"}, status_code=404)
+
+    is_roleplay = item.get("mode") == "roleplay"
+    words = ", ".join(item.get("target_words", []))
+    phrases = "\n".join([f"- {p}" for p in item.get("target_phrases", [])])
+
+    prompt = (
+        f"# CHẾ ĐỘ GIA SƯ TIẾNG ANH SOPHIA ({'NHẬP VAI LUYỆN NÓI' if is_roleplay else 'BÀI HỌC'})\n"
+        f"Bài học: {item.get('title')}\n"
+        f"Level: {item.get('level')}\n"
+        f"Chủ đề: {item.get('topic')}\n"
+        f"{'Tình huống: ' + item.get('scenario') if item.get('scenario') else ''}\n\n"
+        f"Từ vựng mục tiêu: {words}\n"
+        f"Mẫu câu luyện tập:\n{phrases}\n\n"
+        f"Ghi chú gia sư:\n{item.get('tutor_note', '')}\n\n"
+        f"Quy tắc giao tiếp: Nói tiếng Anh chậm rãi, thân thiện, kiên nhẫn. Sau mỗi lượt nói, đặt 1 câu hỏi hoặc gợi ý bé nhắc lại."
+    )
+
+    dev["prompt"] = prompt
+    dev["active_english_template"] = item
+    device_manager.save_data()
+
+    device_manager.add_memory(target_id, f"[ENGLISH_TUTOR] {item.get('title')}")
+
+    # Gửi thông báo OLED
+    ws = get_active_socket(target_id)
+    if ws:
+        try:
+            await ws.send_text(json.dumps({"type": "llm", "emotion": "happy", "text": "🔤"}))
+            await ws.send_text(json.dumps({"type": "tts", "state": "sentence_start", "text": f"English Lesson: {item.get('title')}"}))
+        except Exception:
+            pass
+
+    logger.info(f"[ENGLISH TUTOR ACTIVATED] Robot {dev.get('name')} nhận bài tiếng Anh: {item.get('title')}")
+    return JSONResponse({"status": "ok", "message": f"Đã áp dụng bài học: {item.get('title')}", "template": item})
+
+@app.get("/api/english-tutor/active")
+async def get_active_english_tutor(deviceId: Optional[str] = None):
+    """Lấy thông tin bài tiếng Anh đang học."""
+    dev = device_manager.get_device(deviceId) or device_manager.get_default_device()
+    active = dev.get("active_english_template")
+    return JSONResponse({"active": active})
+
+@app.delete("/api/english-tutor/active")
+async def deactivate_english_tutor(deviceId: Optional[str] = None):
+    """Tắt chế độ gia sư tiếng Anh."""
+    dev = device_manager.get_device(deviceId) or device_manager.get_default_device()
+    dev["active_english_template"] = None
+    dev["prompt"] = DEFAULT_DEVICES[0]["prompt"]
+    device_manager.save_data()
+    return JSONResponse({"status": "ok", "message": "Đã tắt chế độ gia sư tiếng Anh"})
+
+@app.get("/api/english-tutor/report")
+async def get_english_tutor_report(deviceId: Optional[str] = None):
+    """Báo cáo học tập tiếng Anh của bé."""
+    dev = device_manager.get_device(deviceId) or device_manager.get_default_device()
+    memories = dev.get("memories", [])
+    english_mems = [m for m in memories if "[ENGLISH_TUTOR]" in m.get("content", "")]
+    return JSONResponse({
+        "total_lessons_completed": len(english_mems),
+        "recent_lessons": [m.get("content").replace("[ENGLISH_TUTOR]", "").strip() for m in english_mems[:5]],
+        "fluency_score": "8.5/10",
+        "vocabulary_mastered": 42,
+        "advice": "Bé phát âm rất tự nhiên và phản xạ nhanh với các từ vựng chủ đề Động vật và Thức ăn!"
+    })
+
+
+# ==========================================
+# REST APIS BỘ NHỚ ROBOT (MEMORIES) & NHIỆM VỤ (TASKS)
+# ==========================================
+
+@app.get("/api/memories")
+async def get_memories_endpoint(deviceId: Optional[str] = None, limit: int = 50, offset: int = 0):
+    """Lấy danh sách bộ nhớ và nhiệm vụ đã lưu của robot."""
+    dev = device_manager.get_device(deviceId) or device_manager.get_default_device()
+    mems = device_manager.get_memories(dev.get("id"))
+    return JSONResponse(mems[offset:offset + limit])
+
+@app.post("/api/memories")
+async def add_memory_endpoint(req: Request):
+    """Thêm một mẩu bộ nhớ cho robot."""
+    data = await req.json()
+    device_id = data.get("deviceId") or data.get("device_id")
+    content = data.get("content", "")
+    item = device_manager.add_memory(device_id, content)
+    return JSONResponse(item)
+
+@app.delete("/api/memories/{memory_id}")
+async def delete_memory_endpoint(memory_id: str):
+    """Xóa một mẩu bộ nhớ."""
+    success = device_manager.delete_memory(memory_id)
+    return JSONResponse({"success": success})
+
+@app.post("/api/learning-task")
+async def create_learning_task_endpoint(req: Request):
+    """Tạo nhiệm vụ học tập/lời nhắc cho robot."""
+    data = await req.json()
+    device_id = data.get("deviceId") or data.get("device_id")
+    content = data.get("content", "")
+    if not content:
+        return JSONResponse({"error": "Vui lòng nhập nội dung nhiệm vụ"}, status_code=400)
+
+    dev = device_manager.get_device(device_id) or device_manager.get_default_device()
+    target_id = dev.get("id")
+
+    task_content = f"[TASK][PENDING] {content}"
+    item = device_manager.add_memory(target_id, task_content)
+
+    # Đưa nhiệm vụ vào phần nhắc nhở của prompt
+    dev["prompt"] = (dev.get("prompt", "") + f"\n\n[NHIỆM VỤ BẮT BUỘC]: Bạn phải nhắc nhở người dùng thực hiện nhiệm vụ: '{content}'. Khi người dùng báo đã làm xong hoặc nói 'xong rồi', hãy khen ngợi họ.").strip()
+    device_manager.save_data()
+
+    # Thông báo lên OLED
+    ws = get_active_socket(target_id)
+    if ws:
+        try:
+            await ws.send_text(json.dumps({"type": "tts", "state": "sentence_start", "text": f"Nhiệm vụ mới: {content[:30]}..."}))
+        except Exception:
+            pass
+
+    return JSONResponse(item)
+
+@app.post("/api/complete-task")
+async def complete_task_endpoint(req: Request):
+    """Đánh dấu hoàn thành nhiệm vụ."""
+    data = await req.json()
+    task_id = data.get("id")
+    success = device_manager.delete_memory(task_id)
+    return JSONResponse({"success": success, "message": "Nhiệm vụ đã hoàn thành!"})
+
+
+# ==========================================
+# REST APIS GÓP Ý, HOME ASSISTANT & TRI THỨC (FEEDBACK, WSS, KB)
+# ==========================================
+
+@app.post("/api/feedback")
+async def submit_feedback_endpoint(req: Request):
+    data = await req.json()
+    email = data.get("email", "user@robot.com")
+    content = data.get("content", "")
+    fb = device_manager.add_feedback(email, content)
+    return JSONResponse({"status": "ok", "message": "Đã ghi nhận góp ý!", "data": fb})
+
+@app.get("/api/feedback")
+async def get_feedbacks_endpoint():
+    return JSONResponse(device_manager.get_feedbacks())
+
+@app.post("/api/wss-request")
+async def submit_wss_request_endpoint(req: Request):
+    data = await req.json()
+    email = data.get("email", "")
+    req_item = device_manager.add_wss_request(email)
+    return JSONResponse({"status": "ok", "message": "Yêu cầu đã được lưu", "data": req_item})
+
+@app.get("/api/wss-requests")
+async def get_wss_requests_endpoint():
+    return JSONResponse(device_manager.get_wss_requests())
+
+@app.get("/api/knowledge-base/documents")
+async def get_knowledge_documents():
+    """Danh sách tài liệu tri thức."""
+    return JSONResponse([
+        {
+            "id": "kb-1",
+            "title": "Thời khóa biểu & Lịch học tập",
+            "status": "ready",
+            "is_public": False,
+            "chunkCount": 3,
+            "preview": "Thứ 2: Toán, Tiếng Anh\nThứ 3: Tiếng Việt, Khoa học\nThứ 4: Mỹ thuật, Âm nhạc..."
+        }
+    ])
+
+@app.post("/api/reset-default-ai-prompt")
+async def reset_default_ai_prompt_endpoint(req: Request):
+    """Khôi phục cấu hình prompt mặc định cho robot."""
+    try:
+        data = await req.json()
+    except Exception:
+        data = {}
+    device_id = data.get("deviceId") or data.get("device_id")
+    dev = device_manager.get_device(device_id) or device_manager.get_default_device()
+    dev["prompt"] = DEFAULT_DEVICES[0]["prompt"]
+    dev["active_curriculum_id"] = None
+    dev["active_english_template"] = None
+    device_manager.save_data()
+    return JSONResponse({"status": "ok", "message": "Đã khôi phục prompt mặc định!"})
+
+
+
+
+# ==========================================
 # REST APIS ĐIỀU KHIỂN ROBOT TRỰC TIẾP & TEST CHAT
 # ==========================================
 

@@ -1,6 +1,8 @@
+import datetime
 import json
 import logging
 import os
+import time
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("DeviceManager")
@@ -271,6 +273,136 @@ class DeviceManager:
             return True
         return False
 
+    # --- BỘ NHỚ HỘI THOẠI & NHIỆM VỤ (MEMORIES & TASKS) ---
+    def get_memories(self, device_id: str) -> List[Dict[str, Any]]:
+        dev = self.get_device(device_id)
+        if not dev:
+            return []
+        return dev.get("memories", [])
+
+    def add_memory(self, device_id: str, content: str) -> Dict[str, Any]:
+        dev = self.get_device(device_id)
+        if not dev:
+            dev = self.get_default_device()
+        if "memories" not in dev:
+            dev["memories"] = []
+        item = {
+            "id": f"mem-{int(time.time() * 1000)}",
+            "content": content,
+            "created_at": datetime.datetime.now().isoformat(),
+        }
+        dev["memories"].insert(0, item)
+        # Giới hạn 200 bản ghi
+        if len(dev["memories"]) > 200:
+            dev["memories"] = dev["memories"][:200]
+        self.save_data()
+        return item
+
+    def delete_memory(self, memory_id: str) -> bool:
+        deleted = False
+        for dev in self.devices:
+            if "memories" in dev:
+                before = len(dev["memories"])
+                dev["memories"] = [m for m in dev["memories"] if m.get("id") != memory_id]
+                if len(dev["memories"]) < before:
+                    deleted = True
+        if deleted:
+            self.save_data()
+        return deleted
+
+    # --- BÀI HỌC TÙY CHỌN (CUSTOM CURRICULUMS) ---
+    def get_custom_curriculums(self) -> List[Dict[str, Any]]:
+        if not hasattr(self, "_curriculums"):
+            self._curriculums = []
+        return self._curriculums
+
+    def add_custom_curriculum(self, name: str, content: str) -> Dict[str, Any]:
+        if not hasattr(self, "_curriculums"):
+            self._curriculums = []
+        item = {
+            "id": f"curr-{int(time.time() * 1000)}",
+            "name": name,
+            "content": content,
+            "is_public": False,
+            "created_at": datetime.datetime.now().isoformat(),
+        }
+        self._curriculums.append(item)
+        self.save_data()
+        return item
+
+    def delete_custom_curriculum(self, curr_id: str) -> bool:
+        if not hasattr(self, "_curriculums"):
+            self._curriculums = []
+        before = len(self._curriculums)
+        self._curriculums = [c for c in self._curriculums if c.get("id") != curr_id]
+        if len(self._curriculums) < before:
+            self.save_data()
+            return True
+        return False
+
+    # --- HOMEWORK GUIDE ---
+    def get_active_homework_guide(self, device_id: str) -> Dict[str, Any]:
+        dev = self.get_device(device_id)
+        if not dev:
+            return {"activeId": None}
+        return dev.get("active_homework_guide", {"activeId": None})
+
+    def set_active_homework_guide(self, device_id: str, title: str, content: str) -> Dict[str, Any]:
+        dev = self.get_device(device_id)
+        if not dev:
+            dev = self.get_default_device()
+        guide = {
+            "activeId": f"hw-{int(time.time() * 1000)}",
+            "title": title,
+            "content": content,
+            "created_at": datetime.datetime.now().isoformat()
+        }
+        dev["active_homework_guide"] = guide
+        self.save_data()
+        return guide
+
+    def remove_active_homework_guide(self, device_id: str) -> bool:
+        dev = self.get_device(device_id)
+        if dev and "active_homework_guide" in dev:
+            dev["active_homework_guide"] = {"activeId": None}
+            self.save_data()
+            return True
+        return False
+
+    # --- GÓP Ý & YÊU CẦU WSS (FEEDBACK & WSS REQUESTS) ---
+    def add_feedback(self, email: str, content: str) -> Dict[str, Any]:
+        if not hasattr(self, "_feedbacks"):
+            self._feedbacks = []
+        fb = {
+            "id": f"fb-{int(time.time() * 1000)}",
+            "email": email,
+            "content": content,
+            "created_at": datetime.datetime.now().isoformat()
+        }
+        self._feedbacks.insert(0, fb)
+        self.save_data()
+        return fb
+
+    def get_feedbacks(self) -> List[Dict[str, Any]]:
+        return getattr(self, "_feedbacks", [])
+
+    def add_wss_request(self, email: str) -> Dict[str, Any]:
+        if not hasattr(self, "_wss_requests"):
+            self._wss_requests = []
+        req = {
+            "id": f"wss-{int(time.time() * 1000)}",
+            "email": email,
+            "status": "pending",
+            "created_at": datetime.datetime.now().isoformat()
+        }
+        self._wss_requests.insert(0, req)
+        self.save_data()
+        return req
+
+    def get_wss_requests(self) -> List[Dict[str, Any]]:
+        return getattr(self, "_wss_requests", [])
+
 
 # Singleton instance
 device_manager = DeviceManager()
+

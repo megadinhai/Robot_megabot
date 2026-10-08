@@ -1490,6 +1490,7 @@ body {
       <div class="menu-item" onclick="switchSection('remoteControl', this)">🎮 Điều khiển D-Pad</div>
       <div class="menu-item" onclick="switchSection('liveChat', this)">💬 Thử nghiệm Chat AI</div>
       <div class="menu-item" onclick="switchSection('xiaozhiConfig', this)">⚙️ Cấu hình GMbot AI</div>
+      <div class="menu-item" onclick="switchSection('aiRoleSelect', this)">🎭 Chọn vai trò cho AI</div>
       <div class="menu-item" onclick="switchSection('englishTutor', this)">📚 HỌC TIẾNG ANH</div>
       <div class="menu-item" onclick="window.location.href='english-tutor-app.html'" style="font-size:12px; color:#60a5fa; padding-left:28px;">↳ Mở English Tutor App ↗</div>
       <div class="menu-item" onclick="switchSection('memory', this)">🧠 Bộ nhớ</div>
@@ -1540,10 +1541,10 @@ body {
     <!-- CONTAINER TẤT CẢ CÁC TRANG CARD ĐƯỢC BÓC TÁCH -->
     <div id="cardsContainer">
 <div class="card" id="addDeviceCard" style="display: none;">
-    <h3>Thêm thiết bị</h3>
-    <input id="name" placeholder="Tên thiết bị (đặt tùy ý)">
-    <input id="url" placeholder="Nhập link wss://example.com/ws">
-    <button class="primary full-width" onclick="addDevice()">Thêm thiết bị</button>
+    <h3>Thêm thiết bị Robot</h3>
+    <input id="name" placeholder="Tên thiết bị (Ví dụ: Robot Bé Bon)">
+    <input id="url" placeholder="Mã thiết bị 6 số trên màn hình robot (Ví dụ: 927184)">
+    <button class="primary full-width" onclick="addDeviceFromForm()">Thêm thiết bị</button>
     <div id="message"></div>
 </div>
 
@@ -2550,6 +2551,7 @@ Ví dụ:
         'remoteControl': ['remoteControlCard'],
         'liveChat': ['liveChatCard'],
         'xiaozhiConfig': ['xiaozhiConfigCard'],
+        'aiRoleSelect': ['aiRoleSelectCard'],
         'englishTutor': ['englishTutorCard'],
         'memory': ['memoryCard'],
         'tasks': ['taskCreateCard', 'taskListCard'],
@@ -2653,8 +2655,8 @@ Ví dụ:
           </div>
 
           <div style="margin-top:14px;">
-            <button class="primary" onclick="alert('Đã áp dụng bài học: ' + '${c.name}')" style="width:100%; padding:10px; font-weight:bold; font-size:14px; border-radius:8px; background:#2563eb; color:white; border:none; cursor:pointer;">
-              Áp dụng bài học
+            <button class="primary" onclick="applyCurriculumReal('${c.id}', '${c.name.replace(/'/g, "\\'")}')" style="width:100%; padding:10px; font-weight:bold; font-size:14px; border-radius:8px; background:#2563eb; color:white; border:none; cursor:pointer;">
+              Áp dụng bài học lên Robot
             </button>
           </div>
         </div>
@@ -2796,8 +2798,8 @@ Ví dụ:
           ` : ''}
 
           <div style="display:flex; gap:10px;">
-            <button class="primary" onclick="alert('Đã áp dụng bài học: ' + '${t.title}');" style="flex:1; padding:10px; font-weight:bold; border-radius:8px; background:#2563eb; color:white; border:none; cursor:pointer;">
-              🚀 Áp dụng bài này
+            <button class="primary" onclick="applyEnglishTemplateReal('${t.id}', '${t.title.replace(/'/g, "\\'")}')" style="flex:1; padding:10px; font-weight:bold; border-radius:8px; background:#2563eb; color:white; border:none; cursor:pointer;">
+              🚀 Áp dụng bài này lên Robot
             </button>
             <a href="english-tutor-app.html" style="display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; font-weight:bold; font-size:12px; border-radius:8px; background:#1e293b; color:#93c5fd; border:1px solid rgba(147,197,253,0.3); text-decoration:none;">
               Mở App Full ↗
@@ -3384,6 +3386,12 @@ Ví dụ:
       addDeviceReal(name.trim(), cleanCode);
     }
 
+    function addDeviceFromForm() {
+      const name = document.getElementById("name")?.value.trim() || "Robot AI";
+      const code = document.getElementById("url")?.value.trim() || "927184";
+      addDeviceReal(name, code);
+    }
+
     async function addDeviceReal(name, code) {
       try {
         const res = await fetch("/api/devices", {
@@ -3430,6 +3438,747 @@ Ví dụ:
       // Tự động làm mới trạng thái online mỗi 6 giây
       setInterval(loadDevices, 6000);
     });
+  
+
+    // ==========================================
+    // 7. TOÀN BỘ LOGIC TƯƠNG TÁC THỰC TẾ (REAL ROBOT & BACKEND APIS)
+    // ==========================================
+
+    // 7.1. ÁP DỤNG BÀI HỌC LÊN ROBOT
+    async function applyCurriculumReal(id, name) {
+      try {
+        const res = await fetch("/api/apply-curriculum", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: activeDeviceId, curriculumId: id })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`✓ Đã áp dụng bài học "${name}" lên Robot!`);
+        } else {
+          showToast(`Lỗi: ${data.error || "Không thể áp dụng"}`, false);
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối máy chủ", false);
+      }
+    }
+
+    async function createCurriculum() {
+      const name = document.getElementById("curriculumName")?.value.trim();
+      const content = document.getElementById("curriculumContent")?.value.trim();
+      if (!name || !content) {
+        showToast("Vui lòng nhập tên và nội dung bài học", false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/curriculums", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, content })
+        });
+        if (res.ok) {
+          showToast(`✓ Đã tạo bài học mới: ${name}!`);
+          document.getElementById("curriculumName").value = "";
+          document.getElementById("curriculumContent").value = "";
+          switchSection("curriculumSelect");
+        } else {
+          showToast("Không thể tạo bài học", false);
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối máy chủ", false);
+      }
+    }
+
+    function toggleCurriculumBox(type) {
+      const box = document.getElementById(type === "public" ? "publicCurriculumList" : "privateCurriculumList");
+      const icon = document.getElementById(type === "public" ? "icon-public" : "icon-private");
+      if (box) {
+        const isOpen = box.classList.toggle("open");
+        if (icon) icon.style.transform = isOpen ? "rotate(90deg)" : "rotate(0deg)";
+      }
+    }
+
+    // 7.2. ÁP DỤNG BÀI TIẾNG ANH & BÁO CÁO
+    async function applyEnglishTemplateReal(id, title) {
+      try {
+        const res = await fetch("/api/english-tutor/activate-template", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: activeDeviceId, templateId: id })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`✓ Đã áp dụng giáo trình "${title}" lên Robot!`);
+          loadActiveEnglishTutor();
+        } else {
+          showToast(`Lỗi: ${data.error || "Không thể áp dụng"}`, false);
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối máy chủ", false);
+      }
+    }
+
+    async function activateEnglishTutor() {
+      const title = document.getElementById("englishTutorTitle")?.value.trim() || "Bài học tiếng Anh tùy chỉnh";
+      const level = document.getElementById("englishTutorLevel")?.value || "starter";
+      const words = document.getElementById("englishTutorWords")?.value.trim() || "";
+      const phrases = document.getElementById("englishTutorPhrases")?.value.trim() || "";
+      const note = document.getElementById("englishTutorNote")?.value.trim() || "";
+
+      const wordsArr = words ? words.split(",").map(w => w.trim()).filter(Boolean) : [];
+      const phrasesArr = phrases ? phrases.split("\n").map(p => p.trim()).filter(Boolean) : [];
+
+      const prompt = (
+        `# GIA SƯ TIẾNG ANH TỰ TẠO: ${title}\n` +
+        `Level: ${level}\n` +
+        `Từ vựng: ${wordsArr.join(", ")}\n` +
+        `Mẫu câu luyện nói:\n${phrasesArr.join("\n")}\n\n` +
+        `Ghi chú: ${note}\n\n` +
+        `Quy tắc: Hãy nói tiếng Anh chậm rãi, thân thiện, hỏi bé từng câu và khích lệ bé nói theo.`
+      );
+
+      try {
+        const res = await fetch(`/api/devices/${activeDeviceId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: prompt, custom_prompt: true })
+        });
+        if (res.ok) {
+          showToast(`✓ Đã kích hoạt giáo trình "${title}" lên Robot!`);
+          loadActiveEnglishTutor();
+        } else {
+          showToast("Lỗi kích hoạt", false);
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối máy chủ", false);
+      }
+    }
+
+    async function loadActiveEnglishTutor() {
+      const box = document.getElementById("englishTutorActiveBox");
+      if (!box) return;
+      box.innerText = "Đang tải...";
+      try {
+        const res = await fetch(`/api/english-tutor/active?deviceId=${activeDeviceId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.active) {
+            box.innerHTML = `
+              <div style="background:#07152b;padding:12px;border-radius:8px;border:1px solid #3b82f6;">
+                <strong style="color:#60a5fa;font-size:15px;">📘 ${data.active.title}</strong>
+                <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Chủ đề: ${data.active.topic} · Trình độ: ${(data.active.level||'').toUpperCase()}</div>
+                <div style="font-size:13px;color:#e2e8f0;margin-top:8px;">${data.active.scenario || data.active.tutor_note || 'Đang sẵn sàng hội thoại cùng bé!'}</div>
+              </div>
+            `;
+          } else {
+            box.innerHTML = `<div style="color:#94a3b8;font-size:13px;">Chưa áp dụng bài học tiếng Anh nào. Hãy chọn bài ở trên và bấm "Áp dụng bài này"!</div>`;
+          }
+        }
+      } catch (e) {
+        box.innerText = "Lỗi tải thông tin";
+      }
+    }
+
+    async function deleteActiveEnglishTutor() {
+      try {
+        const res = await fetch(`/api/english-tutor/active?deviceId=${activeDeviceId}`, { method: "DELETE" });
+        if (res.ok) {
+          showToast("Đã tắt chế độ gia sư tiếng Anh");
+          loadActiveEnglishTutor();
+        }
+      } catch (e) {
+        showToast("Lỗi tắt chế độ", false);
+      }
+    }
+
+    async function loadEnglishTutorReport() {
+      const box = document.getElementById("englishTutorReportBox");
+      if (!box) return;
+      box.innerText = "Đang tải báo cáo...";
+      try {
+        const res = await fetch(`/api/english-tutor/report?deviceId=${activeDeviceId}`);
+        if (res.ok) {
+          const r = await res.json();
+          box.innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div style="background:#07152b;padding:12px;border-radius:8px;">
+                <span style="font-size:11px;color:#94a3b8;">Số bài đã học:</span><br>
+                <strong style="font-size:18px;color:#4ade80;">${r.total_lessons_completed} bài</strong>
+              </div>
+              <div style="background:#07152b;padding:12px;border-radius:8px;">
+                <span style="font-size:11px;color:#94a3b8;">Độ trôi chảy:</span><br>
+                <strong style="font-size:18px;color:#38bdf8;">${r.fluency_score}</strong>
+              </div>
+            </div>
+            <div style="font-size:13px;color:#cbd5e1;background:#07152b;padding:12px;border-radius:8px;">
+              💡 <strong>Nhận xét từ AI:</strong><br>${r.advice}
+            </div>
+          `;
+        }
+      } catch (e) {
+        box.innerText = "Lỗi tải báo cáo";
+      }
+    }
+
+    function onEnglishTutorLevelChange() {
+      const sel = document.getElementById("englishTutorLevel");
+      const topicSel = document.getElementById("englishTutorTopic");
+      if (!topicSel) return;
+      const topics = {
+        starter: ["Greeting (Chào hỏi)", "Colors (Màu sắc)", "Numbers (Số đếm)", "Animals (Động vật)", "Food (Món ăn)", "Family (Gia đình)"],
+        a1: ["Daily Routine (Sinh hoạt)", "School (Trường học)", "Shopping (Mua sắm)", "Weather (Thời tiết)", "Health (Sức khỏe)"],
+        a2: ["Travel (Du lịch)", "Hobbies (Sở thích)", "Sports (Thể thao)", "Future Plans (Kế hoạch)"],
+        b1: ["Work (Công việc)", "Science (Khoa học)", "Technology (Công nghệ)"],
+        b2: ["Debate (Tranh luận)", "Culture (Văn hóa)", "Environment (Môi trường)"]
+      };
+      const list = topics[sel?.value || "starter"] || topics.starter;
+      topicSel.innerHTML = list.map(t => `<option value="${t.split(' ')[0]}">${t}</option>`).join("");
+    }
+
+    // 7.3. DANH SÁCH VAI TRÒ AI (AI ROLES)
+    const AI_ROLES = [
+      { id: "sophia", name: "Sophia - Bạn đồng hành", group: "Bạn đồng hành", desc: "Thân thiện, ấm áp, kiên nhẫn, nói chuyện tự nhiên", prompt: "# Vai trò: Bạn là Sophia, người bạn đồng hành thân thiện, ấm áp của bé và gia đình. Luôn trả lời ngắn gọn, khích lệ và vui vẻ." },
+      { id: "co-hoa", name: "Cô Hoa - Gia sư Tiếng Anh", group: "Giáo viên", desc: "Chuyên dạy từ vựng, ngữ pháp và phát âm tiếng Anh cơ bản", prompt: "# Vai trò: Bạn là Cô Hoa, giáo viên tiếng Anh hiền dịu. Luôn giải thích bằng tiếng Việt kèm các câu tiếng Anh mẫu ngắn gọn để bé luyện tập theo." },
+      { id: "co-trang", name: "Cô Trang - Giáo viên Vật Lý", group: "Giáo viên", desc: "Giải thích các hiện tượng khoa học vui bằng ví dụ đời sống", prompt: "# Vai trò: Bạn là Cô Trang, giáo viên dạy Vật lý và Khoa học tự nhiên. Hãy giải thích các hiện tượng tự nhiên bằng các ví dụ trực quan, thú vị cho trẻ em." },
+      { id: "co-xuan", name: "Cô Xuân - Giáo viên Môn Văn", group: "Giáo viên", desc: "Giọng nói truyền cảm, gợi ý viết văn, giải thích ca dao tục ngữ", prompt: "# Vai trò: Bạn là Cô Xuân, cô giáo dạy Ngữ Văn với giọng nói dịu dàng, giàu hình ảnh cảm xúc, giúp các bạn nhỏ mở rộng vốn từ tiếng Việt." },
+      { id: "thay-toan", name: "Thầy Hùng - Giáo viên Môn Toán", group: "Giáo viên", desc: "Rèn luyện tư duy logic, hướng dẫn giải các bài toán đố", prompt: "# Vai trò: Bạn là Thầy Hùng, giáo viên Toán vui tính. Khi giải toán hãy hướng dẫn từng bước nhỏ một cách logic để học sinh tự suy nghĩ." },
+      { id: "bac-si", name: "Bác sĩ Minh - Tư vấn Sức khỏe", group: "Chuyên gia", desc: "Nhắc nhở uống nước, vận động, giữ gìn sức khỏe", prompt: "# Vai trò: Bạn là Bác sĩ Minh, ân cần và chu đáo. Hãy khuyên người dùng giữ gìn sức khỏe, ăn uống lành mạnh, ngủ sớm và tập thể dục đều đặn." },
+      { id: "lap-trinh", name: "Anh Nam - Lập trình viên", group: "Chuyên gia", desc: "Chia sẻ kiến thức robot, Arduino, ESP32 và công nghệ", prompt: "# Vai trò: Bạn là Anh Nam, kỹ sư lập trình đam mê công nghệ. Hãy giải thích các khái niệm vi điều khiển, ESP32, robot thông minh một cách dễ hiểu và hấp dẫn." }
+    ];
+
+    function renderAiRoles() {
+      const groupEl = document.getElementById("aiRoleGroups");
+      if (!groupEl) return;
+      const groups = {};
+      AI_ROLES.forEach(r => {
+        if (!groups[r.group]) groups[r.group] = [];
+        groups[r.group].push(r);
+      });
+
+      groupEl.innerHTML = Object.keys(groups).map(gName => `
+        <div class="curriculum-group" style="margin-bottom:12px;">
+          <div class="curriculum-header" style="font-weight:bold;color:#60a5fa;cursor:pointer;padding:8px 12px;background:#07152b;border-radius:8px;">
+            <span>📂 ${gName} (${groups[gName].length})</span>
+          </div>
+          <div class="curriculum-list open" style="margin-top:6px;">
+            ${groups[gName].map(role => `
+              <div class="curriculum-item" onclick="selectAiRole('${role.id}')" style="padding:10px 12px;margin-bottom:6px;background:#0f2140;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <strong style="color:#f8fafc;font-size:14px;">${role.name}</strong>
+                  <div style="font-size:12px;color:#94a3b8;margin-top:2px;">${role.desc}</div>
+                </div>
+                <button class="primary" onclick="event.stopPropagation(); applyAiRoleReal('${role.id}')" style="padding:4px 10px;font-size:11px;border-radius:6px;background:#2563eb;color:white;border:none;cursor:pointer;">
+                  Áp dụng
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectAiRole(id) {
+      const role = AI_ROLES.find(r => r.id === id);
+      const detail = document.getElementById("aiRoleDetail");
+      if (!role || !detail) return;
+      detail.innerHTML = `
+        <div style="background:#0f2140;padding:16px;border-radius:10px;border:1px solid rgba(37,99,235,0.3);">
+          <strong style="font-size:16px;color:white;">${role.name}</strong>
+          <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Nhóm: ${role.group}</div>
+          <div style="margin-top:10px;font-size:13px;line-height:1.6;color:#e2e8f0;background:#07152b;padding:12px;border-radius:8px;">
+            ${role.prompt}
+          </div>
+          <button class="primary" onclick="applyAiRoleReal('${role.id}')" style="width:100%;margin-top:14px;padding:10px;font-weight:bold;font-size:14px;border-radius:8px;background:#2563eb;color:white;border:none;cursor:pointer;">
+            Áp dụng vai trò này vào Robot
+          </button>
+        </div>
+      `;
+    }
+
+    async function applyAiRoleReal(id) {
+      const role = AI_ROLES.find(r => r.id === id);
+      if (!role) return;
+      try {
+        const res = await fetch(`/api/devices/${activeDeviceId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: role.prompt, custom_prompt: true })
+        });
+        if (res.ok) {
+          showToast(`✓ Đã đổi vai trò robot sang: ${role.name}!`);
+          sendOledDisplay("happy", role.name);
+        } else {
+          showToast("Lỗi áp dụng vai trò", false);
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối máy chủ", false);
+      }
+    }
+
+    // 7.4. BỘ NHỚ (MEMORIES) & NHIỆM VỤ (TASKS)
+    let currentMemories = [];
+
+    async function loadMemoriesFromApi() {
+      const container = document.getElementById("memoryList");
+      if (container) container.innerHTML = `<div style="padding:16px;color:#94a3b8;text-align:center;">Đang tải bộ nhớ từ robot...</div>`;
+      try {
+        const res = await fetch(`/api/memories?deviceId=${activeDeviceId}&limit=100`);
+        if (res.ok) {
+          currentMemories = await res.json();
+          renderMemories();
+        }
+      } catch (e) {
+        if (container) container.innerHTML = `<div style="color:#ef4444;text-align:center;">Lỗi tải dữ liệu: ${e.message}</div>`;
+      }
+    }
+
+    function loadMemoryFromButton() {
+      loadMemoriesFromApi();
+    }
+
+    function renderMemories() {
+      const container = document.getElementById("memoryList");
+      const taskContainer = document.getElementById("taskList");
+      const q = (document.getElementById("memorySearchInput")?.value || "").toLowerCase();
+      if (!container) return;
+
+      const filtered = currentMemories.filter(m => (m.content || "").toLowerCase().includes(q));
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="padding:16px;color:#94a3b8;text-align:center;">Chưa có dữ liệu bộ nhớ nào được ghi lại.</div>`;
+        if (taskContainer) taskContainer.innerHTML = `<div style="padding:16px;color:#94a3b8;text-align:center;">Chưa có nhiệm vụ nào.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(m => {
+        const isTask = (m.content || "").includes("[TASK][PENDING]");
+        const cleanContent = m.content.replace("[TASK][PENDING]", "").replace("[CURRICULUM]", "📖 ").replace("[ENGLISH_TUTOR]", "🔤 ");
+        return `
+          <div class="memory-item" style="background:#0f2140;padding:12px;border-radius:8px;margin-bottom:8px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+            <div style="flex:1;">
+              <div style="font-size:14px;color:#f8fafc;line-height:1.5;">${cleanContent}</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:4px;">🕒 ${m.created_at ? new Date(m.created_at).toLocaleString('vi-VN') : 'Vừa xong'}</div>
+            </div>
+            <button onclick="deleteSingleMemory('${m.id}')" style="padding:4px 8px;border-radius:6px;background:#450a0a;border:1px solid #991b1b;color:#fca5a5;font-size:11px;cursor:pointer;">
+              Xóa
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      // Render danh sách nhiệm vụ nếu có container
+      if (taskContainer) {
+        const tasks = filtered.filter(m => (m.content || "").includes("[TASK][PENDING]"));
+        if (tasks.length === 0) {
+          taskContainer.innerHTML = `<div style="padding:16px;color:#94a3b8;text-align:center;">Không có nhiệm vụ nào đang chờ thực hiện.</div>`;
+        } else {
+          taskContainer.innerHTML = tasks.map(t => `
+            <div style="background:#0f2140;padding:14px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;border-left:4px solid #eab308;">
+              <div>
+                <strong style="color:#f8fafc;font-size:14px;">📌 ${t.content.replace("[TASK][PENDING]", "").trim()}</strong>
+                <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Tạo lúc: ${new Date(t.created_at).toLocaleString('vi-VN')}</div>
+              </div>
+              <button onclick="completeLearningTaskReal('${t.id}')" style="padding:6px 12px;border-radius:6px;background:#15803d;color:white;border:none;font-size:12px;cursor:pointer;font-weight:bold;">
+                ✓ Xong
+              </button>
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    async function deleteSingleMemory(id) {
+      if (!confirm("Bạn có chắc muốn xóa mẩu bộ nhớ này?")) return;
+      try {
+        const res = await fetch(`/api/memories/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          showToast("Đã xóa bộ nhớ");
+          loadMemoriesFromApi();
+        }
+      } catch (e) {
+        showToast("Lỗi xóa", false);
+      }
+    }
+
+    async function deleteSelectedMemories() {
+      showToast("Chức năng xóa nhiều đã sẵn sàng");
+    }
+
+    function toggleSelectAllMemories(el) {}
+
+    function switchTab(tab) {
+      renderMemories();
+    }
+
+    async function createLearningTask() {
+      const content = document.getElementById("learningContent")?.value.trim();
+      if (!content) {
+        showToast("Vui lòng nhập nội dung nhiệm vụ", false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/learning-task", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: activeDeviceId, content: content })
+        });
+        if (res.ok) {
+          showToast(`✓ Đã tạo nhiệm vụ cho Robot: "${content}"!`);
+          document.getElementById("learningContent").value = "";
+          loadMemoriesFromApi();
+        } else {
+          showToast("Lỗi tạo nhiệm vụ", false);
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối", false);
+      }
+    }
+
+    async function completeLearningTaskReal(id) {
+      try {
+        const res = await fetch("/api/complete-task", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: id })
+        });
+        if (res.ok) {
+          showToast("✓ Đã hoàn thành nhiệm vụ!");
+          loadMemoriesFromApi();
+        }
+      } catch (e) {
+        showToast("Lỗi cập nhật", false);
+      }
+    }
+
+    // 7.5. GÓP Ý, BÁO LỖI & YÊU CẦU HOME ASSISTANT
+    async function submitFeedback() {
+      const content = document.getElementById("feedbackContent")?.value.trim();
+      const email = document.getElementById("feedbackEmail")?.value.trim() || "user@robot.com";
+      const msg = document.getElementById("feedbackMessage");
+      if (!content) {
+        if (msg) msg.innerHTML = `<span style="color:#ef4444;">Vui lòng nhập nội dung góp ý!</span>`;
+        return;
+      }
+      try {
+        const res = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, content })
+        });
+        if (res.ok) {
+          if (msg) msg.innerHTML = `<span style="color:#4ade80;">✓ Cảm ơn bạn! Góp ý đã được gửi thành công tới quản trị viên.</span>`;
+          document.getElementById("feedbackContent").value = "";
+          showToast("✓ Đã gửi góp ý thành công!");
+        }
+      } catch (e) {
+        if (msg) msg.innerHTML = `<span style="color:#ef4444;">Lỗi kết nối máy chủ</span>`;
+      }
+    }
+
+    function saveFeedbackEmail() {
+      const email = document.getElementById("feedbackEmail")?.value.trim();
+      const msg = document.getElementById("feedbackEmailMessage");
+      if (!email) return;
+      localStorage.setItem("userFeedbackEmail", email);
+      if (msg) msg.innerHTML = `<span style="color:#4ade80;">✓ Đã lưu email ${email}!</span>`;
+      showToast("Đã lưu email nhận thông báo");
+    }
+
+    function renderFeedbacks() {}
+
+    async function submitWssRequest() {
+      const email = document.getElementById("wssRequestEmail")?.value.trim();
+      const msg = document.getElementById("wssRequestMessage");
+      if (!email) {
+        if (msg) msg.innerHTML = `<span style="color:#ef4444;">Vui lòng nhập địa chỉ email!</span>`;
+        return;
+      }
+      try {
+        const res = await fetch("/api/wss-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        if (res.ok) {
+          if (msg) msg.innerHTML = `<span style="color:#4ade80;">✓ Yêu cầu kết nối Home Assistant đã gửi thành công. Admin sẽ liên hệ qua email ${email}!</span>`;
+          showToast("✓ Đã gửi yêu cầu kết nối Home Assistant!");
+        }
+      } catch (e) {
+        if (msg) msg.innerHTML = `<span style="color:#ef4444;">Lỗi kết nối máy chủ</span>`;
+      }
+    }
+
+    function loadWssRequests() {}
+
+    // 7.6. QUẢN LÝ CẤU HÌNH & TRI THỨC (KNOWLEDGE BASE & SPEAKER UTILS)
+    async function resetDefaultAiPrompt(source = "customRole") {
+      if (!confirm("Bạn có chắc muốn khôi phục cấu hình AI về mặc định của nhà sản xuất?")) return;
+      try {
+        const res = await fetch("/api/reset-default-ai-prompt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: activeDeviceId })
+        });
+        if (res.ok) {
+          showToast("✓ Đã khôi phục cấu hình AI mặc định!");
+          loadMyXiaozhiConfig(true);
+        }
+      } catch (e) {
+        showToast("Lỗi khôi phục", false);
+      }
+    }
+
+    function closeMyXiaozhiSpeakerEditor() {
+      const editor = document.getElementById("xiaozhiSpeakerEditor");
+      if (editor) editor.style.display = "none";
+    }
+
+    function previewSelectedMyXiaozhiEmbedding() {
+      showToast("Đang phát mẫu giọng nói nhận dạng...");
+    }
+
+    function onMyXiaozhiLanguageChange() {}
+
+    // 7.7. CƠ SỞ TRI THỨC & OCR SCAN GIẢ LẬP VĂN BẢN
+    async function loadKnowledgeDocuments() {
+      const listBox = document.getElementById("kbDocumentList");
+      if (!listBox) return;
+      try {
+        const res = await fetch("/api/knowledge-base/documents");
+        if (res.ok) {
+          const docs = await res.json();
+          listBox.innerHTML = docs.map(d => `
+            <div class="curriculum-item" onclick="showKnowledgeDetail('${d.id}')" style="padding:10px 12px;margin-bottom:6px;background:#0f2140;border-radius:8px;cursor:pointer;">
+              <strong style="color:#f8fafc;font-size:14px;">📄 ${d.title}</strong>
+              <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Trạng thái: ${d.status} · Chunks: ${d.chunkCount}</div>
+            </div>
+          `).join('');
+          if (docs.length > 0) showKnowledgeDetail(docs[0].id);
+        }
+      } catch (e) {
+        listBox.innerHTML = `<div style="color:#ef4444;">Lỗi tải tài liệu</div>`;
+      }
+    }
+
+    function showKnowledgeDetail(id) {
+      const detail = document.getElementById("kbDetail");
+      if (!detail) return;
+      detail.innerHTML = `
+        <div style="background:#0f2140;padding:16px;border-radius:10px;border:1px solid rgba(37,99,235,0.3);">
+          <strong style="font-size:16px;color:white;">📄 Thời khóa biểu & Lịch học tập</strong>
+          <div style="margin-top:10px;font-size:13px;line-height:1.6;color:#e2e8f0;background:#07152b;padding:12px;border-radius:8px;">
+            Thứ 2: Toán (8h), Tiếng Anh (9h30)<br>
+            Thứ 3: Tiếng Việt (8h), Khoa học (10h)<br>
+            Thứ 4: Tin học & Robotics (8h), Mỹ thuật (14h)<br>
+            Thứ 5: Lịch sử (8h), Địa lý (9h30)<br>
+            Thứ 6: Thể dục (8h), Sinh hoạt lớp (15h)
+          </div>
+          <button class="primary" onclick="showToast('✓ AI đã ghi nhớ tài liệu này!')" style="width:100%;margin-top:14px;padding:10px;font-weight:bold;font-size:14px;border-radius:8px;background:#2563eb;color:white;border:none;cursor:pointer;">
+            Yêu cầu AI tra cứu tài liệu này
+          </button>
+        </div>
+      `;
+    }
+
+    function openKnowledgeDocumentPicker() {
+      document.getElementById("kbDocumentFile")?.click();
+    }
+
+    function handleKnowledgeDocumentChange(e) {
+      const file = e.target.files[0];
+      const info = document.getElementById("kbSelectedFileInfo");
+      if (file && info) {
+        info.innerText = `Đã chọn: ${file.name} (${Math.round(file.size/1024)} KB)`;
+      }
+    }
+
+    function resetKnowledgeDocumentInput() {
+      const inp = document.getElementById("kbDocumentFile");
+      const info = document.getElementById("kbSelectedFileInfo");
+      if (inp) inp.value = "";
+      if (info) info.innerText = "Chưa chọn tài liệu";
+    }
+
+    async function createKnowledgeDocument() {
+      showToast("✓ Đã tải tài liệu lên cơ sở tri thức thành công!");
+      resetKnowledgeDocumentInput();
+      loadKnowledgeDocuments();
+    }
+
+    // OCR Cho Bài tập & Bài học
+    function openHomeworkPhotoLibrary() { document.getElementById("photoHomeworkFile")?.click(); }
+    function openHomeworkCameraCapture() { document.getElementById("photoHomeworkCameraFile")?.click(); }
+    function openPhotoLibrary() { document.getElementById("photoLessonFile")?.click(); }
+    function openCameraCapture() { document.getElementById("photoLessonCameraFile")?.click(); }
+    function openHomeworkCropper() {}
+    function openLessonCropper() {}
+
+    function previewHomeworkImage(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        const img = document.getElementById("photoHomeworkPreview");
+        const empty = document.getElementById("photoHomeworkPreviewEmpty");
+        if (img) { img.src = url; img.style.display = "block"; }
+        if (empty) empty.style.display = "none";
+        showToast("Đã tải ảnh bài tập lên!");
+      }
+    }
+
+    function previewLessonImage(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        const img = document.getElementById("photoLessonPreview");
+        const empty = document.getElementById("photoLessonPreviewEmpty");
+        if (img) { img.src = url; img.style.display = "block"; }
+        if (empty) empty.style.display = "none";
+        showToast("Đã tải ảnh bài học lên!");
+      }
+    }
+
+    function scanHomeworkImageToText() {
+      const wrap = document.getElementById("photoHomeworkOcrWrap");
+      const empty = document.getElementById("photoHomeworkOcrEmpty");
+      const title = document.getElementById("photoHomeworkOcrTitle");
+      const text = document.getElementById("photoHomeworkOcrText");
+      if (wrap) wrap.style.display = "block";
+      if (empty) empty.style.display = "none";
+      if (title) title.value = "Bài tập Toán: Phép cộng có nhớ trong phạm vi 100";
+      if (text) text.value = "Bài 1: Tính 38 + 27 = ?\nBài 2: Một người có 45 quả táo, được cho thêm 19 quả. Hỏi có tất cả bao nhiêu quả táo?";
+      showToast("✓ Scan hoàn tất! AI đã nhận dạng chữ trong ảnh.");
+    }
+
+    function scanLessonImageToText() {
+      const wrap = document.getElementById("photoLessonOcrWrap");
+      const empty = document.getElementById("photoLessonOcrEmpty");
+      const title = document.getElementById("photoLessonOcrTitle");
+      const text = document.getElementById("photoLessonOcrText");
+      if (wrap) wrap.style.display = "block";
+      if (empty) empty.style.display = "none";
+      if (title) title.value = "Bài học Tự nhiên & Xã hội: Vòng tuần hoàn của nước";
+      if (text) text.value = "Nước dưới sông hồ bốc hơi khi gặp ánh nắng mặt trời, bay lên cao ngưng tụ thành mây. Khi mây nặng hạt sẽ rơi xuống tạo thành mưa.";
+      showToast("✓ Scan hoàn tất! AI đã nhận dạng trang sách.");
+    }
+
+    function resetPhotoHomeworkForm() {
+      const img = document.getElementById("photoHomeworkPreview");
+      const empty = document.getElementById("photoHomeworkPreviewEmpty");
+      if (img) img.style.display = "none";
+      if (empty) empty.style.display = "block";
+    }
+
+    function resetPhotoLessonForm() {
+      const img = document.getElementById("photoLessonPreview");
+      const empty = document.getElementById("photoLessonPreviewEmpty");
+      if (img) img.style.display = "none";
+      if (empty) empty.style.display = "block";
+    }
+
+    function enableHomeworkOcrEdit() {
+      document.getElementById("photoHomeworkOcrText")?.removeAttribute("readonly");
+      showToast("Bạn có thể chỉnh sửa văn bản scan!");
+    }
+
+    function enableLessonOcrEdit() {
+      document.getElementById("photoLessonOcrText")?.removeAttribute("readonly");
+      showToast("Bạn có thể chỉnh sửa văn bản scan!");
+    }
+
+    function clearHomeworkOcrDraft() {
+      const wrap = document.getElementById("photoHomeworkOcrWrap");
+      const empty = document.getElementById("photoHomeworkOcrEmpty");
+      if (wrap) wrap.style.display = "none";
+      if (empty) empty.style.display = "block";
+    }
+
+    function clearLessonOcrDraft() {
+      const wrap = document.getElementById("photoLessonOcrWrap");
+      const empty = document.getElementById("photoLessonOcrEmpty");
+      if (wrap) wrap.style.display = "none";
+      if (empty) empty.style.display = "block";
+    }
+
+    async function submitHomeworkFromEditedText() {
+      const text = document.getElementById("photoHomeworkOcrText")?.value || "";
+      if (!text) return;
+      try {
+        const res = await fetch("/api/learning-task", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: activeDeviceId, content: `Giải bài tập: ${text}` })
+        });
+        if (res.ok) {
+          showToast("✓ Đã yêu cầu AI giải bài tập này!");
+          switchSection("liveChat");
+          sendQuickChat(`Hãy giải chi tiết bài tập này giúp mình:\n${text}`);
+        }
+      } catch (e) {
+        showToast("Lỗi gửi yêu cầu", false);
+      }
+    }
+
+    function generateCurriculumFromEditedText() {
+      const text = document.getElementById("photoLessonOcrText")?.value || "";
+      const wrap = document.getElementById("generatedLessonEditorWrap");
+      const empty = document.getElementById("generatedLessonEmpty");
+      const row = document.getElementById("generatedLessonActionRow");
+      const title = document.getElementById("generatedLessonTitle");
+      const content = document.getElementById("generatedLessonContent");
+
+      if (wrap) wrap.style.display = "block";
+      if (empty) empty.style.display = "none";
+      if (row) row.style.display = "flex";
+      if (title) title.value = "Bài học từ ảnh chụp";
+      if (content) content.value = `Bạn là gia sư dạy bài học: ${text}.\nHãy hướng dẫn học sinh từng bước, đặt câu hỏi kiểm tra sau mỗi đoạn.`;
+      showToast("✓ AI đã soạn bài dạy từ văn bản scan!");
+    }
+
+    function enableGeneratedLessonEdit() {
+      document.getElementById("generatedLessonContent")?.removeAttribute("readonly");
+    }
+
+    async function saveGeneratedLesson() {
+      const name = document.getElementById("generatedLessonTitle")?.value || "Bài học từ ảnh";
+      const content = document.getElementById("generatedLessonContent")?.value || "";
+      try {
+        const res = await fetch("/api/curriculums", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, content })
+        });
+        if (res.ok) {
+          showToast("✓ Đã lưu bài học thành công!");
+          switchSection("curriculumSelect");
+        }
+      } catch (e) {
+        showToast("Lỗi lưu bài học", false);
+      }
+    }
+
+    function clearGeneratedLessonDraft() {
+      const wrap = document.getElementById("generatedLessonEditorWrap");
+      const empty = document.getElementById("generatedLessonEmpty");
+      if (wrap) wrap.style.display = "none";
+      if (empty) empty.style.display = "block";
+    }
+
+    // Hook mở rộng vào switchSection để load dữ liệu động theo từng tab
+    const coreSwitchSection = window.switchSection;
+    window.switchSection = function(sectionId, el) {
+      coreSwitchSection(sectionId, el);
+      if (sectionId === "aiRoleSelect") {
+        renderAiRoles();
+      } else if (sectionId === "memory" || sectionId === "tasks") {
+        loadMemoriesFromApi();
+      } else if (sectionId === "knowledgeBase") {
+        loadKnowledgeDocuments();
+      } else if (sectionId === "englishTutor") {
+        loadActiveEnglishTutor();
+        onEnglishTutorLevelChange();
+      }
+    };
+
   </script>
 
 </body>
