@@ -7,7 +7,7 @@ import websockets
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-WS_URL = "ws://127.0.0.1:8000/ws/xiaozhi"
+WS_URL = "ws://127.0.0.1:8000/ws/megabot"
 
 
 async def simulate_esp32_full_loop():

@@ -1,7 +1,7 @@
-# Hướng Dẫn Cấu Hình Render.com Cho Robot Xiaozhi ESP32
+# Hướng Dẫn Cấu Hình Render.com Cho Robot Megabot ESP32
 
 Mã nguồn dự án đã được đẩy lên GitHub thành công tại:
-👉 **https://github.com/megadinhai/Robot_xiaozhi**
+👉 **https://github.com/megadinhai/Robot_megabot**
 
 Dưới đây là các bước chi tiết để bạn thiết lập chạy server trên [Render.com](https://render.com/):
 
@@ -12,7 +12,8 @@ Dưới đây là các bước chi tiết để bạn thiết lập chạy serve
 1. Truy cập [render.com](https://render.com/) $\rightarrow$ Chọn **Sign in** $\rightarrow$ Đăng nhập bằng tài khoản **GitHub**.
 2. Tại trang Dashboard của Render, nhấn nút **New +** (góc trên bên phải) $\rightarrow$ Chọn **Web Service**.
 3. Chọn tùy chọn **Build and deploy from a Git repository** $\rightarrow$ Bấm **Next**.
-4. Tìm repository **`Robot_xiaozhi`** (hoặc paste link `https://github.com/megadinhai/Robot_xiaozhi.git`) $\rightarrow$ Bấm nút **Connect**.
+4. Tìm repository **`Robot_megabot`** (hoặc paste link `https://github.com/megadinhai/Robot_megabot.git`) $\rightarrow$ Bấm nút **Connect**.
+   *(Lưu ý: Nếu service trước đó đã tạo với tên cũ, bạn chỉ cần vào **Settings** của Service trên Render $\rightarrow$ đổi tên Name thành `robot-megabot`)*.
 
 ---
 
@@ -22,7 +23,7 @@ Dưới đây là các bước chi tiết để bạn thiết lập chạy serve
 
 | Mục thiết lập | Giá trị điền | Ghi chú |
 | :--- | :--- | :--- |
-| **Name** | `xiaozhi-server-gemini` *(hoặc tên tùy thích)* | Tên này quyết định đường link miền của bạn |
+| **Name** | `robot-megabot` *(hoặc tên tùy thích)* | Tên này quyết định đường link miền của bạn |
 | **Region** | **Singapore (Southeast Asia)** | Giúp giảm ping/độ trễ giọng nói về Việt Nam thấp nhất |
 | **Branch** | `main` | Nhánh chứa mã nguồn chính |
 | **Root Directory** | *(Để trống)* | Render sẽ tìm trực tiếp `requirements.txt` và `server.py` |
@@ -56,13 +57,14 @@ Cuối cùng, nhấn nút **Create Web Service** ở cuối trang.
    Uvicorn running on http://0.0.0.0:xxxx
    ```
    Và trạng thái chuyển sang **Live** màu xanh lục, server đã online thành công!
-3. Ở góc trên bên trái (ngay dưới tên Service), copy URL do Render cấp, ví dụ:
+3. Ở góc trên bên trái (ngay dưới tên Service), URL do Render cấp sẽ là:
    ```
-   https://xiaozhi-server-gemini.onrender.com
+   https://robot-megabot.onrender.com
    ```
 4. Đổi sang định dạng **WebSocket WSS an toàn**:
    ```
-   wss://xiaozhi-server-gemini.onrender.com/ws/xiaozhi
+   wss://robot-megabot.onrender.com/ws/megabot
    ```
+   *(Server hỗ trợ cả 2 endpoint `/ws/megabot` và `/ws/xiaozhi` tương thích ngược 100%)*
 5. Nạp link này vào mục cấu hình Server của ESP32 (qua giao diện cấu hình WiFi Captive Portal của robot hoặc mã nguồn). Robot sẽ tự động kết nối và hội thoại AI ngay lập tức!
 

@@ -85,7 +85,7 @@
 <body>
     <div class="container">
         <h1>🤖 Megabot ESP32 Test Client (Web Demo)</h1>
-        <p>Giả lập robot kết nối tới WebSocket Server: <code>ws://localhost:8000/ws/xiaozhi</code></p>
+        <p>Giả lập robot kết nối tới WebSocket Server: <code>ws://localhost:8000/ws/megabot</code></p>
 
         <div class="status-box">
             <div id="statusDot" class="dot"></div>
@@ -132,7 +132,7 @@
                 return;
             }
 
-            const url = `ws://${window.location.hostname || "localhost"}:8000/ws/xiaozhi`;
+            const url = `ws://${window.location.hostname || "localhost"}:8000/ws/megabot`;
             log(`Đang kết nối tới ${url}...`, "#38bdf8");
 
             ws = new WebSocket(url);

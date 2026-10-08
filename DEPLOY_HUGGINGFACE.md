@@ -1,6 +1,6 @@
-# Hướng Dẫn Triển Khai Xiaozhi Server Lên Hugging Face Spaces & Kết Nối ESP32
+# Hướng Dẫn Triển Khai Megabot Server Lên Hugging Face Spaces & Kết Nối ESP32
 
-Chào bạn! Dưới đây là tài liệu quy trình chuẩn Full Stack sẵn sàng 100% để triển khai server WebSocket quản trị robot Xiaozhi ESP32 từ thư mục code `E:\MyData\LearnAI\Xiaozhi\xiaozhi-esp32-test\MyServer_WebSocket` lên nền tảng **Hugging Face Spaces (Docker)** chạy trực tuyến 24/7 hoàn toàn miễn phí.
+Chào bạn! Dưới đây là tài liệu quy trình chuẩn Full Stack sẵn sàng 100% để triển khai server WebSocket quản trị robot Megabot ESP32 từ thư mục code `E:\MyData\LearnAI\Xiaozhi\xiaozhi-esp32-test\MyServer_WebSocket` lên nền tảng **Hugging Face Spaces (Docker)** chạy trực tuyến 24/7 hoàn toàn miễn phí.
 
 ---
 
@@ -10,7 +10,7 @@ Chào bạn! Dưới đây là tài liệu quy trình chuẩn Full Stack sẵn s
 +--------------------------+          WSS (Internet)          +-------------------------------+
 |       Robot ESP32        | <=============================> |  Hugging Face Space (Docker)  |
 |  - Thu âm micro (Opus)   |      wss://<space>.hf.space      |  - FastAPI WebSocket (/ws)    |
-|  - Phát loa TTS          |           /ws/xiaozhi            |  - Google Gemini AI (LLM+STT) |
+|  - Phát loa TTS          |           /ws/megabot            |  - Google Gemini AI (LLM+STT) |
 |  - Hiển thị LCD/OLED     |                                  |  - Edge-TTS (Giọng Việt)      |
 +--------------------------+                                  |  - Web Dashboard Quản trị     |
                                                               +-------------------------------+
@@ -30,7 +30,7 @@ Thư mục `E:\MyData\LearnAI\Xiaozhi\xiaozhi-esp32-test\MyServer_WebSocket` đ�
    - Thiết lập Non-root user (UID 1000) bảo mật theo chuẩn Hugging Face.
    - Cổng chạy bắt buộc: `7860`.
 3. **`server.py` & hệ sinh thái**:
-   - Hỗ trợ endpoint WebSocket: `/ws/xiaozhi` (Giao thức chuẩn Xiaozhi: bắt tay `hello`, streaming `listen`, `abort`, `tts`).
+   - Hỗ trợ endpoint WebSocket: `/ws/megabot` (đồng thời giữ cả `/ws/xiaozhi` cho firmware cũ).
    - Tích hợp sẵn giao diện Web Dashboard quản lý cấu hình robot trực tiếp trên trình duyệt.
 
 ---
@@ -40,7 +40,7 @@ Thư mục `E:\MyData\LearnAI\Xiaozhi\xiaozhi-esp32-test\MyServer_WebSocket` đ�
 1. Truy cập [huggingface.co](https://huggingface.co/) và đăng nhập tài khoản của bạn.
 2. Bấm vào ảnh đại diện (góc trên bên phải) $\rightarrow$ chọn **New Space**.
 3. Điền các trường thông tin:
-   - **Space name**: Đặt tên (ví dụ: `xiaozhi-robot-server` hoặc `xiaozhi-esp32`).
+   - **Space name**: Đặt tên (ví dụ: `megabot-server` hoặc `robot-megabot`).
    - **License**: Chọn `mit` hoặc `apache-2.0`.
    - **Select the Space SDK**: Chọn **Docker** $\rightarrow$ chọn **Blank** (để sử dụng `Dockerfile` tùy chỉnh).
    - **Space hardware**: Chọn **Free** (2 vCPU · 16 GB RAM).

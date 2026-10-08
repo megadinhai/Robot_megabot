@@ -85,6 +85,7 @@ async def chon_bai_hoc_page():
     return JSONResponse({"error": "File not found"}, status_code=404)
 
 
+@app.get("/cau-hinh-megabot.html")
 @app.get("/cau-hinh-gmbot.html")
 async def cau_hinh_gmbot_page():
     html_path = os.path.join(WEB_TEMPLATES_DIR, "cau-hinh-gmbot.html")
@@ -109,9 +110,10 @@ async def ha_mcp_guide_page():
     return JSONResponse({"error": "File not found"}, status_code=404)
 
 
+@app.get("/megabot-me")
 @app.get("/xiaozhi-me")
 async def xiaozhi_me_old_page():
-    """Giao diện xiaozhi.me cũ (nếu cần xem lại)."""
+    """Giao diện Megabot/xiaozhi cũ (nếu cần xem lại)."""
     html_path = os.path.join(os.path.dirname(__file__), "web", "index.html")
     if os.path.exists(html_path):
         return FileResponse(html_path)
@@ -734,6 +736,7 @@ async def test_chat_api(req: Request):
 # WEBSOCKET CHÍNH KẾT NỐI VỚI ESP32 (XIAOZHI PROTOCOL)
 # ==========================================
 
+@app.websocket("/ws/megabot")
 @app.websocket("/ws/xiaozhi")
 async def websocket_xiaozhi_endpoint(websocket: WebSocket):
     await websocket.accept()
