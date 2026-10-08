@@ -1,0 +1,1054 @@
+{
+  "lessons": [
+    {
+      "id": "31618393-f19b-47d9-8966-043ad408cec6",
+      "title": "Daily Routine - Bài 1: My day",
+      "level": "a1",
+      "topic": "Daily Routine",
+      "mode": "lesson",
+      "target_words": [
+        "wake up",
+        "eat",
+        "sleep"
+      ],
+      "target_phrases": [
+        "I wake up.",
+        "I eat rice.",
+        "I go to sleep."
+      ],
+      "scenario": "",
+      "tutor_note": "Dạy theo hoạt động hằng ngày. Câu phải ngắn, dễ nói, có ngữ cảnh.",
+      "order_no": 20,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "f670edd2-79a8-4af6-a4e4-a79adbecffaa",
+      "title": "School - Bài 2: In class",
+      "level": "a1",
+      "topic": "School",
+      "mode": "lesson",
+      "target_words": [
+        "teacher",
+        "student",
+        "class"
+      ],
+      "target_phrases": [
+        "I am a student.",
+        "This is my teacher.",
+        "I am in class."
+      ],
+      "scenario": "",
+      "tutor_note": "Nói chậm, rõ. Không giải thích ngữ pháp dài.",
+      "order_no": 14,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "1cbde992-0230-4e0c-9213-6b59a633ca5a",
+      "title": "Toys - Bài 2: Favorite toy",
+      "level": "a1",
+      "topic": "Toys",
+      "mode": "lesson",
+      "target_words": [
+        "robot",
+        "train",
+        "kite"
+      ],
+      "target_phrases": [
+        "I like the robot.",
+        "I like the train.",
+        "I like the kite."
+      ],
+      "scenario": "",
+      "tutor_note": "Có thể liên hệ robot GMbot để bé hứng thú.",
+      "order_no": 16,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "8aeb6548-02d6-4306-9bcf-e57b5af5dda8",
+      "title": "Animals - Bài 1",
+      "level": "starter",
+      "topic": "Animals",
+      "mode": "lesson",
+      "target_words": [
+        "cat",
+        "dog",
+        "bird"
+      ],
+      "target_phrases": [
+        "I see a cat.",
+        "I see a dog.",
+        "This is a bird."
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói từ đơn lẻ cat/dog/bird. Luôn yêu cầu bé nói cả câu: I see a cat, I see a dog.",
+      "order_no": 4,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T14:48:01.847Z"
+    },
+    {
+      "id": "0046b27a-a0a1-481e-85ef-42cc3b12830b",
+      "title": "Animals - Bài 1: Pets",
+      "level": "starter",
+      "topic": "Animals",
+      "mode": "lesson",
+      "target_words": [
+        "cat",
+        "dog",
+        "bird"
+      ],
+      "target_phrases": [
+        "I see a cat.",
+        "I see a dog.",
+        "I see a bird."
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói riêng cat, dog, bird. Hãy yêu cầu bé nói cả câu: I see a cat.",
+      "order_no": 7,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "3fe442e0-e90d-48de-9531-581be7a87cf8",
+      "title": "Animals - Bài 2: Farm animals",
+      "level": "starter",
+      "topic": "Animals",
+      "mode": "lesson",
+      "target_words": [
+        "cow",
+        "pig",
+        "duck"
+      ],
+      "target_phrases": [
+        "I see a cow.",
+        "I see a pig.",
+        "I see a duck."
+      ],
+      "scenario": "",
+      "tutor_note": "Dạy vui vẻ, có thể giả tiếng con vật. Luôn luyện bằng câu đầy đủ.",
+      "order_no": 8,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "2ac509c8-718e-4353-9926-5de19cfe72b9",
+      "title": "Body - Bài 1: Body parts",
+      "level": "starter",
+      "topic": "Body",
+      "mode": "lesson",
+      "target_words": [
+        "head",
+        "hand",
+        "foot"
+      ],
+      "target_phrases": [
+        "This is my head.",
+        "This is my hand.",
+        "This is my foot."
+      ],
+      "scenario": "",
+      "tutor_note": "Có thể hướng dẫn bé chạm vào bộ phận cơ thể khi nói câu.",
+      "order_no": 19,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "81385fcc-b4f9-4038-8965-6b2feea77e73",
+      "title": "Colors - Bài 1: Basic colors",
+      "level": "starter",
+      "topic": "Colors",
+      "mode": "lesson",
+      "target_words": [
+        "red",
+        "blue",
+        "yellow"
+      ],
+      "target_phrases": [
+        "It is red.",
+        "It is blue.",
+        "It is yellow."
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói riêng red, blue, yellow. Luôn yêu cầu bé nói câu It is...",
+      "order_no": 3,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "5a3c272b-b573-4047-b190-053c501c1408",
+      "title": "Colors - Bài 1",
+      "level": "starter",
+      "topic": "Colors",
+      "mode": "lesson",
+      "target_words": [
+        "red",
+        "blue",
+        "yellow"
+      ],
+      "target_phrases": [
+        "It is red.",
+        "It is blue.",
+        "It is yellow."
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói riêng red/blue/yellow. Luôn yêu cầu bé nói cả câu: It is red.",
+      "order_no": 3,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T14:48:01.847Z"
+    },
+    {
+      "id": "f953b2d1-bc62-467a-a946-39fbce315082",
+      "title": "Colors - Bài 2: More colors",
+      "level": "starter",
+      "topic": "Colors",
+      "mode": "lesson",
+      "target_words": [
+        "green",
+        "black",
+        "white"
+      ],
+      "target_phrases": [
+        "It is green.",
+        "It is black.",
+        "It is white."
+      ],
+      "scenario": "",
+      "tutor_note": "Dạy màu sắc bằng câu ngắn có ngữ cảnh. Có thể hỏi: What color is it?",
+      "order_no": 4,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "6ac23a23-2254-4ebd-8ea2-22411a53062b",
+      "title": "Family - Bài 1: My family",
+      "level": "starter",
+      "topic": "Family",
+      "mode": "lesson",
+      "target_words": [
+        "mom",
+        "dad",
+        "baby"
+      ],
+      "target_phrases": [
+        "This is my mom.",
+        "This is my dad.",
+        "This is my baby."
+      ],
+      "scenario": "",
+      "tutor_note": "Không hỏi từ đơn. Hãy luyện câu This is my...",
+      "order_no": 11,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "28a9e8bf-d40e-40f6-8f31-b5e67b7a42b9",
+      "title": "Family - Bài 2: Brother and sister",
+      "level": "starter",
+      "topic": "Family",
+      "mode": "lesson",
+      "target_words": [
+        "brother",
+        "sister",
+        "family"
+      ],
+      "target_phrases": [
+        "This is my brother.",
+        "This is my sister.",
+        "I love my family."
+      ],
+      "scenario": "",
+      "tutor_note": "Dạy nhẹ nhàng, gần gũi với gia đình của bé.",
+      "order_no": 12,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "5423c574-0a8d-4f3d-8c62-2befa5a10101",
+      "title": "Feelings - Bài 1: I am happy",
+      "level": "starter",
+      "topic": "Feelings",
+      "mode": "lesson",
+      "target_words": [
+        "happy",
+        "sad",
+        "angry"
+      ],
+      "target_phrases": [
+        "I am happy.",
+        "I am sad.",
+        "I am angry."
+      ],
+      "scenario": "",
+      "tutor_note": "Hỏi cảm xúc bằng câu ngắn. Nếu bé trả lời tiếng Việt, gợi ý 2 câu tiếng Anh.",
+      "order_no": 18,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "e5939b93-06b8-4cc1-985d-7dac8c486658",
+      "title": "Food - Bài 1",
+      "level": "starter",
+      "topic": "Food",
+      "mode": "lesson",
+      "target_words": [
+        "apple",
+        "banana",
+        "milk"
+      ],
+      "target_phrases": [
+        "I want milk.",
+        "I want rice.",
+        "I want chicken.",
+        "I like apples."
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói riêng milk/rice/chicken. Luôn yêu cầu bé nói cả câu: I want milk hoặc I want chicken.",
+      "order_no": 5,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T14:48:01.847Z"
+    },
+    {
+      "id": "1ac1800b-f6f3-41c2-bc5c-ae8af5c2ae00",
+      "title": "Food - Bài 1: Basic food",
+      "level": "starter",
+      "topic": "Food",
+      "mode": "lesson",
+      "target_words": [
+        "milk",
+        "rice",
+        "chicken"
+      ],
+      "target_phrases": [
+        "I want milk.",
+        "I want rice.",
+        "I want chicken."
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói riêng milk, rice, chicken. Hãy yêu cầu bé nói cả câu: I want milk.",
+      "order_no": 9,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "b88d48b4-27f7-4870-a9c5-570a9ee823b8",
+      "title": "Food - Bài 2: Fruits",
+      "level": "starter",
+      "topic": "Food",
+      "mode": "lesson",
+      "target_words": [
+        "apple",
+        "banana",
+        "orange"
+      ],
+      "target_phrases": [
+        "I want an apple.",
+        "I want a banana.",
+        "I want an orange."
+      ],
+      "scenario": "",
+      "tutor_note": "Luyện câu I want... Nếu bé chỉ nói apple, hãy sửa nhẹ thành I want an apple.",
+      "order_no": 10,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "cfe0da39-4b23-43c0-887e-e3a5098b14c3",
+      "title": "Greeting - Bài 1: Hello",
+      "level": "starter",
+      "topic": "Greeting",
+      "mode": "lesson",
+      "target_words": [
+        "hello",
+        "hi",
+        "bye"
+      ],
+      "target_phrases": [
+        "Hello, Sophia.",
+        "Hi, Sophia.",
+        "Goodbye, Sophia."
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói riêng hello, hi, bye. Hãy yêu cầu bé nói cả câu ngắn như Hello, Sophia. Mỗi lượt chỉ hỏi 1 câu.",
+      "order_no": 1,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "a18f6e77-7a6d-4c60-8f7a-6cd7712adfd7",
+      "title": "Greeting - Bài 1",
+      "level": "starter",
+      "topic": "Greeting",
+      "mode": "lesson",
+      "target_words": [
+        "hello",
+        "hi",
+        "bye"
+      ],
+      "target_phrases": [
+        "Hello, Sophia.",
+        "Hi, Sophia.",
+        "Goodbye, Sophia.",
+        "Hello, how are you?"
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói riêng hi hoặc bye. Hãy yêu cầu bé nói: Hello Sophia hoặc Hi Sophia.",
+      "order_no": 1,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T14:48:01.847Z"
+    },
+    {
+      "id": "2fe4202d-e2f9-4ab9-a7c4-fff7544b76ca",
+      "title": "Greeting - Bài 2: How are you",
+      "level": "starter",
+      "topic": "Greeting",
+      "mode": "lesson",
+      "target_words": [
+        "fine",
+        "good",
+        "happy"
+      ],
+      "target_phrases": [
+        "How are you?",
+        "I am fine.",
+        "I am happy."
+      ],
+      "scenario": "",
+      "tutor_note": "Luyện chào hỏi đơn giản. Nếu bé bí, gợi ý: I am fine hoặc I am happy.",
+      "order_no": 2,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "e479177a-ca63-449c-b3a4-74d891dd5714",
+      "title": "Greeting - Bài 2",
+      "level": "starter",
+      "topic": "Greeting",
+      "mode": "lesson",
+      "target_words": [
+        "morning",
+        "good",
+        "name"
+      ],
+      "target_phrases": [
+        "Hello, Sophia.",
+        "Hi, Sophia.",
+        "Goodbye, Sophia.",
+        "Hello, how are you?"
+      ],
+      "scenario": "",
+      "tutor_note": "Không yêu cầu bé nói riêng hi hoặc bye. Hãy yêu cầu bé nói: Hello Sophia hoặc Hi Sophia.",
+      "order_no": 2,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T14:48:01.847Z"
+    },
+    {
+      "id": "3ed5b784-f3d6-4af6-9cfa-10ee269f2dab",
+      "title": "Numbers - Bài 1: One to five",
+      "level": "starter",
+      "topic": "Numbers",
+      "mode": "lesson",
+      "target_words": [
+        "one",
+        "two",
+        "three",
+        "four",
+        "five"
+      ],
+      "target_phrases": [
+        "I see one.",
+        "I see two.",
+        "I see three.",
+        "I see four.",
+        "I see five."
+      ],
+      "scenario": "",
+      "tutor_note": "Không bắt bé nói số đơn lẻ quá nhiều. Hãy dùng câu I see one, I see two.",
+      "order_no": 5,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "a64d5829-2d3e-4333-9330-eaf17c196d62",
+      "title": "Numbers - Bài 2: Six to ten",
+      "level": "starter",
+      "topic": "Numbers",
+      "mode": "lesson",
+      "target_words": [
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten"
+      ],
+      "target_phrases": [
+        "I see six.",
+        "I see seven.",
+        "I see eight.",
+        "I see nine.",
+        "I see ten."
+      ],
+      "scenario": "",
+      "tutor_note": "Luyện số bằng câu ngắn. Mỗi lượt chỉ hỏi 1 câu.",
+      "order_no": 6,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "44376f2c-81a9-472f-80f4-e9b89a39407c",
+      "title": "School - Bài 1: School things",
+      "level": "starter",
+      "topic": "School",
+      "mode": "lesson",
+      "target_words": [
+        "book",
+        "pen",
+        "bag"
+      ],
+      "target_phrases": [
+        "This is my book.",
+        "This is my pen.",
+        "This is my bag."
+      ],
+      "scenario": "",
+      "tutor_note": "Luyện đồ dùng học tập bằng câu This is my...",
+      "order_no": 13,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "5b6defd6-01c5-4fd0-86e7-ea6c279410d6",
+      "title": "Toys - Bài 1: My toys",
+      "level": "starter",
+      "topic": "Toys",
+      "mode": "lesson",
+      "target_words": [
+        "ball",
+        "car",
+        "doll"
+      ],
+      "target_phrases": [
+        "I like the ball.",
+        "I like the car.",
+        "I like the doll."
+      ],
+      "scenario": "",
+      "tutor_note": "Luyện câu I like the... Không bắt bé nói từ đơn.",
+      "order_no": 15,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    },
+    {
+      "id": "d30dc541-abbe-4173-82e8-e03a864aa870",
+      "title": "Weather - Bài 1: Weather words",
+      "level": "starter",
+      "topic": "Weather",
+      "mode": "lesson",
+      "target_words": [
+        "sunny",
+        "rainy",
+        "windy"
+      ],
+      "target_phrases": [
+        "It is sunny.",
+        "It is rainy.",
+        "It is windy."
+      ],
+      "scenario": "",
+      "tutor_note": "Luyện câu It is... Không yêu cầu bé nói riêng sunny/rainy/windy.",
+      "order_no": 17,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:41.430Z"
+    }
+  ],
+  "roleplay": [
+    {
+      "id": "ac05f184-b785-4df8-a9e4-d9ca85390b72",
+      "title": "Role-play: At the zoo",
+      "level": "a1",
+      "topic": "Animals",
+      "mode": "roleplay",
+      "target_words": [
+        "lion",
+        "monkey",
+        "elephant"
+      ],
+      "target_phrases": [
+        "I see a lion.",
+        "I see a monkey.",
+        "I see an elephant."
+      ],
+      "scenario": "AI đóng vai hướng dẫn viên sở thú. Bé đi xem các con vật.",
+      "tutor_note": "Không bắt bé nói lion/monkey/elephant đơn lẻ. Luôn luyện câu I see...",
+      "order_no": 112,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "58ac1701-25b6-43bc-9435-88d705b09e1c",
+      "title": "Role-play: Ask for help",
+      "level": "a1",
+      "topic": "Daily",
+      "mode": "roleplay",
+      "target_words": [
+        "help",
+        "please",
+        "thank you"
+      ],
+      "target_phrases": [
+        "Help me, please.",
+        "Can you help me?",
+        "Thank you."
+      ],
+      "scenario": "AI đóng vai người bạn. Bé luyện cách nhờ giúp đỡ bằng tiếng Anh.",
+      "tutor_note": "Dạy câu lịch sự. Không yêu cầu bé nói riêng help/please.",
+      "order_no": 110,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "8130ba41-a670-4c12-8a4a-becbf78503e3",
+      "title": "Role-play: Morning routine",
+      "level": "a1",
+      "topic": "Daily Routine",
+      "mode": "roleplay",
+      "target_words": [
+        "wake up",
+        "brush teeth",
+        "eat breakfast"
+      ],
+      "target_phrases": [
+        "I wake up.",
+        "I brush my teeth.",
+        "I eat breakfast."
+      ],
+      "scenario": "AI đóng vai bạn nhỏ hỏi về buổi sáng của bé.",
+      "tutor_note": "Hỏi từng câu ngắn. Nếu bé chưa biết, nói mẫu rồi yêu cầu bé nói lại.",
+      "order_no": 114,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "1b5a8ab3-4a69-4a83-ad80-67719d969c64",
+      "title": "Role-play: At the restaurant",
+      "level": "a1",
+      "topic": "Food",
+      "mode": "roleplay",
+      "target_words": [
+        "water",
+        "rice",
+        "chicken"
+      ],
+      "target_phrases": [
+        "I want water.",
+        "I want rice.",
+        "I want chicken.",
+        "Thank you."
+      ],
+      "scenario": "AI đóng vai nhân viên nhà hàng. Bé đóng vai khách hàng và gọi món ăn.",
+      "tutor_note": "Bắt đầu ngay bằng vai nhân viên nhà hàng. Không giảng luật dài. Không hỏi bé nói từ đơn. Luôn gợi ý bé nói cả câu: I want water hoặc I want chicken.",
+      "order_no": 101,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T14:56:10.076Z"
+    },
+    {
+      "id": "1655ffa8-4ef7-4d37-a0b9-dc9ccb201775",
+      "title": "Role-play: Buying ice cream",
+      "level": "a1",
+      "topic": "Food",
+      "mode": "roleplay",
+      "target_words": [
+        "ice cream",
+        "vanilla",
+        "chocolate"
+      ],
+      "target_phrases": [
+        "I want ice cream.",
+        "I like vanilla.",
+        "I like chocolate."
+      ],
+      "scenario": "AI đóng vai người bán kem. Bé mua kem.",
+      "tutor_note": "Bắt đầu bằng câu: Hello! What ice cream do you want? Nếu bé bí, gợi ý I want ice cream.",
+      "order_no": 113,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "ea2632e8-c55b-4636-9e0d-acd6ccf58f6a",
+      "title": "Role-play: Doctor and patient",
+      "level": "a1",
+      "topic": "Health",
+      "mode": "roleplay",
+      "target_words": [
+        "head",
+        "hand",
+        "hurt"
+      ],
+      "target_phrases": [
+        "My head hurts.",
+        "My hand hurts.",
+        "I am tired."
+      ],
+      "scenario": "AI đóng vai bác sĩ. Bé đóng vai bệnh nhân và nói chỗ đau.",
+      "tutor_note": "Nội dung phải nhẹ nhàng, an toàn, không đưa chẩn đoán y tế. Chỉ luyện câu tiếng Anh đơn giản.",
+      "order_no": 108,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "cca868be-0831-48f8-96b9-193f6664661f",
+      "title": "Role-play: Birthday party",
+      "level": "a1",
+      "topic": "Party",
+      "mode": "roleplay",
+      "target_words": [
+        "cake",
+        "gift",
+        "happy"
+      ],
+      "target_phrases": [
+        "Happy birthday.",
+        "I like cake.",
+        "This is a gift."
+      ],
+      "scenario": "AI đóng vai bạn đến dự sinh nhật. Bé đóng vai chủ tiệc hoặc bạn nhỏ.",
+      "tutor_note": "Tạo không khí vui vẻ. Mỗi lượt chỉ nói một câu.",
+      "order_no": 109,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "ffca837b-fbf2-40cf-a3a2-933538cb5ddb",
+      "title": "Role-play: At the park",
+      "level": "a1",
+      "topic": "Playground",
+      "mode": "roleplay",
+      "target_words": [
+        "run",
+        "jump",
+        "play"
+      ],
+      "target_phrases": [
+        "I can run.",
+        "I can jump.",
+        "I want to play."
+      ],
+      "scenario": "AI đóng vai bạn nhỏ ở công viên. Bé rủ bạn chơi.",
+      "tutor_note": "Không giảng dài. Hãy nói như bạn nhỏ, vui vẻ và ngắn gọn.",
+      "order_no": 106,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "b26a014e-4b16-4b79-8173-4e7dfb26090b",
+      "title": "Role-play: At school",
+      "level": "a1",
+      "topic": "School",
+      "mode": "roleplay",
+      "target_words": [
+        "teacher",
+        "book",
+        "pen"
+      ],
+      "target_phrases": [
+        "Good morning, teacher.",
+        "This is my book.",
+        "This is my pen."
+      ],
+      "scenario": "AI đóng vai giáo viên trong lớp học thật. Bé đóng vai học sinh. Giáo viên chào lớp, mời bé ngồi xuống, hỏi bé về quyển sách và cây bút trong hội thoại.",
+      "tutor_note": "Bạn đang đóng vai giáo viên trong lớp học. Bắt đầu ngay bằng câu: Good morning! Please sit down. Sau đó hỏi: What is this? Không liệt kê từ vựng. Không nói hôm nay chúng ta học. Hãy giữ vai giáo viên và hội thoại từng lượt.",
+      "order_no": 104,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "83bdf9e9-9706-4f8c-b55f-cc4e3c9c9dc7",
+      "title": "Role-play: In the classroom",
+      "level": "a1",
+      "topic": "School",
+      "mode": "roleplay",
+      "target_words": [
+        "open",
+        "read",
+        "write"
+      ],
+      "target_phrases": [
+        "Open your book.",
+        "I can read.",
+        "I can write."
+      ],
+      "scenario": "AI đóng vai giáo viên. Bé làm học sinh trong lớp.",
+      "tutor_note": "Hãy dùng câu lệnh rất ngắn và chờ bé phản hồi.",
+      "order_no": 111,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "7904f509-ff81-4dea-ba70-98fad14c5d70",
+      "title": "Role-play: At the library",
+      "level": "a1",
+      "topic": "School",
+      "mode": "roleplay",
+      "target_words": [
+        "book",
+        "read",
+        "quiet"
+      ],
+      "target_phrases": [
+        "I want a book.",
+        "I can read.",
+        "Please be quiet."
+      ],
+      "scenario": "AI đóng vai thủ thư. Bé đến thư viện mượn sách.",
+      "tutor_note": "Dạy câu lịch sự. Hỏi một câu mỗi lượt.",
+      "order_no": 119,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "69f4cc49-19ec-4db9-85c4-cc304a537354",
+      "title": "Role-play: At the shop",
+      "level": "a1",
+      "topic": "Shopping",
+      "mode": "roleplay",
+      "target_words": [
+        "apple",
+        "milk",
+        "please"
+      ],
+      "target_phrases": [
+        "I want an apple.",
+        "I want milk.",
+        "Milk, please.",
+        "How much is it?"
+      ],
+      "scenario": "AI đóng vai người bán hàng. Bé đóng vai khách hàng đi mua đồ.",
+      "tutor_note": "Hãy đóng vai người bán hàng vui vẻ. Mỗi lượt chỉ nói một câu. Nếu bé bí, gợi ý hai câu ngắn để bé chọn.",
+      "order_no": 102,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T14:56:10.076Z"
+    },
+    {
+      "id": "5aa3a5b2-7f5f-42ef-8675-dc0f1910197f",
+      "title": "Role-play: At the toy store",
+      "level": "a1",
+      "topic": "Toys",
+      "mode": "roleplay",
+      "target_words": [
+        "robot",
+        "car",
+        "ball"
+      ],
+      "target_phrases": [
+        "I want a robot.",
+        "I want a car.",
+        "I like the ball."
+      ],
+      "scenario": "AI đóng vai người bán đồ chơi. Bé đi mua đồ chơi.",
+      "tutor_note": "Hãy tạo không khí vui vẻ. Nếu bé bí, hỏi: Do you want a robot or a car?",
+      "order_no": 105,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "d4ff0498-ef1c-4442-b3a8-d24c7db2930f",
+      "title": "Role-play: Lost toy",
+      "level": "a1",
+      "topic": "Toys",
+      "mode": "roleplay",
+      "target_words": [
+        "toy",
+        "robot",
+        "find"
+      ],
+      "target_phrases": [
+        "I lost my toy.",
+        "I lost my robot.",
+        "Can you help me?"
+      ],
+      "scenario": "AI đóng vai bạn giúp bé tìm đồ chơi bị mất.",
+      "tutor_note": "Nếu bé bí, gợi ý câu Can you help me? hoặc I lost my robot.",
+      "order_no": 120,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "7562e455-ec9b-4601-8b3a-74ce9a686e2b",
+      "title": "Role-play: On the bus",
+      "level": "a1",
+      "topic": "Transportation",
+      "mode": "roleplay",
+      "target_words": [
+        "bus",
+        "seat",
+        "ticket"
+      ],
+      "target_phrases": [
+        "I am on the bus.",
+        "I want a ticket.",
+        "This is my seat."
+      ],
+      "scenario": "AI đóng vai tài xế hoặc người soát vé. Bé đi xe buýt.",
+      "tutor_note": "Tình huống ngắn, an toàn, vui vẻ. Không giảng dài.",
+      "order_no": 118,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "d3c14802-fbae-4762-b0ad-31ad5ead6977",
+      "title": "Role-play: Weather reporter",
+      "level": "a1",
+      "topic": "Weather",
+      "mode": "roleplay",
+      "target_words": [
+        "sunny",
+        "rainy",
+        "windy"
+      ],
+      "target_phrases": [
+        "It is sunny today.",
+        "It is rainy today.",
+        "It is windy today."
+      ],
+      "scenario": "AI đóng vai người dẫn chương trình thời tiết. Bé tập nói thời tiết hôm nay.",
+      "tutor_note": "Không yêu cầu nói riêng sunny/rainy/windy. Luôn dùng câu It is... today.",
+      "order_no": 116,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "18fb99b0-4d82-474e-9e94-7392d6017f56",
+      "title": "Role-play: Bedtime",
+      "level": "starter",
+      "topic": "Daily Routine",
+      "mode": "roleplay",
+      "target_words": [
+        "sleep",
+        "story",
+        "good night"
+      ],
+      "target_phrases": [
+        "I go to sleep.",
+        "Tell me a story.",
+        "Good night, Sophia."
+      ],
+      "scenario": "AI đóng vai người kể chuyện trước giờ ngủ. Bé luyện nói câu chúc ngủ ngon.",
+      "tutor_note": "Giọng nhẹ nhàng. Không kéo dài quá lâu. Mỗi lượt một câu.",
+      "order_no": 115,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "e9232f1f-b8ff-499d-9d34-54c2aaecbecc",
+      "title": "Role-play: At home",
+      "level": "starter",
+      "topic": "Family",
+      "mode": "roleplay",
+      "target_words": [
+        "mom",
+        "dad",
+        "room"
+      ],
+      "target_phrases": [
+        "This is my mom.",
+        "This is my dad.",
+        "This is my room."
+      ],
+      "scenario": "AI đóng vai khách đến thăm nhà. Bé giới thiệu gia đình và căn phòng.",
+      "tutor_note": "Nếu bé trả lời tiếng Việt, gợi ý câu tiếng Anh ngắn.",
+      "order_no": 107,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "a4c6087a-9e18-4693-b0fc-e90662e17f35",
+      "title": "Role-play: Feelings check",
+      "level": "starter",
+      "topic": "Feelings",
+      "mode": "roleplay",
+      "target_words": [
+        "happy",
+        "sad",
+        "tired"
+      ],
+      "target_phrases": [
+        "I am happy.",
+        "I am sad.",
+        "I am tired."
+      ],
+      "scenario": "AI đóng vai bạn thân hỏi cảm xúc của bé.",
+      "tutor_note": "Luôn thân thiện, khích lệ. Nếu bé nói tiếng Việt, gợi ý I am happy hoặc I am tired.",
+      "order_no": 117,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T17:54:49.084Z"
+    },
+    {
+      "id": "b927436a-c8e0-47f6-8d4c-3df7217584ba",
+      "title": "Role-play: Introduce yourself",
+      "level": "starter",
+      "topic": "Greeting",
+      "mode": "roleplay",
+      "target_words": [
+        "name",
+        "old",
+        "happy"
+      ],
+      "target_phrases": [
+        "My name is Tom.",
+        "I am seven years old.",
+        "I am happy."
+      ],
+      "scenario": "AI đóng vai một người bạn mới. Bé luyện giới thiệu bản thân bằng tiếng Anh.",
+      "tutor_note": "Nếu bé chưa biết nói tên thật bằng tiếng Anh, hãy cho bé dùng tên mẫu. Không bắt bé nói từ đơn name, old, happy.",
+      "order_no": 103,
+      "is_public": true,
+      "user_id": null,
+      "created_at": "2026-07-06T14:56:10.076Z"
+    }
+  ]
+}

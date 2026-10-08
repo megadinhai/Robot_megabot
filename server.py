@@ -350,15 +350,22 @@ async def get_active_curriculum(deviceId: Optional[str] = None):
 # REST APIS HỌC TIẾNG ANH (ENGLISH TUTOR)
 # ==========================================
 
-ENGLISH_TEMPLATES_FILE = os.path.join(os.path.dirname(__file__), "Web_templates_Backup", "all_english_templates.json")
+ENGLISH_TEMPLATES_FILE = os.path.join(os.path.dirname(__file__), "Web_templates", "all_english_templates.json")
 
 def load_english_templates_file() -> Dict[str, Any]:
-    if os.path.exists(ENGLISH_TEMPLATES_FILE):
-        try:
-            with open(ENGLISH_TEMPLATES_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            logger.error(f"Lỗi đọc all_english_templates.json: {e}")
+    candidate_paths = [
+        os.path.join(os.path.dirname(__file__), "Web_templates", "all_english_templates.json"),
+        os.path.join(os.path.dirname(__file__), "all_english_templates.json"),
+        os.path.join(os.path.dirname(__file__), "Web_templates_Backup", "all_english_templates.json"),
+        os.path.join(os.path.dirname(__file__), "Web_templates", "_archive", "all_english_templates.json"),
+    ]
+    for p in candidate_paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.error(f"Lỗi đọc {p}: {e}")
     return {"lessons": [], "roleplay": []}
 
 @app.get("/api/english-tutor/templates")
@@ -375,13 +382,34 @@ async def activate_english_template(req: Request):
     """Kích hoạt bài học hoặc tình huống tiếng Anh vào robot."""
     data = await req.json()
     device_id = data.get("deviceId") or data.get("device_id")
-    template_id = data.get("templateId")
+    template_id = data.get("templateId") or data.get("template_id") or data.get("id")
+    template_obj = data.get("template") or {}
 
     dev = device_manager.get_device(device_id) or device_manager.get_default_device()
     target_id = dev.get("id")
 
     all_t = load_english_templates_file()
-    item = next((t for t in all_t.get("lessons", []) + all_t.get("roleplay", []) if t.get("id") == template_id), None)
+    all_items = all_t.get("lessons", []) + all_t.get("roleplay", [])
+    item = next((t for t in all_items if t.get("id") == template_id or (data.get("title") and t.get("title") == data.get("title"))), None)
+
+    # Nếu không tìm thấy bằng id trong file, sử dụng template_obj hoặc tiêu đề gửi lên
+    if not item and template_obj:
+        item = template_obj
+    elif not item and data.get("title"):
+        item = {
+            "id": template_id or str(uuid.uuid4()),
+            "title": data.get("title"),
+            "level": data.get("level", "starter"),
+            "topic": data.get("topic", "General"),
+            "mode": data.get("mode", "lesson"),
+            "target_words": data.get("target_words", []),
+            "target_phrases": data.get("target_phrases", []),
+            "tutor_note": data.get("tutor_note", ""),
+        }
+
+    # Nếu vẫn không tìm thấy, lấy bài học đầu tiên trong danh sách có sẵn
+    if not item and all_items:
+        item = all_items[0]
 
     if not item:
         return JSONResponse({"error": "Không tìm thấy giáo trình tiếng Anh"}, status_code=404)

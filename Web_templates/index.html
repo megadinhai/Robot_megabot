@@ -3559,10 +3559,17 @@ Ví dụ:
     // 7.2. ÁP DỤNG BÀI TIẾNG ANH & BÁO CÁO
     async function applyEnglishTemplateReal(id, title) {
       try {
+        const all = (typeof PREVIEW_LESSONS !== 'undefined' ? PREVIEW_LESSONS : []).concat(typeof PREVIEW_ROLEPLAY !== 'undefined' ? PREVIEW_ROLEPLAY : []);
+        const item = all.find(t => t.id === id);
         const res = await fetch("/api/english-tutor/activate-template", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceId: activeDeviceId, templateId: id })
+          body: JSON.stringify({ 
+            deviceId: activeDeviceId, 
+            templateId: id,
+            title: title,
+            template: item 
+          })
         });
         const data = await res.json();
         if (res.ok) {
