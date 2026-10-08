@@ -1551,9 +1551,14 @@ body {
                 Thêm nhiều Robot ESP32-S3 / Xiaozhi vào máy chủ và điều khiển đồng bộ qua WebSocket
             </div>
         </div>
-        <button id="btnToggleGuide" onclick="toggleSetupGuide()" style="padding: 7px 14px; border-radius: 8px; background: #1e293b; border: 1px solid #3b82f6; color: #93c5fd; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
-            <span>📖</span> <span id="toggleGuideText">Xem hướng dẫn cài đặt robot Xiaozhi</span>
-        </button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button id="btnToggleGuide" onclick="toggleSetupGuide()" style="padding: 7px 14px; border-radius: 8px; background: #1e293b; border: 1px solid #3b82f6; color: #93c5fd; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                <span>📖</span> <span id="toggleGuideText">Xem hướng dẫn cài đặt robot Xiaozhi</span>
+            </button>
+            <button onclick="document.getElementById('addDeviceCard').style.display='none'" style="padding: 7px 12px; border-radius: 8px; background: #1e293b; border: 1px solid #475569; color: #94a3b8; font-size: 12px; cursor: pointer;" title="Đóng bảng thêm thiết bị">
+                ✕ Đóng
+            </button>
+        </div>
     </div>
 
     <!-- FORM NHẬP THIẾT BỊ -->
@@ -3703,6 +3708,7 @@ Ví dụ:
 
     // Tự động khởi động khi tải trang
     window.addEventListener("DOMContentLoaded", () => {
+      switchSection('devices');
       loadDevices();
       loadMyXiaozhiConfig();
       // Tự động làm mới trạng thái online mỗi 6 giây

@@ -228,6 +228,14 @@ async def update_device_config(device_id: str, req: Request):
 @app.delete("/api/devices/{device_id}")
 async def delete_device(device_id: str):
     """Xóa thiết bị."""
+    dev = device_manager.get_device(device_id)
+    if dev:
+        active_websockets.pop(dev.get("id"), None)
+        active_websockets.pop(str(dev.get("device_code", "")).strip(), None)
+        mac = str(dev.get("device_mac", "")).strip()
+        if mac:
+            active_websockets.pop(mac, None)
+            active_websockets.pop(mac.lower(), None)
     success = device_manager.delete_device(device_id)
     return JSONResponse({"success": success})
 

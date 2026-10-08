@@ -51,46 +51,8 @@ DEFAULT_DEVICES = [
             "auto_avoid": True,
             "led_lamp": False,
         },
-        "device_mac": "24:DC:C3:AA:BB:CC",
-        "is_online": False,
-    },
-    {
-        "id": "peter",
-        "name": "Peter",
-        "initial": "P",
-        "badge_color": "#f3e8ff",
-        "initial_color": "#9333ea",
-        "role_summary": "Tiểu Trí Lite thân thiện",
-        "model": "Tiêu Chí Lite",
-        "model_id": "gemini-2.5-flash-lite",
-        "last_chat": "15 ngày trước",
-        "language": "vi",
-        "voice": "vi-VN-NamMinhNeural",
-        "voice_name": "Giọng nam (Male Voice)",
-        "custom_prompt": True,
-        "prompt": (
-            "# Vai trò: Tôi là Peter, bạn đồng hành robot vui tươi của bạn. "
-            "Tôi luôn trả lời ngắn gọn, hóm hỉnh và hữu ích bằng tiếng Việt tự nhiên."
-        ),
-        "child_mode": False,
-        "memory_enabled": True,
-        "volume": 8,
-        "services": {
-            "time": True,
-            "music": True,
-            "knowledge": False,
-            "search": True,
-        },
-        "knowledge_base": "none",
-        "mcp_endpoint": "Điểm cuối MCP",
-        "toy_settings": {
-            "speed": 70,
-            "left_trim": 0,
-            "right_trim": 0,
-            "auto_avoid": False,
-            "led_lamp": False,
-        },
-        "device_mac": "",
+        "device_mac": "14:c1:9f:c4:ee:d0",
+        "device_code": "927184",
         "is_online": False,
     },
 ]
@@ -311,7 +273,8 @@ class DeviceManager:
 
     def delete_device(self, device_id: str) -> bool:
         initial_len = len(self.devices)
-        self.devices = [d for d in self.devices if d.get("id") != device_id]
+        clean_target = str(device_id).strip()
+        self.devices = [d for d in self.devices if str(d.get("id")) != clean_target and str(d.get("device_code")) != clean_target]
         if len(self.devices) < initial_len:
             self.save_data()
             return True
