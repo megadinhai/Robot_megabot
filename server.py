@@ -16,6 +16,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from audio_handler import text_to_speech_stream, transcribe_audio_gemini
 from llm_handler import chat_with_gemini
 from devices_manager import device_manager, generate_device_code, DEFAULT_DEVICES
+from youtube_music import search_youtube, get_audio_stream_info, stream_youtube_audio_chunks, clean_query
+
+# Quản lý phát nhạc YouTube online trên từng Robot
+active_music_tasks: Dict[str, asyncio.Task] = {}
+active_music_info: Dict[str, Dict[str, Any]] = {}
 
 # Thiết lập mã hóa UTF-8 cho console Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -1281,6 +1286,285 @@ async def test_chat_api(req: Request):
 
 
 # ==========================================
+# QUẢN LÝ PHÁT NHẠC YOUTUBE ONLINE TRÊN ROBOT
+# ==========================================
+
+async def stop_youtube_music_on_robot(device_id: str) -> bool:
+    """Dừng stream nhạc YouTube đang phát trên Robot."""
+    task = active_music_tasks.get(device_id)
+    stopped = False
+    if task and not task.done():
+        logger.info(f"[MUSIC STOP] Dừng phát nhạc cho robot {device_id}")
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+        stopped = True
+
+    if device_id in active_music_tasks:
+        del active_music_tasks[device_id]
+
+    if device_id in active_music_info:
+        active_music_info[device_id]["status"] = "stopped"
+
+    ws = get_active_socket(device_id)
+    if ws:
+        try:
+            await ws.send_text(json.dumps({"type": "tts", "state": "stop"}))
+            await ws.send_text(json.dumps({"type": "llm", "emotion": "neutral", "text": "😊"}))
+        except Exception:
+            pass
+
+    return stopped
+
+
+async def play_youtube_music_on_robot(
+    device_id: str,
+    query_or_url: str,
+    session_id: Optional[str] = None,
+    announce: bool = True
+) -> Dict[str, Any]:
+    """Tìm bài hát trên YouTube và stream dữ liệu audio qua WebSocket xuống robot."""
+    ws = get_active_socket(device_id)
+    if not ws:
+        logger.warning(f"[MUSIC PLAY] Robot {device_id} chưa kết nối WebSocket")
+        return {"success": False, "error": "Robot chưa kết nối WebSocket"}
+
+    # Dừng bài nhạc trước nếu đang phát
+    await stop_youtube_music_on_robot(device_id)
+
+    target = query_or_url.strip()
+    is_url = target.startswith("http://") or target.startswith("https://")
+
+    stream_info = None
+    if is_url:
+        stream_info = await get_audio_stream_info(target)
+    else:
+        results = await search_youtube(target, max_results=1)
+        if results:
+            stream_info = await get_audio_stream_info(results[0]["id"])
+
+    if not stream_info or not stream_info.get("audio_url"):
+        error_msg = f"Không tìm thấy bài hát '{target}' trên YouTube"
+        logger.warning(f"[MUSIC PLAY ERROR] {error_msg}")
+        try:
+            await ws.send_text(json.dumps({"type": "tts", "state": "sentence_start", "text": error_msg[:30]}))
+            await ws.send_text(json.dumps({"type": "llm", "emotion": "sad", "text": "😢"}))
+        except Exception:
+            pass
+        return {"success": False, "error": error_msg}
+
+    title = stream_info.get("title", "YouTube Music")
+    uploader = stream_info.get("uploader", "YouTube")
+    thumbnail = stream_info.get("thumbnail", "")
+    duration_str = stream_info.get("duration_str", "00:00")
+    audio_url = stream_info.get("audio_url")
+
+    active_music_info[device_id] = {
+        "title": title,
+        "uploader": uploader,
+        "thumbnail": thumbnail,
+        "duration_str": duration_str,
+        "url": stream_info.get("url", ""),
+        "started_at": time.time(),
+        "status": "playing",
+    }
+
+    dev = device_manager.get_device(device_id) or device_manager.get_default_device()
+    voice = dev.get("voice", "vi-VN-HoaiMyNeural")
+    sess_id = session_id or uuid.uuid4().hex
+
+    async def _stream_worker():
+        try:
+            # 1. Câu thông báo mở đầu
+            if announce:
+                try:
+                    await ws.send_text(json.dumps({
+                        "session_id": sess_id,
+                        "type": "tts",
+                        "state": "start"
+                    }))
+                    await ws.send_text(json.dumps({
+                        "session_id": sess_id,
+                        "type": "tts",
+                        "state": "sentence_start",
+                        "text": f"🎵 {title[:25]}"
+                    }))
+                    await ws.send_text(json.dumps({
+                        "session_id": sess_id,
+                        "type": "llm",
+                        "emotion": "happy",
+                        "text": "🎵"
+                    }))
+
+                    intro_speech = f"Em đang phát bài {clean_query(target)} trên YouTube ạ!"
+                    async for chunk in text_to_speech_stream(intro_speech, voice=voice, chunk_size=1024):
+                        await ws.send_bytes(chunk)
+                        await asyncio.sleep(0.001)
+                    await asyncio.sleep(0.4)
+                except Exception as tts_err:
+                    logger.warning(f"[MUSIC INTRO WARNING] {tts_err}")
+
+            # 2. Bắt đầu phiên TTS stream nhạc
+            await ws.send_text(json.dumps({
+                "session_id": sess_id,
+                "type": "tts",
+                "state": "start"
+            }))
+            await ws.send_text(json.dumps({
+                "session_id": sess_id,
+                "type": "tts",
+                "state": "sentence_start",
+                "text": f"🎵 {title[:28]}"
+            }))
+            await ws.send_text(json.dumps({
+                "session_id": sess_id,
+                "type": "llm",
+                "emotion": "happy",
+                "text": "🎶"
+            }))
+
+            # 3. Stream các gói audio
+            logger.info(f"[MUSIC STREAM] Bắt đầu stream '{title}' tới robot {device_id}...")
+            chunk_count = 0
+            async for chunk in stream_youtube_audio_chunks(audio_url, chunk_size=1024, pace_delay=0.045):
+                await ws.send_bytes(chunk)
+                chunk_count += 1
+
+            logger.info(f"[MUSIC STREAM] Hoàn thành stream {chunk_count} gói cho '{title}'.")
+
+            # 4. Kết thúc phiên stream
+            await ws.send_text(json.dumps({
+                "session_id": sess_id,
+                "type": "tts",
+                "state": "stop"
+            }))
+            await ws.send_text(json.dumps({
+                "session_id": sess_id,
+                "type": "llm",
+                "emotion": "neutral",
+                "text": "😊"
+            }))
+        except asyncio.CancelledError:
+            logger.info(f"[MUSIC STREAM] Tác vụ phát bài '{title}' đã bị hủy.")
+            try:
+                await ws.send_text(json.dumps({
+                    "session_id": sess_id,
+                    "type": "tts",
+                    "state": "stop"
+                }))
+                await ws.send_text(json.dumps({
+                    "session_id": sess_id,
+                    "type": "llm",
+                    "emotion": "neutral",
+                    "text": "😊"
+                }))
+            except Exception:
+                pass
+            raise
+        except Exception as err:
+            logger.error(f"[MUSIC STREAM ERROR] {err}", exc_info=True)
+            try:
+                await ws.send_text(json.dumps({"session_id": sess_id, "type": "tts", "state": "stop"}))
+            except Exception:
+                pass
+        finally:
+            if device_id in active_music_info:
+                active_music_info[device_id]["status"] = "stopped"
+            if device_id in active_music_tasks:
+                del active_music_tasks[device_id]
+
+    task = asyncio.create_task(_stream_worker())
+    active_music_tasks[device_id] = task
+    return {
+        "success": True,
+        "title": title,
+        "uploader": uploader,
+        "thumbnail": thumbnail,
+        "duration_str": duration_str,
+        "status": "playing",
+    }
+
+
+# ==========================================
+# CÁC API ENDPOINTS PHÁT NHẠC YOUTUBE ONLINE
+# ==========================================
+
+@app.get("/api/music/search")
+async def api_music_search(q: str = ""):
+    """Tìm kiếm bài hát trên YouTube."""
+    if not q or not q.strip():
+        return JSONResponse({"success": False, "results": [], "error": "Vui lòng nhập tên bài hát cần tìm"})
+    try:
+        results = await search_youtube(q.strip(), max_results=6)
+        return JSONResponse({"success": True, "results": results})
+    except Exception as e:
+        logger.error(f"[API MUSIC SEARCH ERROR] {e}")
+        return JSONResponse({"success": False, "results": [], "error": str(e)}, status_code=500)
+
+
+@app.post("/api/music/play")
+async def api_music_play(req: Request):
+    """Phát một bài hát YouTube trên Robot."""
+    try:
+        data = await req.json()
+    except Exception:
+        data = {}
+
+    device_id = data.get("device_id")
+    query_or_url = data.get("url") or data.get("video_id") or data.get("query") or ""
+    if not query_or_url:
+        return JSONResponse({"success": False, "error": "Vui lòng chọn bài hát hoặc nhập từ khóa tìm kiếm"}, status_code=400)
+
+    if not device_id:
+        dev = device_manager.get_default_device()
+        device_id = dev.get("id") if dev else None
+
+    if not device_id:
+        return JSONResponse({"success": False, "error": "Không tìm thấy Robot đang đăng nhập"}, status_code=400)
+
+    res = await play_youtube_music_on_robot(device_id, query_or_url)
+    return JSONResponse(res)
+
+
+@app.post("/api/music/stop")
+async def api_music_stop(req: Request):
+    """Dừng phát nhạc YouTube trên Robot."""
+    try:
+        data = await req.json()
+    except Exception:
+        data = {}
+
+    device_id = data.get("device_id")
+    if not device_id:
+        dev = device_manager.get_default_device()
+        device_id = dev.get("id") if dev else None
+
+    if not device_id:
+        return JSONResponse({"success": False, "error": "Không tìm thấy Robot"}, status_code=400)
+
+    await stop_youtube_music_on_robot(device_id)
+    return JSONResponse({"success": True, "status": "stopped"})
+
+
+@app.get("/api/music/status")
+async def api_music_status(device_id: Optional[str] = None):
+    """Lấy trạng thái bài hát đang phát trên Robot."""
+    if not device_id:
+        dev = device_manager.get_default_device()
+        device_id = dev.get("id") if dev else None
+
+    info = active_music_info.get(device_id, {})
+    is_playing = (device_id in active_music_tasks) and not active_music_tasks[device_id].done()
+    return JSONResponse({
+        "success": True,
+        "is_playing": is_playing,
+        "track": info if is_playing else None,
+    })
+
+
+# ==========================================
 # WEBSOCKET CHÍNH KẾT NỐI VỚI ESP32 (XIAOZHI PROTOCOL)
 # ==========================================
 
@@ -1342,6 +1626,9 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
 
     async def cancel_active_task(reason: str = "ngắt lời"):
         nonlocal active_process_task
+        if target_device_id in active_music_tasks:
+            await stop_youtube_music_on_robot(target_device_id)
+
         if active_process_task and not active_process_task.done():
             logger.info(f"[INTERRUPT] Dừng tác vụ đang phát ({reason})")
             active_process_task.cancel()
@@ -1382,6 +1669,68 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
                     "text": user_prompt,
                 })
             )
+
+            # --- KIỂM TRA LỆNH DỪNG NHẠC BẰNG GIỌNG NÓI ---
+            prompt_clean = user_prompt.strip().lower()
+            stop_triggers = [
+                "dừng nhạc", "tắt nhạc", "ngừng nhạc", "ngừng phát nhạc",
+                "dừng bài hát", "tắt bài hát", "dừng phát", "ngừng phát",
+                "tắt loa", "dừng lại đi", "stop music", "dừng hát", "tắt bài"
+            ]
+            if any(t in prompt_clean for t in stop_triggers):
+                logger.info(f"[VOICE COMMAND] Nhận lệnh dừng nhạc cho robot {target_device_id}")
+                await stop_youtube_music_on_robot(target_device_id)
+                reply_text = "Đã dừng phát nhạc rồi bạn nhé!"
+                await websocket.send_text(json.dumps({
+                    "session_id": session_id,
+                    "type": "tts",
+                    "state": "start"
+                }))
+                await websocket.send_text(json.dumps({
+                    "session_id": session_id,
+                    "type": "tts",
+                    "state": "sentence_start",
+                    "text": reply_text
+                }))
+                await websocket.send_text(json.dumps({
+                    "session_id": session_id,
+                    "type": "llm",
+                    "emotion": "happy",
+                    "text": "😊"
+                }))
+                async for chunk in text_to_speech_stream(reply_text, voice=voice_code, chunk_size=1024):
+                    await websocket.send_bytes(chunk)
+                    await asyncio.sleep(0.001)
+                await websocket.send_text(json.dumps({
+                    "session_id": session_id,
+                    "type": "tts",
+                    "state": "stop"
+                }))
+                await websocket.send_text(json.dumps({
+                    "session_id": session_id,
+                    "type": "llm",
+                    "emotion": "neutral",
+                    "text": "😊"
+                }))
+                return
+
+            # --- KIỂM TRA LỆNH PHÁT NHẠC YOUTUBE BẰNG GIỌNG NÓI ---
+            play_triggers = [
+                "mở bài", "phát bài", "bật bài", "nghe bài", "hát bài", "chơi bài",
+                "mở nhạc", "phát nhạc", "bật nhạc", "nghe nhạc", "hát cho tôi",
+                "hát cho em", "hát cho bé", "tìm bài", "trên youtube", "ở youtube"
+            ]
+            if any(t in prompt_clean for t in play_triggers):
+                song_search = clean_query(user_prompt)
+                if song_search and len(song_search) >= 2:
+                    logger.info(f"[VOICE COMMAND] Nhận lệnh phát nhạc YouTube: '{song_search}' cho robot {target_device_id}")
+                    await play_youtube_music_on_robot(
+                        device_id=target_device_id,
+                        query_or_url=song_search,
+                        session_id=session_id,
+                        announce=True
+                    )
+                    return
 
             # 2. Biểu cảm thinking
             await websocket.send_text(

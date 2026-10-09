@@ -23,6 +23,7 @@ Web_templates_Backup/
 _archive/
 **/_archive/
 test_output.mp3
+read_com*.py
 
 # IDE
 .vscode/

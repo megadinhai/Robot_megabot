@@ -1625,6 +1625,7 @@ body {
     <div class="menu">
       <div class="menu-item active" onclick="switchSection('devices', this)">📡 Thiết bị & Robot</div>
       <div class="menu-item" onclick="switchSection('remoteControl', this)">🎮 Điều khiển D-Pad</div>
+      <div class="menu-item" onclick="switchSection('youtubeMusic', this)">🎵 Phát nhạc YouTube Online</div>
       <div class="menu-item" onclick="switchSection('liveChat', this)">💬 Thử nghiệm Chat AI</div>
       <div class="menu-item" onclick="switchSection('xiaozhiConfig', this)">⚙️ Cấu hình Megabot AI</div>
       <div class="menu-item" onclick="switchSection('aiRoleSelect', this)">🎭 Chọn vai trò cho AI</div>
@@ -2102,6 +2103,122 @@ body {
     <div id="controlFeedbackBox" style="margin-top: 18px; padding: 12px 16px; border-radius: 8px; background: #07152b; border: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #94a3b8; font-family: monospace; display: flex; align-items: center; gap: 8px;">
         <span>📡</span>
         <span id="controlStatusText">Trạng thái: Sẵn sàng nhận lệnh điều khiển.</span>
+    </div>
+</div>
+
+<!-- CARD PHÁT NHẠC YOUTUBE ONLINE TRÊN ROBOT -->
+<div class="card" id="youtubeMusicCard" style="display: none;">
+    <!-- HEADER -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
+        <div>
+            <h3 style="margin: 0; font-size: 20px; color: #f8fafc; display: flex; align-items: center; gap: 10px;">
+                <span>🎵</span> <span>Phát Nhạc YouTube Online Trên Robot</span>
+            </h3>
+            <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">
+                Tìm kiếm bài hát trên YouTube và stream trực tiếp xuống loa robot ESP32 qua WebSocket
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="secondary" onclick="checkMusicStatus()" style="padding: 8px 14px; font-size: 12px; font-weight: bold; border-radius: 8px; background: #1e293b; color: #e2e8f0; border: 1px solid #475569; cursor: pointer;">
+                🔄 Cập nhật
+            </button>
+            <button class="danger" onclick="stopYoutubeMusic()" style="padding: 8px 16px; font-size: 12px; font-weight: bold; border-radius: 8px; background: #dc2626; color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(220,38,38,0.3);">
+                ⏹ Dừng phát nhạc
+            </button>
+        </div>
+    </div>
+
+    <!-- BANNER BÀI HÁT ĐANG PHÁT (NOW PLAYING) -->
+    <div id="nowPlayingBanner" style="background: linear-gradient(135deg, #07172e 0%, #0d2142 100%); border: 1px solid rgba(59,130,246,0.3); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 16px; min-width: 260px;">
+            <div style="position: relative; width: 68px; height: 68px; border-radius: 10px; overflow: hidden; background: #0b1527; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
+                <img id="nowPlayingThumb" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150" alt="Thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+                <div id="nowPlayingDiscBadge" style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                    🎵
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span id="nowPlayingBadge" style="background: rgba(148,163,184,0.15); color: #94a3b8; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(148,163,184,0.3);">
+                        ⏹ Đang chờ bài hát
+                    </span>
+                    <span id="nowPlayingDuration" style="font-size: 12px; color: #94a3b8; font-family: monospace;">--:--</span>
+                </div>
+                <div id="nowPlayingTitle" style="font-size: 16px; font-weight: 700; color: #f8fafc; max-width: 480px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    Chưa có bài hát nào đang phát
+                </div>
+                <div id="nowPlayingUploader" style="font-size: 12px; color: #94a3b8; margin-top: 2px;">
+                    Hãy tìm kiếm phía dưới hoặc ra lệnh bằng giọng nói cho robot!
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button id="nowPlayingStopBtn" onclick="stopYoutubeMusic()" style="padding: 10px 18px; border-radius: 8px; background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #fca5a5; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <span>⏹ Dừng phát</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- HƯỚNG DẪN RA LỆNH GIỌNG NÓI CHO ROBOT -->
+    <div style="background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.25); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;">
+        <div style="font-size: 13px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <span>💡</span> <span>Ra lệnh bằng giọng nói trực tiếp với Robot qua Micro:</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #cbd5e1;">
+            <span style="background: rgba(15,23,42,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                🗣️ <em>"Mở bài Bống Bống Bang Bang trên YouTube"</em>
+            </span>
+            <span style="background: rgba(15,23,42,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                🗣️ <em>"Phát bài Sơn Tùng MTP"</em>
+            </span>
+            <span style="background: rgba(15,23,42,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                🗣️ <em>"Hát bài Em Của Ngày Hôm Qua"</em>
+            </span>
+            <span style="background: rgba(15,23,42,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                🗣️ <em>"Bật nhạc Lofi thư giãn"</em>
+            </span>
+            <span style="background: rgba(239,68,68,0.15); color: #fca5a5; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.3); font-weight: 600;">
+                🗣️ <em>"Dừng nhạc" hoặc "Tắt nhạc"</em>
+            </span>
+        </div>
+    </div>
+
+    <!-- KHUNG TÌM KIẾM BÀI HÁT -->
+    <div style="background: #07152b; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+        <label style="display: block; font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 8px;">
+            🔍 Tìm bài hát trên YouTube hoặc dán link video:
+        </label>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="musicSearchInput" placeholder="Ví dụ: Bống Bống Bang Bang, Sơn Tùng, Nhạc thiếu nhi, https://youtu.be/..." onkeydown="if(event.key==='Enter') searchYoutubeMusic()" style="flex: 1; min-width: 260px; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.14); background: #0f172a; color: white; font-size: 14px;">
+            <button id="musicSearchBtn" onclick="searchYoutubeMusic()" style="padding: 12px 22px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
+                <span>🔍 Tìm kiếm</span>
+            </button>
+        </div>
+
+        <!-- CÁC CHIP GỢI Ý BÀI HÁT NHANH -->
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+            <span style="font-size: 12px; color: #94a3b8;">Gợi ý nhanh:</span>
+            <button onclick="quickPlayMusic('Bống Bống Bang Bang')" style="font-size: 11px; padding: 4px 10px; border-radius: 14px; background: #1e293b; color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); cursor: pointer;">🎵 Bống Bống Bang Bang</button>
+            <button onclick="quickPlayMusic('Em Của Ngày Hôm Qua')" style="font-size: 11px; padding: 4px 10px; border-radius: 14px; background: #1e293b; color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); cursor: pointer;">🎵 Em Của Ngày Hôm Qua</button>
+            <button onclick="quickPlayMusic('Nhạc thiếu nhi vui nhộn')" style="font-size: 11px; padding: 4px 10px; border-radius: 14px; background: #1e293b; color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); cursor: pointer;">🎵 Nhạc thiếu nhi vui nhộn</button>
+            <button onclick="quickPlayMusic('Nhạc Lofi thư giãn')" style="font-size: 11px; padding: 4px 10px; border-radius: 14px; background: #1e293b; color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); cursor: pointer;">🎵 Nhạc Lofi thư giãn</button>
+            <button onclick="quickPlayMusic('Baby Shark')" style="font-size: 11px; padding: 4px 10px; border-radius: 14px; background: #1e293b; color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); cursor: pointer;">🎵 Baby Shark</button>
+            <button onclick="quickPlayMusic('Chú Voi Con Ở Bản Đôn')" style="font-size: 11px; padding: 4px 10px; border-radius: 14px; background: #1e293b; color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); cursor: pointer;">🎵 Chú Voi Con Ở Bản Đôn</button>
+        </div>
+    </div>
+
+    <!-- DANH SÁCH KẾT QUẢ TÌM KIẾM -->
+    <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="margin: 0; font-size: 15px; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+            <span>🎧</span> <span>Kết quả tìm kiếm</span>
+        </h4>
+        <span id="musicResultsCount" style="font-size: 12px; color: #94a3b8;">Chưa tìm kiếm</span>
+    </div>
+
+    <div id="musicSearchResults" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+        <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: #94a3b8; font-size: 13px; background: #07152b; border-radius: 10px; border: 1px dashed rgba(255,255,255,0.1);">
+            👉 Nhập tên bài hát ở trên rồi bấm <strong>"Tìm kiếm"</strong> để xem danh sách và phát nhạc trên Robot!
+        </div>
     </div>
 </div>
 
@@ -2844,6 +2961,7 @@ Ví dụ:
       const targetMap = {
         'devices': ['deviceProfileCard'],
         'remoteControl': ['remoteControlCard'],
+        'youtubeMusic': ['youtubeMusicCard'],
         'liveChat': ['liveChatCard'],
         'xiaozhiConfig': ['xiaozhiConfigCard'],
         'aiRoleSelect': ['aiRoleSelectCard'],
@@ -2858,6 +2976,10 @@ Ví dụ:
         'wssRequest': ['wssRequestCard'],
         'feedback': ['feedbackCard']
       };
+
+      if (sectionId === 'youtubeMusic') {
+        checkMusicStatus();
+      }
 
       const targets = targetMap[sectionId] || [sectionId];
       targets.forEach(id => {
@@ -5226,11 +5348,246 @@ Ví dụ:
       if (empty) empty.style.display = "block";
     }
 
+    /* =========================================================
+       TÍNH NĂNG PHÁT NHẠC YOUTUBE ONLINE TRÊN ROBOT XIAOZHI ESP32
+       ========================================================= */
+    let currentMusicTrack = null;
+    let musicStatusPollTimer = null;
+
+    function getActiveDeviceId() {
+      return window.currentManagedDeviceId || localStorage.getItem('currentManagedDeviceId') || 'ong-robot';
+    }
+
+    async function checkMusicStatus() {
+      try {
+        const deviceId = getActiveDeviceId();
+        const res = await fetch(`/api/music/status?device_id=${encodeURIComponent(deviceId)}`);
+        const data = await res.json();
+        updateNowPlayingUI(data.is_playing, data.track);
+      } catch (e) {
+        console.warn('Lỗi kiểm tra trạng thái nhạc:', e);
+      }
+    }
+
+    function updateNowPlayingUI(isPlaying, track) {
+      const badge = document.getElementById('nowPlayingBadge');
+      const titleEl = document.getElementById('nowPlayingTitle');
+      const uploaderEl = document.getElementById('nowPlayingUploader');
+      const durationEl = document.getElementById('nowPlayingDuration');
+      const thumbEl = document.getElementById('nowPlayingThumb');
+      const discEl = document.getElementById('nowPlayingDiscBadge');
+      const stopBtn = document.getElementById('nowPlayingStopBtn');
+
+      if (isPlaying && track) {
+        currentMusicTrack = track;
+        if (badge) {
+          badge.textContent = '🟢 Đang phát trên Robot';
+          badge.style.background = 'rgba(34, 197, 94, 0.2)';
+          badge.style.color = '#4ade80';
+          badge.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+        }
+        if (titleEl) titleEl.textContent = track.title || 'Đang phát nhạc...';
+        if (uploaderEl) uploaderEl.textContent = `Kênh: ${track.uploader || 'YouTube'}`;
+        if (durationEl) durationEl.textContent = track.duration_str || '--:--';
+        if (thumbEl && track.thumbnail) thumbEl.src = track.thumbnail;
+        if (discEl) {
+          discEl.innerHTML = '🎶';
+          discEl.style.animation = 'spin 4s linear infinite';
+        }
+        if (stopBtn) stopBtn.style.display = 'flex';
+      } else {
+        currentMusicTrack = null;
+        if (badge) {
+          badge.textContent = '⏹ Đang dừng';
+          badge.style.background = 'rgba(148,163,184,0.15)';
+          badge.style.color = '#94a3b8';
+          badge.style.borderColor = 'rgba(148,163,184,0.3)';
+        }
+        if (titleEl) titleEl.textContent = 'Chưa có bài hát nào đang phát';
+        if (uploaderEl) uploaderEl.textContent = 'Hãy tìm kiếm bài hát hoặc ra lệnh bằng giọng nói cho robot!';
+        if (durationEl) durationEl.textContent = '--:--';
+        if (thumbEl) thumbEl.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150';
+        if (discEl) {
+          discEl.innerHTML = '🎵';
+          discEl.style.animation = 'none';
+        }
+      }
+    }
+
+    async function searchYoutubeMusic() {
+      const input = document.getElementById('musicSearchInput');
+      const query = (input?.value || '').trim();
+      if (!query) {
+        showToast('Vui lòng nhập tên bài hát cần tìm', false);
+        return;
+      }
+
+      const resultsContainer = document.getElementById('musicSearchResults');
+      const countEl = document.getElementById('musicResultsCount');
+      const btn = document.getElementById('musicSearchBtn');
+
+      if (btn) btn.disabled = true;
+      if (resultsContainer) {
+        resultsContainer.innerHTML = `
+          <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: #94a3b8;">
+            <div style="font-size: 28px; margin-bottom: 8px;">⏳</div>
+            <div>Đang tìm kiếm bài hát trên YouTube...</div>
+          </div>
+        `;
+      }
+      if (countEl) countEl.textContent = 'Đang tìm...';
+
+      try {
+        const res = await fetch(`/api/music/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (!data.success || !data.results || data.results.length === 0) {
+          if (resultsContainer) {
+            resultsContainer.innerHTML = `
+              <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: #f87171; background: #07152b; border-radius: 10px;">
+                ⚠️ Không tìm thấy bài hát phù hợp cho từ khóa: <strong>"${escapeHtml(query)}"</strong>.<br>
+                Hãy thử nhập từ khóa khác hoặc dán link YouTube trực tiếp!
+              </div>
+            `;
+          }
+          if (countEl) countEl.textContent = '0 kết quả';
+          return;
+        }
+
+        if (countEl) countEl.textContent = `${data.results.length} bài hát tìm thấy`;
+        renderMusicResults(data.results);
+      } catch (err) {
+        console.error('Lỗi tìm kiếm YouTube:', err);
+        if (resultsContainer) {
+          resultsContainer.innerHTML = `
+            <div style="grid-column: 1 / -1; padding: 30px; text-align: center; color: #ef4444;">
+              Lỗi kết nối khi tìm kiếm: ${err.message}
+            </div>
+          `;
+        }
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function renderMusicResults(results) {
+      const container = document.getElementById('musicSearchResults');
+      if (!container) return;
+
+      container.innerHTML = results.map((item, idx) => `
+        <div style="background: #0d1e38; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.borderColor='rgba(59,130,246,0.4)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.transform='none'">
+          <div style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden;">
+            <img src="${item.thumbnail}" alt="${escapeHtml(item.title)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+            <span style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #f8fafc; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold;">
+              ${item.duration_str}
+            </span>
+          </div>
+          <div style="padding: 14px; display: flex; flex-direction: column; flex: 1;">
+            <div style="font-size: 14px; font-weight: 700; color: #f8fafc; line-height: 1.4; height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${escapeHtml(item.title)}">
+              ${escapeHtml(item.title)}
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; justify-content: space-between;">
+              <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">👤 ${escapeHtml(item.uploader)}</span>
+              <a href="${item.url}" target="_blank" rel="noopener" style="color: #60a5fa; text-decoration: none; font-size: 11px;" title="Xem trên YouTube">Link ↗</a>
+            </div>
+            <div style="margin-top: auto; padding-top: 14px;">
+              <button id="btnPlay_${item.id}" onclick="playYoutubeMusic('${item.id}', '${encodeURIComponent(item.title)}', '${encodeURIComponent(item.thumbnail)}', '${item.duration_str}')" style="width: 100%; padding: 10px 14px; border-radius: 8px; background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; font-weight: bold; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(16,185,129,0.3);">
+                <span>▶ Phát trên Robot</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function playYoutubeMusic(videoIdOrUrl, encodedTitle, encodedThumb, durationStr) {
+      const deviceId = getActiveDeviceId();
+      const title = decodeURIComponent(encodedTitle || '');
+      const thumb = decodeURIComponent(encodedThumb || '');
+      const playBtn = document.getElementById(`btnPlay_${videoIdOrUrl}`);
+
+      if (playBtn) {
+        playBtn.disabled = true;
+        playBtn.innerHTML = `<span>⏳ Đang chuẩn bị phát...</span>`;
+      }
+
+      showToast(`Đang kết nối stream bài "${title.slice(0, 30)}..." tới robot...`, true);
+
+      updateNowPlayingUI(true, {
+        title: title || 'YouTube Track',
+        uploader: 'Đang tải...',
+        thumbnail: thumb,
+        duration_str: durationStr || '--:--',
+      });
+
+      try {
+        const res = await fetch('/api/music/play', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            device_id: deviceId,
+            url: videoIdOrUrl,
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`✓ Đang phát "${data.title.slice(0, 30)}" trên Robot!`);
+          updateNowPlayingUI(true, data);
+
+          if (musicStatusPollTimer) clearInterval(musicStatusPollTimer);
+          musicStatusPollTimer = setInterval(checkMusicStatus, 15000);
+        } else {
+          showToast(`Lỗi phát nhạc: ${data.error}`, false);
+          updateNowPlayingUI(false, null);
+        }
+      } catch (err) {
+        console.error('Lỗi gọi play API:', err);
+        showToast('Lỗi gửi lệnh phát nhạc tới máy chủ', false);
+        updateNowPlayingUI(false, null);
+      } finally {
+        if (playBtn) {
+          playBtn.disabled = false;
+          playBtn.innerHTML = `<span>▶ Phát trên Robot</span>`;
+        }
+      }
+    }
+
+    async function stopYoutubeMusic() {
+      const deviceId = getActiveDeviceId();
+      try {
+        showToast('Đang gửi lệnh dừng phát nhạc...', true);
+        const res = await fetch('/api/music/stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ device_id: deviceId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('✓ Đã dừng phát nhạc trên Robot!');
+          updateNowPlayingUI(false, null);
+          if (musicStatusPollTimer) clearInterval(musicStatusPollTimer);
+        }
+      } catch (err) {
+        console.error('Lỗi dừng nhạc:', err);
+        showToast('Lỗi dừng phát nhạc', false);
+      }
+    }
+
+    function quickPlayMusic(keyword) {
+      const input = document.getElementById('musicSearchInput');
+      if (input) {
+        input.value = keyword;
+        searchYoutubeMusic();
+      }
+    }
+
     // Hook mở rộng vào switchSection để load dữ liệu động theo từng tab
     const coreSwitchSection = window.switchSection;
     window.switchSection = function(sectionId, el) {
       coreSwitchSection(sectionId, el);
-      if (sectionId === "aiRoleSelect") {
+      if (sectionId === "youtubeMusic") {
+        checkMusicStatus();
+      } else if (sectionId === "aiRoleSelect") {
         renderAiRoles();
       } else if (sectionId === "memory" || sectionId === "tasks") {
         loadMemoriesFromApi();
