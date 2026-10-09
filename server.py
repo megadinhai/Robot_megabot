@@ -67,7 +67,11 @@ async def dashboard_page():
     if not os.path.exists(html_path):
         html_path = os.path.join(WEB_TEMPLATES_DIR, "index.html")
     if os.path.exists(html_path):
-        return FileResponse(html_path)
+        response = FileResponse(html_path)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
     return JSONResponse({"status": "online", "message": "Megabot Dashboard HTML not found"})
 
 
