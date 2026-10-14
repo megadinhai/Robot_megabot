@@ -1,0 +1,37 @@
+{
+    "type": "robot-mini-s3",
+    "target": "esp32s3",
+    "builds": [
+        {
+            "name": "robot-mini-s3",
+            "sdkconfig_append": [
+                "CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y",
+                "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"partitions/v1/16m_custom_wakeword.csv\"",
+                "CONFIG_OLED_SSD1306_128X64=y",
+                "CONFIG_LANGUAGE_VI_VN=y",
+                "CONFIG_USE_CUSTOM_WAKE_WORD=y",
+                "CONFIG_CUSTOM_WAKE_WORD=\"xin chao me ga bo; xin chao me ga bo te; xin chao me ga ba\"",
+                "CONFIG_CUSTOM_WAKE_WORD_DISPLAY=\"Xin chào Megabot\"",
+                "CONFIG_CUSTOM_WAKE_WORD_THRESHOLD=25",
+                "CONFIG_SR_MN_CN_MULTINET7_QUANT=y",
+                "CONFIG_SEND_WAKE_WORD_DATA=y"
+            ]
+        },
+        {
+            "name": "robot-mini-s3-8m",
+            "sdkconfig_append": [
+                "CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y",
+                "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"partitions/v2/8m.csv\"",
+                "CONFIG_OLED_SSD1306_128X64=y",
+                "CONFIG_LANGUAGE_VI_VN=y"
+            ]
+        },
+        {
+            "name": "robot-mini-s3-sh1106",
+            "sdkconfig_append": [
+                "CONFIG_OLED_SH1106_128X64=y",
+                "CONFIG_LANGUAGE_VI_VN=y"
+            ]
+        }
+    ]
+}
