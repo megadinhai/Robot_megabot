@@ -17,7 +17,19 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
+            mkdir -p /root/megabot-server
             cd /root/megabot-server
+            
+            # Cấu hình SSH sử dụng khóa github_deploy để kéo code từ GitHub
+            export GIT_SSH_COMMAND="ssh -i /root/.ssh/github_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
+            
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin git@github.com:megadinhai/Robot_megabot.git
+            else
+              git remote set-url origin git@github.com:megadinhai/Robot_megabot.git
+            fi
+            
             git fetch --all
             git reset --hard origin/main
             sed -i 's/\r$//' setup_and_run.sh
