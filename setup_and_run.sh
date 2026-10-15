@@ -1,8 +1,8 @@
-﻿#!/bin/bash
+#!/bin/bash
 set -e
 
 apt-get update -y
-apt-get install -y python3-venv python3-pip curl psmisc debian-keyring debian-archive-keyring apt-transport-https
+apt-get install -y python3-venv python3-pip curl psmisc debian-keyring debian-archive-keyring apt-transport-https ffmpeg
 
 # Trỏ chính xác vào thư mục MyServer_WebSocket
 WORK_DIR="/root/megabot-server/MyServer_WebSocket"
@@ -11,6 +11,12 @@ SERVER_FILE="$WORK_DIR/server.py"
 echo "Target server: $SERVER_FILE"
 
 cd "$WORK_DIR"
+
+# Khởi tạo file .env nếu chưa có
+if [ ! -f "$WORK_DIR/.env" ] && [ -f "$WORK_DIR/.env.example" ]; then
+    cp "$WORK_DIR/.env.example" "$WORK_DIR/.env"
+fi
+
 python3 -m venv venv
 ./venv/bin/pip install --upgrade pip
 
@@ -24,8 +30,9 @@ fi
 # Cài các gói cơ bản hay dùng cho WebSocket server
 ./venv/bin/pip install websockets uvicorn fastapi requests python-dotenv
 
-# Tắt service cũ nếu đang chạy lỗi
+# Tắt service cũ và giải phóng cổng 8000
 systemctl stop megabot 2>/dev/null || true
+fuser -k 8000/tcp 2>/dev/null || true
 
 # Tạo systemd service trỏ đúng file server.py
 cat << EOF > /etc/systemd/system/megabot.service
@@ -68,7 +75,9 @@ systemctl daemon-reload
 systemctl enable megabot caddy
 systemctl restart megabot caddy
 
+sleep 3
+
 echo "=========================================="
 echo "HOAN TAT! KIEM TRA TRANG THAI:"
-systemctl status megabot --no-pager
+systemctl status megabot --no-pager || journalctl -u megabot -n 40 --no-pager
 echo "=========================================="

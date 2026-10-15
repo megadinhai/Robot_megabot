@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 import wave
-from typing import AsyncGenerator, List, Optional, Union
+from typing import Any, AsyncGenerator, List, Optional, Union
 import edge_tts
 from dotenv import load_dotenv
 import av
