@@ -2314,7 +2314,9 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
         user_question = current_utterance_text
         current_utterance_text = None
         if not user_question:
-            user_question = await transcribe_audio_gemini(pkts)
+            cur_cfg = device_manager.get_device(target_device_id) or matched_dev
+            dev_key = cur_cfg.get("gemini_api_key") or os.getenv("GEMINI_API_KEY")
+            user_question = await transcribe_audio_gemini(pkts, api_key=dev_key)
 
         if user_question:
             current_mic_telemetry.update({

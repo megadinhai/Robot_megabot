@@ -281,6 +281,7 @@ def decode_opus_packet_peak(pkt_bytes: bytes, dec_ctx=None) -> int:
 async def transcribe_audio_gemini(
     audio_input: Union[bytes, List[bytes]],
     mime_type: str = "audio/wav",
+    api_key: Optional[str] = None,
 ) -> str:
     """
     Nhận diện giọng nói tiếng Việt từ dữ liệu audio (gói Opus hoặc WAV/MP3 bytes)
@@ -336,7 +337,8 @@ async def transcribe_audio_gemini(
         if not audio_bytes or len(audio_bytes) < 100:
             return ""
 
-        client = get_genai_client()
+        effective_key = api_key or os.getenv("GEMINI_API_KEY")
+        client = get_genai_client(api_key=effective_key)
         audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)
         prompt = (
             "Hãy lắng nghe đoạn âm thanh này và chép lại nội dung lời nói bằng tiếng Việt. "
@@ -345,11 +347,10 @@ async def transcribe_audio_gemini(
         )
 
         candidate_stt_models = [
-            os.getenv("GEMINI_STT_MODEL", os.getenv("GEMINI_MODEL", "gemini-2.5-flash")),
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash",
-            "gemini-3.1-flash-lite-preview"
+            os.getenv("GEMINI_STT_MODEL", "gemini-3.1-flash-lite-preview"),
+            "gemini-3.1-flash-lite-preview",
+            "gemini-3.5-flash-lite",
+            "gemini-3.8-flash",
         ]
 
         result_text = ""
