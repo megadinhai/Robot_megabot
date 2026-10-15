@@ -2291,10 +2291,12 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
             "message": f"⏳ [DỪNG THU ÂM] Đã nhận {len(pkts)} gói ({len(pkts)*60}ms, {total_bytes} bytes, lý do: {reason}) -> Đang gọi STT Gemini..."
         }))
 
-        # Kiểm tra âm lượng peak của các gói âm thanh để loại bỏ tiếng ồn nền
+        # Kiểm tra âm lượng peak của các gói âm thanh để loại bỏ khoảng lặng hoàn toàn
         max_peak = max([decode_opus_packet_peak(pkt, opus_monitor_ctx) for pkt in pkts] or [0])
-        if max_peak < 5500 and not current_utterance_text:
-            logger.info(f"[PROCESS AUDIO] Âm thanh dưới ngưỡng giọng nói (peak={max_peak} < 5500) -> Chuyển robot về chế độ chờ.")
+        logger.info(f"[PROCESS AUDIO] Đã nhận {len(pkts)} gói | Peak lớn nhất: {max_peak}")
+
+        if max_peak < 1000 and not current_utterance_text:
+            logger.info(f"[PROCESS AUDIO] Âm thanh dưới ngưỡng phát hiện (peak={max_peak} < 1000) -> Khoảng lặng, bỏ qua STT.")
             current_mic_telemetry.update({
                 "state": "idle",
                 "peak": 0,
@@ -2305,10 +2307,8 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
                 "type": "state_change",
                 "level_type": "info",
                 "state": "idle",
-                "message": f"💤 [CHẾ ĐỘ CHỜ] Không phát hiện tiếng người (peak={max_peak} < 5500) -> Robot vào chế độ chờ."
+                "message": f"💤 [KHOẢNG LẶNG] Âm lượng quá nhỏ (peak={max_peak} < 1000) -> Bỏ qua."
             }))
-            await websocket.send_text(json.dumps({"type": "system", "command": "idle"}))
-            await websocket.send_text(json.dumps({"type": "llm", "emotion": "neutral", "text": "😊"}))
             return
 
         user_question = current_utterance_text
@@ -2358,8 +2358,8 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
 
     async def on_silence_timeout():
         try:
-            await asyncio.sleep(1.0)  # Đợi 1.0s im lặng sau gói âm thanh cuối
-            await trigger_voice_processing("1.0s im lặng")
+            await asyncio.sleep(1.3)  # Đợi 1.3s im lặng tự nhiên sau khi người dùng nói xong
+            await trigger_voice_processing("1.3s im lặng")
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -2517,8 +2517,8 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
                         "message": f"📊 Gói #{pkt_idx:02d} ({len(raw_audio)}B) | Peak: {peak:5d} ({int(level_pct*100)}%) | {dur_ms}ms"
                     }))
 
-                if len(audio_packets) >= 80:
-                    asyncio.create_task(trigger_voice_processing("đạt giới hạn thời gian 5s"))
+                if len(audio_packets) >= 160:
+                    asyncio.create_task(trigger_voice_processing("đạt giới hạn thời gian 10s"))
                 else:
                     if silence_timer_task and not silence_timer_task.done():
                         silence_timer_task.cancel()

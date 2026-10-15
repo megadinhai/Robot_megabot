@@ -258,6 +258,9 @@ void Application::Run() {
             if (GetDeviceState() == kDeviceStateListening) {
                 auto led = Board::GetInstance().GetLed();
                 led->OnStateChanged();
+                if (audio_service_.IsVoiceDetected()) {
+                    clock_ticks_ = 0;
+                }
             }
         }
 
@@ -275,17 +278,21 @@ void Application::Run() {
             auto display = Board::GetInstance().GetDisplay();
             display->UpdateStatusBar();
 
-            // Tự động chuyển sang chế độ chờ (Standby/Idle) nếu ở trạng thái Listening quá 5 giây mà không có giọng nói
-            if (GetDeviceState() == kDeviceStateListening && clock_ticks_ >= 5) {
-                ESP_LOGI(TAG, "Listening timeout (5s không có tín hiệu nói) -> Chuyển về chế độ chờ (Idle)");
-                Schedule([this]() {
-                    if (GetDeviceState() == kDeviceStateListening) {
-                        if (protocol_) {
-                            protocol_->SendStopListening();
+            // Tự động chuyển sang chế độ chờ (Standby/Idle) nếu ở trạng thái Listening quá 8 giây mà không có giọng nói
+            if (GetDeviceState() == kDeviceStateListening) {
+                if (audio_service_.IsVoiceDetected()) {
+                    clock_ticks_ = 0;
+                } else if (clock_ticks_ >= 8) {
+                    ESP_LOGI(TAG, "Listening timeout (8s không có tín hiệu nói) -> Chuyển về chế độ chờ (Idle)");
+                    Schedule([this]() {
+                        if (GetDeviceState() == kDeviceStateListening) {
+                            if (protocol_) {
+                                protocol_->SendStopListening();
+                            }
+                            SetDeviceState(kDeviceStateIdle);
                         }
-                        SetDeviceState(kDeviceStateIdle);
-                    }
-                });
+                    });
+                }
             }
 
             // Print debug info every 10 seconds

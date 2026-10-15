@@ -318,8 +318,8 @@ async def transcribe_audio_gemini(
                     except Exception:
                         pass
 
-            if max_peak < 5500:
-                logger.info(f"[STT] Âm thanh dưới ngưỡng giọng nói (peak={max_peak} < 5500) -> Không có người nói, bỏ qua STT.")
+            if max_peak < 1000:
+                logger.info(f"[STT] Âm thanh dưới ngưỡng phát hiện (peak={max_peak} < 1000) -> Không có người nói, bỏ qua STT.")
                 return ""
 
             audio_bytes = decode_opus_packets_to_wav(audio_input)
@@ -337,8 +337,6 @@ async def transcribe_audio_gemini(
             return ""
 
         client = get_genai_client()
-        model_name = os.getenv("GEMINI_STT_MODEL", os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite-preview"))
-
         audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)
         prompt = (
             "Hãy lắng nghe đoạn âm thanh này và chép lại nội dung lời nói bằng tiếng Việt. "
@@ -346,12 +344,32 @@ async def transcribe_audio_gemini(
             "Chỉ trả về văn bản được nói, không thêm lời dẫn giải hay ký hiệu khác."
         )
 
-        response = await client.aio.models.generate_content(
-            model=model_name,
-            contents=[audio_part, prompt],
-        )
+        candidate_stt_models = [
+            os.getenv("GEMINI_STT_MODEL", os.getenv("GEMINI_MODEL", "gemini-2.5-flash")),
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-3.1-flash-lite-preview"
+        ]
 
-        result_text = response.text.strip() if response.text else ""
+        result_text = ""
+        seen_models = set()
+        for m in candidate_stt_models:
+            if not m or m in seen_models:
+                continue
+            seen_models.add(m)
+            try:
+                logger.info(f"[STT Gemini] Thử nhận dạng bằng model '{m}'...")
+                response = await client.aio.models.generate_content(
+                    model=m,
+                    contents=[audio_part, prompt],
+                )
+                if response and response.text:
+                    result_text = response.text.strip()
+                    break
+            except Exception as model_err:
+                logger.warning(f"[STT Gemini] Model '{m}' gặp lỗi: {model_err}")
+
         if result_text.upper() in ["[EMPTY]", "EMPTY", "...", ".", "KHÔNG CÓ", "NONE", "IM LẶNG"]:
             logger.info("[STT Gemini] Âm thanh không chứa lời nói ([EMPTY]).")
             return ""
