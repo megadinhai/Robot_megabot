@@ -172,8 +172,8 @@ bool WebsocketProtocol::OpenAudioChannel() {
     }
 
     Settings settings("websocket", false);
-    // TRỎ ĐẾN SERVER MEGABOT: https://robot-megabot.onrender.com/
-    std::string url = "wss://robot-megabot.onrender.com/ws/megabot";
+    // TRỎ ĐẾN SERVER MEGABOT: https://megabotai.duckdns.org
+    std::string url = "wss://megabotai.duckdns.org/ws/xiaozhi";
     settings.SetString("url", url);
     std::string token = settings.GetString("token");
     int version = settings.GetInt("version");
