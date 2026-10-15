@@ -1,58 +1,38 @@
-#!/bin/bash
+﻿#!/bin/bash
+set -e
 
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$APP_DIR"
+apt-get update -y
+apt-get install -y python3-venv python3-pip curl psmisc
 
-echo "=============================================="
-echo " [1/5] Cài đặt phụ thuộc hệ thống Ubuntu"
-echo "=============================================="
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -y || true
-apt-get install -y python3-venv python3-pip ffmpeg curl || true
+# Tìm thư mục chứa server.py
+SERVER_FILE=$(find /root/megabot-server -name "server.py" | head -n 1)
+WORK_DIR=$(dirname "$SERVER_FILE")
+echo "Found server.py at: $SERVER_FILE"
 
-echo "=============================================="
-echo " [2/5] Khởi tạo môi trường ảo Python venv"
-echo "=============================================="
-if [ ! -d "$APP_DIR/venv" ]; then
-    python3 -m venv "$APP_DIR/venv"
+cd "$WORK_DIR"
+python3 -m venv venv
+./venv/bin/pip install --upgrade pip
+if [ -f requirements.txt ]; then
+    ./venv/bin/pip install -r requirements.txt
+elif [ -f /root/megabot-server/requirements.txt ]; then
+    ./venv/bin/pip install -r /root/megabot-server/requirements.txt
 fi
 
-source "$APP_DIR/venv/bin/activate"
-pip install --upgrade pip --quiet || true
+# Tìm port trong server.py (mặc định 8000 nếu không thấy)
+PORT=$(grep -oP 'port\s*=\s*\K[0-9]+' "$SERVER_FILE" | head -n 1)
+if [ -z "$PORT" ]; then PORT=8000; fi
+echo "Detected Port: $PORT"
 
-if [ -f "$APP_DIR/requirements.txt" ]; then
-    pip install -r "$APP_DIR/requirements.txt"
-elif [ -f "$APP_DIR/MyServer_WebSocket/requirements.txt" ]; then
-    pip install -r "$APP_DIR/MyServer_WebSocket/requirements.txt"
-fi
-
-echo "=============================================="
-echo " [3/5] Cấu hình và chạy megabot.service"
-echo "=============================================="
-if [ -f "$APP_DIR/MyServer_WebSocket/server.py" ]; then
-    SERVER_WORKING_DIR="$APP_DIR/MyServer_WebSocket"
-    SERVER_EXEC="$APP_DIR/venv/bin/python3 $APP_DIR/MyServer_WebSocket/server.py"
-elif [ -f "$APP_DIR/server.py" ]; then
-    SERVER_WORKING_DIR="$APP_DIR"
-    SERVER_EXEC="$APP_DIR/venv/bin/python3 $APP_DIR/server.py"
-else
-    SERVER_WORKING_DIR="$APP_DIR"
-    SERVER_EXEC="$APP_DIR/venv/bin/python3 server.py"
-fi
-
-cat <<EOF > /etc/systemd/system/megabot.service
+# Tạo service chạy ngầm WebSocket Server
+cat << EOF > /etc/systemd/system/megabot.service
 [Unit]
-Description=Megabot WebSocket & Web Server
+Description=Megabot WebSocket Server
 After=network.target
 
 [Service]
-Type=simple
 User=root
-WorkingDirectory=$SERVER_WORKING_DIR
-Environment="HOST=0.0.0.0"
-Environment="PORT=8000"
-Environment="PATH=$APP_DIR/venv/bin:/usr/local/bin:/usr/bin:/bin"
-ExecStart=$SERVER_EXEC
+WorkingDirectory=$WORK_DIR
+ExecStart=$WORK_DIR/venv/bin/python $SERVER_FILE
 Restart=always
 RestartSec=3
 
@@ -60,59 +40,35 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload
-systemctl enable megabot.service
-systemctl restart megabot.service
-
-echo "=============================================="
-echo " [4/5] Cấu hình Cloudflare Tunnel"
-echo "=============================================="
-if [ ! -f "/usr/local/bin/cloudflared" ]; then
-    echo "Đang tải cloudflared-linux-amd64..."
-    curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
+# Cài đặt cloudflared Linux
+if [ ! -f /usr/local/bin/cloudflared ]; then
+    curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
     chmod +x /usr/local/bin/cloudflared
 fi
 
-cat <<EOF > /etc/systemd/system/cf-tunnel.service
+# Tạo service chạy ngầm Cloudflare Tunnel
+cat << EOF > /etc/systemd/system/cf-tunnel.service
 [Unit]
-Description=Cloudflare Tunnel for Megabot Server
-After=network.target megabot.service
+Description=Cloudflare Tunnel
+After=network.target
 
 [Service]
-Type=simple
 User=root
-ExecStart=/usr/local/bin/cloudflared tunnel --url http://localhost:8000 --no-autoupdate
+ExecStart=/usr/local/bin/cloudflared tunnel --url http://localhost:$PORT --no-autoupdate
 Restart=always
-RestartSec=3
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable cf-tunnel.service
-systemctl restart cf-tunnel.service
+systemctl enable megabot cf-tunnel
+systemctl restart megabot cf-tunnel
 
-echo "=============================================="
-echo " [5/5] Đang khởi tạo Tunnel và lấy Public URL..."
-echo "=============================================="
-TUNNEL_URL=""
-for i in {1..15}; do
-    TUNNEL_URL=$(journalctl -u cf-tunnel -n 60 --no-pager 2>/dev/null | grep -o "https://[-a-zA-Z0-9.]*\.trycloudflare\.com" | tail -n 1 || true)
-    if [ -n "$TUNNEL_URL" ]; then
-        break
-    fi
-    sleep 1
-done
-
-echo "================================================================="
-if [ -n "$TUNNEL_URL" ]; then
-    echo "🎉 MEGABOT SERVER & CLOUDFLARE TUNNEL ĐÃ SẴN SÀNG!"
-    echo " 👉 Link Web Dashboard: $TUNNEL_URL"
-    echo " 👉 Link WebSocket Robot: ${TUNNEL_URL/https:\/\//wss:\/\/}/ws/xiaozhi"
-else
-    echo "⚠️ Tunnel đang kết nối trong nền, bạn có thể kiểm tra URL bằng lệnh:"
-    echo "   journalctl -u cf-tunnel -n 50 --no-pager | grep -o 'https://[-a-zA-Z0-9.]*\.trycloudflare\.com' | tail -n 1"
-fi
-echo "================================================================="
-exit 0
+echo "Waiting 8 seconds for Cloudflare domain..."
+sleep 8
+echo "=========================================="
+echo "LINK TEN MIEN WEBSOCKET CUA BAN LA:"
+journalctl -u cf-tunnel -n 50 --no-pager | grep -o "https://[-a-zA-Z0-9.]*\.trycloudflare\.com" | tail -n 1 | sed 's/https:/wss:/g'
+echo "=========================================="

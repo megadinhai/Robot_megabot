@@ -1,19 +1,15 @@
-name: Auto Deploy to CloudFly
+﻿name: Auto Deploy to CloudFly
 
 on:
   push:
     branches:
       - main
-      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: SSH and Update Code on CloudFly
+      - name: SSH and Run WebSocket on CloudFly
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -23,7 +19,7 @@ jobs:
           script: |
             cd /root/megabot-server
             git fetch --all
-            git checkout main 2>/dev/null || git checkout master 2>/dev/null || true
-            git reset --hard origin/main 2>/dev/null || git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
+            git reset --hard origin/main
+            sed -i 's/\r$//' setup_and_run.sh
             chmod +x setup_and_run.sh
             ./setup_and_run.sh

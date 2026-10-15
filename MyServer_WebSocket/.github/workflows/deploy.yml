@@ -1,0 +1,29 @@
+name: Auto Deploy to CloudFly
+
+on:
+  push:
+    branches:
+      - master   # Nếu nhánh chính của bạn tên là 'master', hãy đổi 'main' thành 'master'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: SSH and Update Code on CloudFly
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /root/megabot-server
+            git pull origin master
+            # Tự động build lại nếu có file docker-compose.yml
+            if [ -f docker-compose.yml ]; then
+              docker-compose down
+              docker-compose up -d --build
+            fi
