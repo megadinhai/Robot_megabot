@@ -45,6 +45,8 @@ from audio_handler import (
     decode_opus_packets_to_wav,
     decode_opus_packet_peak,
     transcribe_audio_gemini,
+    format_tts_speed,
+    format_tts_pitch,
 )
 from llm_handler import chat_with_gemini
 from devices_manager import device_manager, generate_device_code, DEFAULT_DEVICES
@@ -2122,9 +2124,11 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
             voice_code = cur_cfg.get("voice", "vi-VN-HoaiMyNeural")
             model_id = cur_cfg.get("model_id", "gemini-3.8-flash")
             use_memory = cur_cfg.get("memory_enabled", True)
+            tts_speed_val = format_tts_speed(cur_cfg.get("voice_speed", "normal"))
+            tts_pitch_val = format_tts_pitch(cur_cfg.get("voice_pitch", 0))
 
             logger.info(f"[CONVERSATION] Xử lý câu hỏi: '{user_prompt}'")
-            logger.info(f"               - Robot: {cur_cfg.get('name')} | Voice: {voice_code}")
+            logger.info(f"               - Robot: {cur_cfg.get('name')} | Voice: {voice_code} | Speed: {tts_speed_val} | Pitch: {tts_pitch_val}")
 
             # 1. Phản hồi STT cho ESP32 hiển thị
             await websocket.send_text(
@@ -2142,7 +2146,7 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
                     logger.info(f"[VOICE COMMAND] Nhận lệnh dừng nhạc cho robot {target_device_id}")
                     await stop_youtube_music_on_robot(target_device_id)
                     reply_text = "Đã dừng phát nhạc rồi bạn nhé!"
-                    await stream_speech_to_socket(websocket, reply_text, voice=voice_code, session_id=session_id)
+                    await stream_speech_to_socket(websocket, reply_text, voice=voice_code, session_id=session_id, rate=tts_speed_val, pitch=tts_pitch_val)
                     return
                 elif music_intent["action"] == "play":
                     song_search = music_intent.get("song") or clean_query(user_prompt)
@@ -2212,13 +2216,15 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
             }))
 
             # 4. Stream trọn vẹn giọng đọc Opus và phụ đề hiển thị xuống robot
-            logger.info(f"[STREAMING] Đang phát giọng đọc Opus '{voice_code}'...")
+            logger.info(f"[STREAMING] Đang phát giọng đọc Opus '{voice_code}' (Speed: {tts_speed_val}, Pitch: {tts_pitch_val})...")
             await stream_speech_to_socket(
                 websocket,
                 reply_text,
                 voice=voice_code,
                 session_id=session_id,
                 emotion="neutral",
+                rate=tts_speed_val,
+                pitch=tts_pitch_val,
             )
 
             # Nếu có yêu cầu phát nhạc từ LLM, kích hoạt sau khi đã nói xong câu xác nhận

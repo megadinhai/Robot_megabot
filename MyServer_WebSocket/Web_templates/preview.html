@@ -3348,7 +3348,7 @@ Ví dụ:
             <option value="-3">Rất trầm</option>
             <option value="-2">Trầm</option>
             <option value="-1">Hơi trầm</option>
-            <option value="0">Bình thường</option>
+            <option value="0" selected>Bình thường</option>
             <option value="1">Hơi cao</option>
             <option value="2">Cao</option>
             <option value="3">Rất cao</option>
@@ -5236,6 +5236,16 @@ Ví dụ:
           voiceSelect.value = dev.voice || "vi-VN-HoaiMyNeural";
         }
 
+        const speedSelect = document.getElementById("xiaozhiTtsSpeed");
+        if (speedSelect) {
+          speedSelect.value = dev.voice_speed || dev.tts_speed || "normal";
+        }
+
+        const pitchSelect = document.getElementById("xiaozhiTtsPitch");
+        if (pitchSelect) {
+          pitchSelect.value = (dev.voice_pitch !== undefined && dev.voice_pitch !== null) ? String(dev.voice_pitch) : "0";
+        }
+
         updateXiaozhiCharacterCounter();
         if (notify) showToast("✓ Đã tải cấu hình hiện tại của Robot!");
       } catch (e) {
@@ -5267,6 +5277,8 @@ Ví dụ:
       const model = document.getElementById("xiaozhiLlmModel")?.value || "gemini-3.8-flash";
       const voice = document.getElementById("xiaozhiTtsVoice")?.value || "vi-VN-HoaiMyNeural";
       const lang = document.getElementById("xiaozhiLanguage")?.value || "vi";
+      const speed = document.getElementById("xiaozhiTtsSpeed")?.value || "normal";
+      const pitch = document.getElementById("xiaozhiTtsPitch")?.value || "0";
       const keyVal = document.getElementById("customApiKey")?.value?.trim() || "";
 
       const payload = {
@@ -5275,6 +5287,8 @@ Ví dụ:
         model_id: model,
         voice: voice,
         language: lang,
+        voice_speed: speed,
+        voice_pitch: pitch,
         custom_prompt: true,
         memory_enabled: true
       };

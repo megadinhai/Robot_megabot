@@ -24,11 +24,28 @@ logger = logging.getLogger("AudioHandler")
 # - 'vi-VN-NamMinhNeural': Giọng nam miền Bắc, trầm ấm
 DEFAULT_VOICE = os.getenv("TTS_VOICE", "vi-VN-HoaiMyNeural")
 
+def format_tts_speed(speed: Any) -> str:
+    if speed == "slow":
+        return "-15%"
+    elif speed == "fast":
+        return "+30%"
+    return "+15%"
+
+def format_tts_pitch(pitch: Any) -> str:
+    try:
+        p = int(pitch)
+        hz = p * 15
+        return f"{hz:+d}Hz"
+    except Exception:
+        return "+0Hz"
+
 
 # 2. Chuyển đổi văn bản thành luồng gói âm thanh chuẩn Opus (16kHz mono 60ms) cho XiaoZhi ESP32
 async def text_to_speech_opus_stream(
     text: str,
     voice: str = DEFAULT_VOICE,
+    rate: str = "+15%",
+    pitch: str = "+0Hz",
     sample_rate: int = 16000,
     frame_duration_ms: int = 60,
 ) -> AsyncGenerator[bytes, None]:
@@ -40,8 +57,8 @@ async def text_to_speech_opus_stream(
     if not text or not text.strip():
         return
 
-    logger.info(f"[TTS OPUS] Bắt đầu tổng hợp giọng nói: '{text[:50]}...' (Voice: {voice})")
-    communicate = edge_tts.Communicate(text=text, voice=voice, rate="+15%")
+    logger.info(f"[TTS OPUS] Bắt đầu tổng hợp giọng nói: '{text[:50]}...' (Voice: {voice}, Rate: {rate}, Pitch: {pitch})")
+    communicate = edge_tts.Communicate(text=text, voice=voice, rate=rate, pitch=pitch)
     mp3_stream = io.BytesIO()
 
     try:
@@ -115,6 +132,8 @@ async def stream_speech_to_socket(
     voice: str = DEFAULT_VOICE,
     session_id: str = "",
     emotion: str = "happy",
+    rate: str = "+15%",
+    pitch: str = "+0Hz",
 ) -> int:
     """
     Gửi trọn vẹn một phiên hội thoại/giọng nói xuống Robot ESP32 qua WebSocket:
@@ -145,7 +164,7 @@ async def stream_speech_to_socket(
 
         # 4. Stream từng gói Opus với pacing chuẩn 55ms
         pkt_count = 0
-        async for pkt in text_to_speech_opus_stream(text, voice=voice):
+        async for pkt in text_to_speech_opus_stream(text, voice=voice, rate=rate, pitch=pitch):
             await ws.send_bytes(pkt)
             pkt_count += 1
             if pkt_count <= 8:
