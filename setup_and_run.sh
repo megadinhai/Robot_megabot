@@ -2,9 +2,9 @@
 set -e
 
 apt-get update -y
-apt-get install -y python3-venv python3-pip curl psmisc
+apt-get install -y python3-venv python3-pip curl psmisc debian-keyring debian-archive-keyring apt-transport-https
 
-# Tìm thư mục chứa server.py
+# 1. Tìm thư mục chứa server.py
 SERVER_FILE=$(find /root/megabot-server -name "server.py" | head -n 1)
 WORK_DIR=$(dirname "$SERVER_FILE")
 echo "Found server.py at: $SERVER_FILE"
@@ -18,12 +18,12 @@ elif [ -f /root/megabot-server/requirements.txt ]; then
     ./venv/bin/pip install -r /root/megabot-server/requirements.txt
 fi
 
-# Tìm port trong server.py (mặc định 8000 nếu không thấy)
+# 2. Xác định Port của server.py (mặc định 8000)
 PORT=$(grep -oP 'port\s*=\s*\K[0-9]+' "$SERVER_FILE" | head -n 1)
 if [ -z "$PORT" ]; then PORT=8000; fi
 echo "Detected Port: $PORT"
 
-# Tạo service chạy ngầm WebSocket Server
+# 3. Tạo service chạy ngầm WebSocket Server
 cat << EOF > /etc/systemd/system/megabot.service
 [Unit]
 Description=Megabot WebSocket Server
@@ -40,35 +40,35 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-# Cài đặt cloudflared Linux
-if [ ! -f /usr/local/bin/cloudflared ]; then
-    curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
-    chmod +x /usr/local/bin/cloudflared
+# Tắt cf-tunnel cũ để không tốn RAM
+systemctl stop cf-tunnel 2>/dev/null || true
+systemctl disable cf-tunnel 2>/dev/null || true
+
+# 4. Cài đặt Caddy Server để tự động cấp SSL và nối megabotai.duckdns.org -> localhost:$PORT
+if ! command -v caddy &> /dev/null; then
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg --yes
+    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+    apt-get update -y
+    apt-get install -y caddy
 fi
 
-# Tạo service chạy ngầm Cloudflare Tunnel
-cat << EOF > /etc/systemd/system/cf-tunnel.service
-[Unit]
-Description=Cloudflare Tunnel
-After=network.target
-
-[Service]
-User=root
-ExecStart=/usr/local/bin/cloudflared tunnel --url http://localhost:$PORT --no-autoupdate
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
+cat << EOF > /etc/caddy/Caddyfile
+megabotai.duckdns.org {
+    reverse_proxy localhost:$PORT
+}
 EOF
 
-systemctl daemon-reload
-systemctl enable megabot cf-tunnel
-systemctl restart megabot cf-tunnel
+# Mở tường lửa nội bộ Ubuntu (nếu có)
+ufw allow 80/tcp 2>/dev/null || true
+ufw allow 443/tcp 2>/dev/null || true
+ufw allow $PORT/tcp 2>/dev/null || true
 
-echo "Waiting 8 seconds for Cloudflare domain..."
-sleep 8
+systemctl daemon-reload
+systemctl enable megabot caddy
+systemctl restart megabot caddy
+
 echo "=========================================="
-echo "LINK TEN MIEN WEBSOCKET CUA BAN LA:"
-journalctl -u cf-tunnel -n 50 --no-pager | grep -o "https://[-a-zA-Z0-9.]*\.trycloudflare\.com" | tail -n 1 | sed 's/https:/wss:/g'
+echo "CAI DAT HOAN TAT! LINK CO DINH CUA BAN LA:"
+echo "Web/API  : https://megabotai.duckdns.org"
+echo "WebSocket: wss://megabotai.duckdns.org"
 echo "=========================================="
