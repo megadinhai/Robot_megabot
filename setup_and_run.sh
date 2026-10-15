@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$APP_DIR"
@@ -7,8 +6,9 @@ cd "$APP_DIR"
 echo "=============================================="
 echo " [1/5] Cài đặt phụ thuộc hệ thống Ubuntu"
 echo "=============================================="
-apt-get update -y
-apt-get install -y python3-venv python3-pip ffmpeg curl
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y || true
+apt-get install -y python3-venv python3-pip ffmpeg curl || true
 
 echo "=============================================="
 echo " [2/5] Khởi tạo môi trường ảo Python venv"
@@ -18,7 +18,7 @@ if [ ! -d "$APP_DIR/venv" ]; then
 fi
 
 source "$APP_DIR/venv/bin/activate"
-pip install --upgrade pip
+pip install --upgrade pip --quiet || true
 
 if [ -f "$APP_DIR/requirements.txt" ]; then
     pip install -r "$APP_DIR/requirements.txt"
@@ -94,11 +94,25 @@ systemctl enable cf-tunnel.service
 systemctl restart cf-tunnel.service
 
 echo "=============================================="
-echo " [5/5] Đang khởi tạo Tunnel..."
+echo " [5/5] Đang khởi tạo Tunnel và lấy Public URL..."
 echo "=============================================="
-sleep 8
+TUNNEL_URL=""
+for i in {1..15}; do
+    TUNNEL_URL=$(journalctl -u cf-tunnel -n 60 --no-pager 2>/dev/null | grep -o "https://[-a-zA-Z0-9.]*\.trycloudflare\.com" | tail -n 1 || true)
+    if [ -n "$TUNNEL_URL" ]; then
+        break
+    fi
+    sleep 1
+done
 
 echo "================================================================="
-echo "🎉 CLOUDFLARE PUBLIC TUNNEL URL:"
-journalctl -u cf-tunnel -n 50 --no-pager | grep -o "https://[-a-zA-Z0-9.]*\.trycloudflare\.com" | tail -n 1
+if [ -n "$TUNNEL_URL" ]; then
+    echo "🎉 MEGABOT SERVER & CLOUDFLARE TUNNEL ĐÃ SẴN SÀNG!"
+    echo " 👉 Link Web Dashboard: $TUNNEL_URL"
+    echo " 👉 Link WebSocket Robot: ${TUNNEL_URL/https:\/\//wss:\/\/}/ws/xiaozhi"
+else
+    echo "⚠️ Tunnel đang kết nối trong nền, bạn có thể kiểm tra URL bằng lệnh:"
+    echo "   journalctl -u cf-tunnel -n 50 --no-pager | grep -o 'https://[-a-zA-Z0-9.]*\.trycloudflare\.com' | tail -n 1"
+fi
 echo "================================================================="
+exit 0
