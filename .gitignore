@@ -18,3 +18,13 @@ main/mmap_generate_emoji.h
 *.bin
 mmap_generate_*.h
 .clangd
+
+# Python environments & cache
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Heavy binaries
+cloudflared.exe
+cloudflared
