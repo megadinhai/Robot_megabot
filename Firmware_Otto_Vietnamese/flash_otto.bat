@@ -19,10 +19,12 @@ REM Tìm python với esptool
 set ESPTOOL_CMD=python -m esptool
 %ESPTOOL_CMD% version >nul 2>&1
 if %errorlevel% neq 0 (
-    if exist "C:\Users\%USERNAME%\.espressif\python_env\idf6.1_py3.14_env\Scripts\python.exe" (
-        set ESPTOOL_CMD=C:\Users\%USERNAME%\.espressif\python_env\idf6.1_py3.14_env\Scripts\python.exe -m esptool
+    if exist "C:\Users\%USERNAME%\.espressif\python_env\idf6.1_py3.11_env\Scripts\python.exe" (
+        set ESPTOOL_CMD="C:\Users\%USERNAME%\.espressif\python_env\idf6.1_py3.11_env\Scripts\python.exe" -m esptool
+    ) else if exist "C:\Users\%USERNAME%\.espressif\python_env\idf6.1_py3.14_env\Scripts\python.exe" (
+        set ESPTOOL_CMD="C:\Users\%USERNAME%\.espressif\python_env\idf6.1_py3.14_env\Scripts\python.exe" -m esptool
     ) else if exist "C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python310\python.exe" (
-        set ESPTOOL_CMD=C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python310\python.exe -m esptool
+        set ESPTOOL_CMD="C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python310\python.exe" -m esptool
     )
 )
 
