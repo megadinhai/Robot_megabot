@@ -1,0 +1,77 @@
+{
+  "devices": [
+    {
+      "id": "ong-robot",
+      "name": "Ông Robot",
+      "initial": "M",
+      "badge_color": "#ffe4e6",
+      "initial_color": "#e11d48",
+      "role_summary": "cô gái tốt bụng, thông minh",
+      "model": "Gemini 3.1 Flash Lite (Nhanh)",
+      "model_id": "gemini-3.1-flash-lite",
+      "last_chat": "Vừa xong",
+      "language": "vi",
+      "voice": "vi-VN-HoaiMyNeural",
+      "voice_name": "Giọng nữ (Female Voice)",
+      "custom_prompt": true,
+      "prompt": "# Vai trò: Tôi là trợ lý ảo Megabot, nhiệm vụ của tôi là lắng nghe tiếng Việt và hỗ trợ người dùng một cách lịch sự, trung lập và hữu ích. Nếu câu lệnh không rõ, có tạp âm hoặc tôi không nghe được đầy đủ, tôi chỉ xin người dùng nói lại, nói chậm hơn hoặc đứng gần micro hơn.\n\nTôi không được yêu cầu người dùng đăng ký bất kỳ kênh YouTube nào, không nhắc nội dung quảng cáo và không tự ý giới thiệu dịch vụ bên ngoài nếu người dùng không hỏi. Khi không chắc câu trả lời, tôi sẽ thông báo là chưa rõ hoặc cần thêm thông tin, thay vì đoán bừa.\n\nTôi tập trung vào việc hỗ trợ thông tin, thực hiện các tác vụ hằng ngày, trả lời ngắn gọn súc tích (1 đến 2 câu).\n\n# Khả năng phát nhạc YouTube online: Tôi có khả năng tìm kiếm và phát nhạc online từ YouTube trên loa robot Megabot theo yêu cầu của người dùng. Khi người dùng muốn nghe nhạc hoặc phát một bài hát cụ thể, tôi trả lời hào hứng, ngắn gọn (1 câu) kèm lệnh [[PLAY_MUSIC: tên bài hát]]. Ví dụ: Người dùng yêu cầu 'bạn hãy phát bài hát nàng thơ đi' -> Tôi trả lời: 'Dạ, em mở bài Nàng Thơ trên YouTube cho bạn ngay nhé! [[PLAY_MUSIC: Nàng thơ]]'. Khi người dùng muốn dừng nhạc, tôi trả lời: 'Dạ, em đã dừng phát nhạc rồi ạ! [[STOP_MUSIC]]'. Tuyệt đối không từ chối phát nhạc.",
+      "child_mode": false,
+      "memory_enabled": true,
+      "volume": 7,
+      "services": {
+        "time": true,
+        "music": true,
+        "knowledge": true,
+        "search": true
+      },
+      "knowledge_base": "none",
+      "mcp_endpoint": "Điểm cuối MCP",
+      "toy_settings": {
+        "speed": 80,
+        "left_trim": 0,
+        "right_trim": 0,
+        "auto_avoid": true,
+        "led_lamp": false
+      },
+      "device_mac": "14:c1:9f:c4:ee:d0",
+      "device_code": "927184",
+      "password": "123456",
+      "is_online": false,
+      "last_seen_ts": 1791367525.7845986,
+      "active_curriculum_id": "3f8bd773-38e1-4077-990e-47e2dc6b919e",
+      "memories": [
+        {
+          "id": "mem-1791430982966",
+          "content": "[ENGLISH_TUTOR] Daily Routine - Bài 1: My day",
+          "created_at": "2026-10-08T10:43:02.966808"
+        },
+        {
+          "id": "mem-1791425587442",
+          "content": "[TASK][PENDING] Học 5 từ vựng về động vật",
+          "created_at": "2026-10-08T09:13:07.442843"
+        },
+        {
+          "id": "mem-1791425587439",
+          "content": "[ENGLISH_TUTOR] Daily Routine - Bài 1: My day",
+          "created_at": "2026-10-08T09:13:07.439997"
+        },
+        {
+          "id": "mem-1791425587431",
+          "content": "[CURRICULUM] SP-01  Làm Quen Đầu Tiên - First Hello",
+          "created_at": "2026-10-08T09:13:07.431962"
+        }
+      ],
+      "active_english_template": null,
+      "auth_token": "token_ong-robot_1791453577",
+      "last_login_at": "2026-10-08T16:59:37.131530"
+    }
+  ],
+  "speakers": [
+    {
+      "id": "spk-1",
+      "name": "Chủ nhân",
+      "description": "Người điều khiển chính, quyền cao nhất",
+      "created_at": "2026-10-01"
+    }
+  ]
+}

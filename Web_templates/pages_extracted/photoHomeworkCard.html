@@ -1,0 +1,101 @@
+<div class="card" id="photoHomeworkCard" style="display:none;">
+    <h3>🧮 Chụp ảnh giải bài tập</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách sử dụng:</strong><br>
+        Chụp ảnh / tải ảnh bài tập lên và bấm
+        <span class="voice-keyword">"Scan ảnh thành chữ"</span>
+         , đợi bài tập scan xong, có thể bấm
+        <span class="voice-keyword">"Sửa"</span>
+        để sửa lại nếu scan lỗi chữ. Sau đó, bấm
+        <span class="voice-keyword">"Yêu cầu AI giải bài"</span>.
+        .Nói với AI câu lệnh <span class="voice-keyword">"So-phi-a"</span>
+         hoặc <span class="voice-keyword">"Xin chào"</span>
+          để kích hoạt chế độ giải bài tập.
+        Bấm "Xóa yêu cầu giải bài" sau khi đã giải xong bài tập.
+    </div>
+
+    <div class="photo-lesson-grid">
+        <div class="upload-dropzone">
+            <div class="form-group">
+                <label>Tên bài / ghi chú (không bắt buộc)</label>
+                <input id="photoHomeworkName" maxlength="150" placeholder="Ví dụ: Bài tập Toán câu 3">
+            </div>
+
+            <div class="form-group">
+                <label>Ảnh bài tập</label>
+                <input id="photoHomeworkFile" type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" onchange="previewHomeworkImage(event)" style="display:none;">
+
+                <input id="photoHomeworkCameraFile" type="file" accept="image/*,.heic,.heif" capture="environment" onchange="previewHomeworkImage(event)" style="display:none;">
+
+                <div class="action-row" style="margin-top:12px;">
+                    <button type="button" class="secondary" onclick="openHomeworkPhotoLibrary()">🖼️ Tải ảnh lên</button>
+                    <button type="button" class="primary" onclick="openHomeworkCameraCapture()">📷 Chụp ảnh</button>
+                </div>
+
+                <div class="helper-note">
+                    Hỗ trợ JPG, PNG, WEBP. Trên điện thoại, bấm "Chụp ảnh" để mở camera sau.
+                    Ảnh nên chụp thẳng, sáng rõ, thấy trọn đề bài hoặc câu hỏi.
+                </div>
+                </div>
+
+                <div id="photoHomeworkMobilePreviewSlot" class="mobile-preview-slot"></div>
+
+                <div class="action-row" style="margin-top:12px;">
+                <button id="photoHomeworkCropBtn" class="secondary" onclick="openHomeworkCropper()" style="display:none;">
+                    ✂️ Bấm để cắt vùng ảnh cần dùng
+                </button>
+
+                <button class="primary" onclick="scanHomeworkImageToText()">Scan ảnh thành chữ</button>
+                <button class="secondary" onclick="resetPhotoHomeworkForm()">Xóa ảnh</button>
+            </div>
+
+            <div class="voice-hint">
+                🎤 <strong>Mẹo dùng giọng nói:</strong><br>
+                Khi AI đã hướng dẫn xong và bạn không muốn giữ yêu cầu giải bài nữa,
+                chỉ cần nói
+                <span class="voice-keyword">"hoàn thành"</span>,
+                <span class="voice-keyword">"xong rồi"</span>
+                hoặc
+                <span class="voice-keyword">"làm xong rồi"</span>
+                thì yêu cầu giải bài sẽ được tự động xóa.
+            </div>
+
+            <div id="photoHomeworkMessage" style="margin-top:12px;"></div>
+        </div>
+
+        <div id="photoHomeworkDesktopPreviewSlot" class="photo-preview-desktop-slot">
+            <div class="preview-box" id="photoHomeworkPreviewBox">
+                <div id="photoHomeworkPreviewEmpty" style="opacity:0.6;">📄 Ảnh xem trước sẽ hiện ở đây</div>
+                <img id="photoHomeworkPreview" style="display:none;" alt="Xem trước ảnh bài tập">
+            </div>
+        </div>
+    </div>
+
+    <div class="ocr-editor-wrap">
+        <h3 style="font-size:15px; margin-bottom:10px;">📝 Bài tập sau khi scan</h3>
+
+        <div id="photoHomeworkOcrEmpty" class="ocr-empty">Chưa có dữ liệu bài tập</div>
+
+        <div id="photoHomeworkOcrWrap" style="display:none;">
+            <input id="photoHomeworkOcrTitle" maxlength="100" placeholder="Tiêu đề OCR" readonly="">
+            <textarea id="photoHomeworkOcrText" class="ocr-editor" placeholder="Text OCR sẽ hiện ở đây..." readonly=""></textarea>
+
+            <div class="action-row" style="margin-top:12px;">
+                <button class="secondary" onclick="enableHomeworkOcrEdit()">Sửa</button>
+                <button class="primary" onclick="submitHomeworkFromEditedText()">Yêu cầu AI giải bài này</button>
+                <button class="danger" onclick="clearHomeworkOcrDraft()">Xóa text</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:18px;">
+        <div id="generatedHomeworkResult" class="generated-lesson-box homework-ocr-box" style="display:none;">Chưa có dữ liệu</div>
+
+        <div style="margin-top:18px;">
+            <h3 style="font-size:15px; margin-bottom:10px;">📌 NỘI DUNG BÀI TẬP HIỆN TẠI</h3>
+            <div id="homeworkGuideDetail"></div>
+        </div>
+    </div>
+
+</div>

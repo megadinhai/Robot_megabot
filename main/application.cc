@@ -3,6 +3,7 @@
 #include "assets/lang_config.h"
 #include "audio_codec.h"
 #include "board.h"
+#include "cjson_utils.h"
 #include "display.h"
 #include "mcp_server.h"
 #include "mqtt_protocol.h"
@@ -64,8 +65,8 @@ void Application::Initialize() {
     // Setup the display
     auto display = board.GetDisplay();
     display->SetupUI();
-    // Print robot name info
-    display->SetChatMessage("system", "Megabot");
+    // Print board name/version info
+    display->SetChatMessage("system", SystemInfo::GetUserAgent().c_str());
 
     // Setup the audio service
     auto codec = board.GetAudioCodec();
@@ -258,9 +259,6 @@ void Application::Run() {
             if (GetDeviceState() == kDeviceStateListening) {
                 auto led = Board::GetInstance().GetLed();
                 led->OnStateChanged();
-                if (audio_service_.IsVoiceDetected()) {
-                    clock_ticks_ = 0;
-                }
             }
         }
 
@@ -277,23 +275,6 @@ void Application::Run() {
             clock_ticks_++;
             auto display = Board::GetInstance().GetDisplay();
             display->UpdateStatusBar();
-
-            // Tự động chuyển sang chế độ chờ (Standby/Idle) nếu ở trạng thái Listening quá 8 giây mà không có giọng nói
-            if (GetDeviceState() == kDeviceStateListening) {
-                if (audio_service_.IsVoiceDetected()) {
-                    clock_ticks_ = 0;
-                } else if (clock_ticks_ >= 8) {
-                    ESP_LOGI(TAG, "Listening timeout (8s không có tín hiệu nói) -> Chuyển về chế độ chờ (Idle)");
-                    Schedule([this]() {
-                        if (GetDeviceState() == kDeviceStateListening) {
-                            if (protocol_) {
-                                protocol_->SendStopListening();
-                            }
-                            SetDeviceState(kDeviceStateIdle);
-                        }
-                    });
-                }
-            }
 
             // Print debug info every 10 seconds
             if (clock_ticks_ % 10 == 0) {
@@ -362,7 +343,10 @@ void Application::HandleActivationDoneEvent() {
     // events back-to-back because the activation task is lower priority.
     const bool has_error = !last_error_message_.empty();
     if (!has_error) {
-        // Bỏ hiển thị mã thiết bị (PIN) trên màn hình OLED
+        auto display = Board::GetInstance().GetDisplay();
+        std::string message = std::string(Lang::Strings::VERSION) + ota_->GetCurrentVersion();
+        display->ShowNotification(message.c_str());
+        display->SetChatMessage("system", "");
     }
 
     // Release OTA object after activation is complete
@@ -382,9 +366,11 @@ void Application::ActivationTask() {
     // Create OTA object for activation process
     ota_ = std::make_unique<Ota>();
 
-    // Bỏ qua kiểm tra cập nhật từ internet vì đang dùng Local WebSocket Server
-    // CheckAssetsVersion();
-    // CheckNewVersion();
+    // Check for new assets version
+    CheckAssetsVersion();
+
+    // Check for new firmware version
+    CheckNewVersion();
 
     // Initialize the protocol
     InitializeProtocol();
@@ -454,91 +440,43 @@ void Application::CheckAssetsVersion() {
 }
 
 void Application::CheckNewVersion() {
-    const int MAX_RETRY = 10;
-    int retry_count = 0;
-    int retry_delay = 10;  // Initial retry delay in seconds
+    Settings server_settings("server", false);
+    std::string server_type = server_settings.GetString("type", "megabot");
+    if (server_type != "xiaozhi") {
+        ESP_LOGI(TAG, "Server type '%s' configured, skipping Tenclass activation", server_type.c_str());
+        return;
+    }
 
     auto& board = Board::GetInstance();
+    auto display = board.GetDisplay();
+    display->SetStatus(Lang::Strings::CHECKING_NEW_VERSION);
+
+    int retry_count = 0;
     while (true) {
-        auto display = board.GetDisplay();
-        display->SetStatus(Lang::Strings::CHECKING_NEW_VERSION);
-
-        auto check = ota_->CheckVersion();
-        if (!check) {
-            retry_count++;
-            if (retry_count >= MAX_RETRY) {
-                ESP_LOGE(TAG, "Too many retries, exit version check");
-                return;
-            }
-
-            const auto& err = check.error();
-            char error_message[160];
-            int error_message_length =
-                snprintf(error_message, sizeof(error_message), "%s", err.ToString().c_str());
-            if (error_message_length < 0 ||
-                error_message_length >= static_cast<int>(sizeof(error_message))) {
-                snprintf(error_message, sizeof(error_message), "%s", err.Message());
-            }
-
-            char buffer[320];
-            int alert_message_length =
-                snprintf(buffer, sizeof(buffer), Lang::Strings::CHECK_NEW_VERSION_FAILED,
-                         retry_delay, error_message);
-            if (alert_message_length < 0 ||
-                alert_message_length >= static_cast<int>(sizeof(buffer))) {
-                snprintf(buffer, sizeof(buffer), "%s", err.Message());
-            }
-            Alert(Lang::Strings::ERROR, buffer, "cloud_off", Lang::Sounds::OGG_EXCLAMATION);
-
-            ESP_LOGW(TAG, "Check new version failed, retry in %d seconds (%d/%d)", retry_delay,
-                     retry_count, MAX_RETRY);
-            for (int i = 0; i < retry_delay; i++) {
-                vTaskDelay(pdMS_TO_TICKS(1000));
-                if (GetDeviceState() == kDeviceStateIdle) {
-                    break;
-                }
-            }
-            retry_delay *= 2;  // Double the retry delay
-            continue;
-        }
-        retry_count = 0;
-        retry_delay = 10;  // Reset retry delay
-
-        if (ota_->HasNewVersion()) {
-            if (UpgradeFirmware(ota_->GetFirmwareUrl(), ota_->GetFirmwareVersion())) {
-                return;  // This line will never be reached after reboot
-            }
-            // If upgrade failed, continue to normal operation
-        }
-
-        // No new version, mark the current version as valid
-        ota_->MarkCurrentVersionValid();
-        if (!ota_->HasActivationCode() && !ota_->HasActivationChallenge()) {
-            // Exit the loop if done checking new version
+        auto check_result = ota_->CheckVersion();
+        if (check_result.has_value()) {
             break;
         }
-
-        display->SetStatus(Lang::Strings::ACTIVATION);
-        // Activation code is shown to the user and waiting for the user to input
-        if (ota_->HasActivationCode()) {
-            ShowActivationCode(ota_->GetActivationCode(), ota_->GetActivationMessage());
+        ESP_LOGW(TAG, "Failed to check version: %s", check_result.error().ToString().c_str());
+        if (++retry_count >= 3) {
+            Alert(Lang::Strings::ERROR, check_result.error().Message(), "cloud_download",
+                  Lang::Sounds::OGG_EXCLAMATION);
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            return;
         }
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
 
-        // This will block the loop until the activation is done or timeout
-        for (int i = 0; i < 10; ++i) {
-            ESP_LOGI(TAG, "Activating... %d/%d", i + 1, 10);
-            esp_err_t err = ota_->Activate();
-            if (err == ESP_OK) {
-                break;
-            } else if (err == ESP_ERR_TIMEOUT) {
-                vTaskDelay(pdMS_TO_TICKS(3000));
-            } else {
-                vTaskDelay(pdMS_TO_TICKS(10000));
-            }
-            if (GetDeviceState() == kDeviceStateIdle) {
-                break;
-            }
+    if (ota_->HasActivationCode()) {
+        char message[256];
+        snprintf(message, sizeof(message), "%s: %s", Lang::Strings::ACTIVATION,
+                 ota_->GetActivationCode().c_str());
+        Alert(Lang::Strings::ACTIVATION, message, "key", Lang::Sounds::OGG_ACTIVATION);
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        while (ota_->Activate() != ESP_OK) {
+            vTaskDelay(pdMS_TO_TICKS(2000));
         }
+        DismissAlert();
     }
 }
 
@@ -549,8 +487,39 @@ void Application::InitializeProtocol() {
 
     display->SetStatus(Lang::Strings::LOADING_PROTOCOL);
 
-    // Luôn ưu tiên dùng WebsocketProtocol cho Server Local riêng
-    protocol_ = std::make_unique<WebsocketProtocol>();
+    Settings server_settings("server", false);
+    std::string server_type = server_settings.GetString("type", "megabot");
+
+    if (server_type == "xiaozhi") {
+        if (ota_ != nullptr && ota_->HasWebsocketConfig()) {
+            ESP_LOGI(TAG, "Using Xiaozhi WebSocket protocol from OTA");
+            protocol_ = std::make_unique<WebsocketProtocol>();
+        } else if (ota_ != nullptr && ota_->HasMqttConfig()) {
+            ESP_LOGI(TAG, "Using Xiaozhi MQTT protocol from OTA");
+            protocol_ = std::make_unique<MqttProtocol>();
+        } else {
+            Settings ws_settings("websocket", true);
+            if (ws_settings.GetString("url").empty()) {
+                ws_settings.SetString("url", "wss://api.tenclass.net/xiaozhi/v1/");
+            }
+            ESP_LOGI(TAG, "Using Xiaozhi WebSocket protocol: %s", ws_settings.GetString("url").c_str());
+            protocol_ = std::make_unique<WebsocketProtocol>();
+        }
+    } else if (server_type == "custom") {
+        std::string custom_url = server_settings.GetString("url", "wss://robot-megabot.onrender.com/ws/megabot");
+        Settings ws_settings("websocket", true);
+        ws_settings.SetString("url", custom_url);
+        ws_settings.EraseKey("token");
+        ESP_LOGI(TAG, "Using Custom WebSocket protocol: %s", custom_url.c_str());
+        protocol_ = std::make_unique<WebsocketProtocol>();
+    } else {
+        std::string ws_url = "wss://robot-megabot.onrender.com/ws/megabot";
+        Settings ws_settings("websocket", true);
+        ws_settings.SetString("url", ws_url);
+        ws_settings.EraseKey("token");
+        ESP_LOGI(TAG, "Using Megabot WebSocket protocol: %s", ws_url.c_str());
+        protocol_ = std::make_unique<WebsocketProtocol>();
+    }
 
     protocol_->OnConnected([this]() { DismissAlert(); });
 
@@ -635,11 +604,9 @@ void Application::InitializeProtocol() {
                     SetDeviceState(kDeviceStateSpeaking);
                 });
             } else if (strcmp(state->valuestring, "stop") == 0) {
-                auto next = cJSON_GetObjectItem(root, "next");
-                std::string next_val = (next && cJSON_IsString(next)) ? next->valuestring : "";
-                Schedule([this, next_val]() {
+                Schedule([this]() {
                     if (GetDeviceState() == kDeviceStateSpeaking) {
-                        if (next_val == "idle" || listening_mode_ == kListeningModeManualStop) {
+                        if (listening_mode_ == kListeningModeManualStop) {
                             SetDeviceState(kDeviceStateIdle);
                         } else {
                             SetDeviceState(kDeviceStateListening);
@@ -694,19 +661,8 @@ void Application::InitializeProtocol() {
             if (cJSON_IsString(command)) {
                 ESP_LOGI(TAG, "System command: %s", command->valuestring);
                 if (strcmp(command->valuestring, "reboot") == 0) {
+                    // Do a reboot if user requests a OTA update
                     Schedule([this]() { Reboot(); });
-                } else if (strcmp(command->valuestring, "idle") == 0 ||
-                           strcmp(command->valuestring, "sleep") == 0 ||
-                           strcmp(command->valuestring, "standby") == 0) {
-                    Schedule([this]() {
-                        if (GetDeviceState() != kDeviceStateIdle) {
-                            ESP_LOGI(TAG, "Server commanded idle/standby mode");
-                            if (protocol_) {
-                                protocol_->SendStopListening();
-                            }
-                            SetDeviceState(kDeviceStateIdle);
-                        }
-                    });
                 } else {
                     ESP_LOGW(TAG, "Unknown system command: %s", command->valuestring);
                 }
@@ -724,12 +680,16 @@ void Application::InitializeProtocol() {
 #if CONFIG_RECEIVE_CUSTOM_MESSAGE
         } else if (strcmp(type->valuestring, "custom") == 0) {
             auto payload = cJSON_GetObjectItem(root, "payload");
-            ESP_LOGI(TAG, "Received custom message: %s", cJSON_PrintUnformatted(root));
+            CJsonStringUniquePtr root_json(cJSON_PrintUnformatted(root));
+            ESP_LOGI(TAG, "Received custom message: %s", root_json ? root_json.get() : "");
             if (cJSON_IsObject(payload)) {
-                Schedule(
-                    [this, display, payload_str = std::string(cJSON_PrintUnformatted(payload))]() {
-                        display->SetChatMessage("system", payload_str.c_str());
-                    });
+                CJsonStringUniquePtr payload_json(cJSON_PrintUnformatted(payload));
+                if (payload_json) {
+                    Schedule(
+                        [this, display, payload_str = std::string(payload_json.get())]() {
+                            display->SetChatMessage("system", payload_str.c_str());
+                        });
+                }
             } else {
                 ESP_LOGW(TAG, "Invalid custom message format: missing payload");
             }

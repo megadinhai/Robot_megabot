@@ -126,6 +126,20 @@ async def text_to_speech_opus_stream(
         gc.collect()
 
 
+# Theo dõi các WebSocket đang phát giọng nói để chống micro thu lại tiếng loa (Acoustic Echo Cancellation)
+active_speaking_sockets: Set[Any] = set()
+speaking_end_times: Dict[Any, float] = {}
+
+def is_socket_speaking(ws: Any) -> bool:
+    """Kiểm tra xem robot có đang phát âm thanh ra loa hoặc trong thời gian dập tắt âm vang (echo cooldown) không."""
+    import time
+    if ws in active_speaking_sockets:
+        return True
+    if (time.time() - speaking_end_times.get(ws, 0.0)) < 0.65:
+        return True
+    return False
+
+
 async def stream_speech_to_socket(
     ws,
     text: str,
@@ -137,51 +151,90 @@ async def stream_speech_to_socket(
 ) -> int:
     """
     Gửi trọn vẹn một phiên hội thoại/giọng nói xuống Robot ESP32 qua WebSocket:
-    1. Gửi lệnh TTS start (đưa robot vào kDeviceStateSpeaking)
-    2. Gửi sentence_start (hiển thị phụ đề lên OLED)
-    3. Gửi emotion speaking
-    4. Gửi các gói Opus với nhịp độ nhịp nhàng (pacing 55ms) tránh tràn buffer 20 gói
-    5. Đợi 0.5s cho loa phát hết và gửi TTS stop
+    1. Thu thập toàn bộ các gói Opus và tính toán chính xác tổng thời lượng audio.
+    2. Gửi lệnh TTS start, sentence_start (phụ đề OLED), emotion speaking.
+    3. Stream các gói Opus với thuật toán điều phối nhịp động (Adaptive Flow Control: nạp nhanh 12 gói đầu ~720ms,
+       sau đó điều phối nhịp giữ buffer ESP32 ở 0.6s - 0.8s, chống triệt để lag/ngắt quãng).
+    4. Tính toán chính xác thời gian phát còn lại trên loa trước khi gửi TTS stop (tránh cắt mất chữ cuối).
+    5. Thiết lập cờ is_socket_speaking để chặn micro thu lại tiếng loa (Acoustic Echo Self-Interruption).
     """
     import json
-    if not ws:
+    import time
+    if not ws or not text or not text.strip():
         return 0
 
     base_payload = {"session_id": session_id} if session_id else {}
+    active_speaking_sockets.add(ws)
 
     try:
-        # 1. Bật trạng thái Speaking trên ESP32
+        # 1. Thu thập toàn bộ các gói Opus trước khi ra lệnh bật loa
+        packets = []
+        async for pkt in text_to_speech_opus_stream(text, voice=voice, rate=rate, pitch=pitch):
+            if pkt:
+                packets.append(pkt)
+
+        if not packets:
+            logger.warning(f"[STREAM SPEECH] Không có gói audio nào cho câu nói: '{text[:30]}...'")
+            return 0
+
+        pkt_count = len(packets)
+        total_audio_duration = pkt_count * 0.060  # Mỗi gói 60ms
+
+        # 2. Bật trạng thái Speaking trên ESP32
         start_msg = {**base_payload, "type": "tts", "state": "start"}
         await ws.send_text(json.dumps(start_msg))
 
-        # 2. Phụ đề trên OLED
+        # Phụ đề trên OLED
         sub_msg = {**base_payload, "type": "tts", "state": "sentence_start", "text": text}
         await ws.send_text(json.dumps(sub_msg))
 
-        # 3. Biểu cảm nói
+        # Biểu cảm nói
         emo_msg = {**base_payload, "type": "llm", "emotion": "speaking", "text": "🗣️"}
         await ws.send_text(json.dumps(emo_msg))
 
-        # 4. Stream từng gói Opus với pacing chuẩn 55ms
-        pkt_count = 0
-        async for pkt in text_to_speech_opus_stream(text, voice=voice, rate=rate, pitch=pitch):
+        # 3. Stream từng gói Opus với thuật toán điều phối nhịp động (Adaptive Flow Control)
+        stream_start = time.monotonic()
+        sent_duration = 0.0
+
+        for idx, pkt in enumerate(packets):
             await ws.send_bytes(pkt)
-            pkt_count += 1
-            if pkt_count <= 8:
-                # 8 gói đầu nạp nhanh vào buffer (khoảng 480ms âm thanh) tránh gián đoạn loa
+            sent_duration += 0.060
+
+            elapsed = time.monotonic() - stream_start
+            buffer_lead = sent_duration - elapsed
+
+            # Duy trì buffer trên ESP32 khoảng 0.6s - 0.8s (10 - 14 gói)
+            if buffer_lead > 0.8:
+                sleep_time = min(0.045, max(0.010, buffer_lead - 0.65))
+                await asyncio.sleep(sleep_time)
+            elif idx < 12:
+                # 12 gói đầu nạp nhanh để làm đầy buffer khởi động (khoảng 720ms)
                 await asyncio.sleep(0.005)
             else:
-                # Các gói tiếp theo gửi đều đặn nhịp 58ms (mỗi gói Opus chuẩn là 60ms)
-                await asyncio.sleep(0.058)
+                # Buffer đang thấp hơn mức an toàn, gửi nhanh để bù trễ mạng
+                await asyncio.sleep(0.010)
 
-        logger.info(f"[STREAM SPEECH] Đã gửi {pkt_count} gói Opus cho câu nói '{text[:30]}...'")
+        logger.info(f"[STREAM SPEECH] Đã gửi {pkt_count} gói Opus ({total_audio_duration:.2f}s audio) cho '{text[:30]}...'")
 
-        # 5. Đợi hàng đợi phát âm thanh trên ESP32 xả hết
-        await asyncio.sleep(0.5)
+        # 4. Đợi loa robot phát hết trọn vẹn số âm thanh còn trong buffer (tránh mất từ cuối)
+        elapsed = time.monotonic() - stream_start
+        remaining = total_audio_duration - elapsed
+        if remaining > 0:
+            await asyncio.sleep(remaining + 0.35)
+        else:
+            await asyncio.sleep(0.35)
 
-        # 6. Kết thúc phiên nói và đưa robot về chế độ chờ (Idle/Standby)
+        # 5. Kết thúc phiên nói và đưa robot về chế độ chờ (Idle/Standby)
         stop_msg = {**base_payload, "type": "tts", "state": "stop", "next": "idle"}
         await ws.send_text(json.dumps(stop_msg))
+
+        return pkt_count
+    except Exception as e:
+        logger.error(f"[STREAM SPEECH ERROR] {e}", exc_info=True)
+        return 0
+    finally:
+        active_speaking_sockets.discard(ws)
+        speaking_end_times[ws] = time.time()
 
         neutral_msg = {**base_payload, "type": "llm", "emotion": emotion or "neutral", "text": "😊"}
         await ws.send_text(json.dumps(neutral_msg))

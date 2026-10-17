@@ -42,6 +42,7 @@ from audio_handler import (
     text_to_speech_stream,
     text_to_speech_opus_stream,
     stream_speech_to_socket,
+    is_socket_speaking,
     decode_opus_packets_to_wav,
     decode_opus_packet_peak,
     transcribe_audio_gemini,
@@ -1868,13 +1869,24 @@ async def play_youtube_music_on_robot(
                 "message": f"🎶 [ĐANG PHÁT NHẠC] '{title}' ({duration_str}) trên loa Robot Megabot"
             }))
 
+            stream_start = time.monotonic()
+            sent_duration = 0.0
+
             async for chunk in stream_youtube_audio_opus_packets(audio_url, sample_rate=16000):
                 await ws.send_bytes(chunk)
                 chunk_count += 1
-                if chunk_count <= 8:
-                    await asyncio.sleep(0.010)
+                sent_duration += 0.060
+
+                elapsed = time.monotonic() - stream_start
+                buffer_lead = sent_duration - elapsed
+
+                if buffer_lead > 0.8:
+                    sleep_time = min(0.045, max(0.010, buffer_lead - 0.65))
+                    await asyncio.sleep(sleep_time)
+                elif chunk_count <= 12:
+                    await asyncio.sleep(0.005)
                 else:
-                    await asyncio.sleep(0.052)
+                    await asyncio.sleep(0.010)
 
             logger.info(f"[MUSIC STREAM] Hoàn thành stream {chunk_count} gói Opus cho '{title}'.")
 
@@ -2122,7 +2134,7 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
             cur_cfg = device_manager.get_device(target_device_id) or matched_dev
             custom_prompt = cur_cfg.get("prompt") if cur_cfg.get("custom_prompt") else None
             voice_code = cur_cfg.get("voice", "vi-VN-HoaiMyNeural")
-            model_id = cur_cfg.get("model_id", "gemini-3.8-flash")
+            model_id = cur_cfg.get("model_id", "gemini-3.1-flash-lite-preview")
             use_memory = cur_cfg.get("memory_enabled", True)
             tts_speed_val = format_tts_speed(cur_cfg.get("voice_speed", "normal"))
             tts_pitch_val = format_tts_pitch(cur_cfg.get("voice_pitch", 0))
@@ -2483,6 +2495,13 @@ async def websocket_xiaozhi_endpoint(websocket: WebSocket):
                     logger.warning(f"[TEXT RAW] {text_data}")
 
             elif "bytes" in message:
+                # KIỂM TRA CHỐNG LẶP TIẾNG VÀ TỰ NGẮT LỜI (ECHO CANCELLATION & ANTI-SELF-INTERRUPT)
+                # Nếu robot đang phát giọng nói qua loa, đang phát nhạc YouTube, hoặc đang trong thời gian dập tắt âm vang:
+                # Micro sẽ thu lại tiếng phát ra từ loa. Bỏ qua gói âm thanh này để tránh robot tự ngắt lời chính mình.
+                is_busy_playing = is_socket_speaking(websocket) or (target_device_id in active_music_tasks)
+                if is_busy_playing:
+                    continue
+
                 raw_audio = message["bytes"]
                 audio_packets.append(raw_audio)
                 audio_buffer.extend(raw_audio)

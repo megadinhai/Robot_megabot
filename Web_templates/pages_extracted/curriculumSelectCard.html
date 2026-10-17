@@ -1,0 +1,59 @@
+<div class="card" id="curriculumSelectCard" style="display:none;">
+    <h3>📖 Chọn bài học</h3>
+
+    <div class="voice-hint">
+        💡 <strong>Cách sử dụng:</strong><br>
+        Chọn Bài học bạn muốn ở danh sách phía dưới và bấm nút
+        <span class="voice-keyword">"Áp dụng"</span>
+         , KHI BẮT ĐẦU TRÒ CHUYỆN bạn hãy nói
+        <span class="voice-keyword">"So-phi-a"</span>
+        hoặc
+        <span class="voice-keyword">"Xin chào"</span>
+        để AI kích hoạt Bài học đã chọn.
+        Bài học sẽ TỰ ĐỘNG kích hoạt lại khi nghe câu lệnh "Sophia" hoặc "Xin chào" lúc bắt đầu cuộc trò chuyện mới.
+        Bấm  
+        <span class="voice-keyword">"Hủy áp dụng"</span>
+         ở danh sách Bài học phía dưới để ngừng bài học.
+    </div>
+
+    <div>
+
+<div class="curriculum-layout">
+
+    <!-- LEFT -->
+    <div class="curriculum-left">
+
+        <div class="curriculum-group">
+            <div class="curriculum-header" onclick="toggleCurriculumBox('public')">
+                <span>📦 Bài học có sẵn</span>
+                <span id="icon-public" style="transition: transform 0.3s;">▶</span>
+            </div>
+            <div id="publicCurriculumList" class="curriculum-list"></div>
+        </div>
+
+        <div class="curriculum-group">
+            <div class="curriculum-header" onclick="toggleCurriculumBox('private')">
+                <span>👤 Bài học của bạn</span>
+                <span id="icon-private" style="transition: transform 0.3s;">▶</span>
+            </div>
+            <div id="privateCurriculumList" class="curriculum-list"></div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="curriculum-right">
+
+        <div class="card" id="curriculumDetailCard">
+            <h3>📘 Chi tiết bài học</h3>
+            <div id="curriculumDetail">
+                <div style="opacity:0.6;">👉 Chọn bài học để xem</div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+</div>

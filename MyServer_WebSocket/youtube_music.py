@@ -356,9 +356,15 @@ async def stream_youtube_audio_opus_packets(
                             fut = asyncio.run_coroutine_threadsafe(queue.put(data), loop)
                             fut.result()
 
-            # Xử lý phần mẫu còn dư trong FIFO
+            # Xử lý phần mẫu còn dư trong FIFO: đệm silence đủ samples_per_frame (960 mẫu = 60ms)
             if not stop_event.is_set() and fifo.samples > 0:
-                chunk_frame = fifo.read(fifo.samples)
+                rem = samples_per_frame - fifo.samples
+                silence_frame = av.AudioFrame(format="s16", layout="mono", samples=rem)
+                silence_frame.sample_rate = sample_rate
+                for plane in silence_frame.planes:
+                    plane.update(b"\x00" * (rem * 2))
+                fifo.write(silence_frame)
+                chunk_frame = fifo.read(samples_per_frame)
                 for pkt in out_stream.encode(chunk_frame):
                     data = bytes(pkt)
                     asyncio.run_coroutine_threadsafe(queue.put(data), loop).result()

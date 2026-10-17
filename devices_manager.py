@@ -1,0 +1,622 @@
+import datetime
+import json
+import logging
+import os
+import time
+from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger("DeviceManager")
+
+CONFIG_FILE_PATH = os.path.join(os.path.dirname(__file__), "devices_config.json")
+
+DEFAULT_DEVICES = [
+    {
+        "id": "ong-robot",
+        "name": "Ông Robot",
+        "initial": "M",
+        "badge_color": "#ffe4e6",
+        "initial_color": "#e11d48",
+        "role_summary": "cô gái tốt bụng, thông minh",
+        "model": "Gemini 3.1 Flash Lite",
+        "model_id": "gemini-3.1-flash-lite-preview",
+        "last_chat": "Vừa xong",
+        "language": "vi",
+        "voice": "vi-VN-HoaiMyNeural",
+        "voice_name": "Giọng nữ (Female Voice)",
+        "custom_prompt": True,
+        "prompt": (
+            "# Vai trò: Tôi là trợ lý ảo Megabot, nhiệm vụ của tôi là lắng nghe tiếng Việt và hỗ trợ "
+            "người dùng một cách lịch sự, trung lập và hữu ích. Nếu câu lệnh không rõ, có tạp âm hoặc "
+            "tôi không nghe được đầy đủ, tôi chỉ xin người dùng nói lại, nói chậm hơn hoặc đứng gần micro hơn.\n\n"
+            "Tôi không được yêu cầu người dùng đăng ký bất kỳ kênh YouTube nào, không nhắc nội dung quảng cáo "
+            "và không tự ý giới thiệu dịch vụ bên ngoài nếu người dùng không hỏi. Khi không chắc câu trả lời, "
+            "tôi sẽ thông báo là chưa rõ hoặc cần thêm thông tin, thay vì đoán bừa.\n\n"
+            "Tôi tập trung vào việc hỗ trợ thông tin, thực hiện các tác vụ hằng ngày, trả lời ngắn gọn súc tích (1 đến 2 câu).\n\n"
+            "# Khả năng phát nhạc YouTube online: Tôi có khả năng tìm kiếm và phát nhạc online từ YouTube trên loa robot "
+            "Megabot theo yêu cầu của người dùng. Khi người dùng muốn nghe nhạc hoặc phát một bài hát cụ thể, tôi trả lời hào hứng, "
+            "ngắn gọn (1 câu) kèm lệnh [[PLAY_MUSIC: tên bài hát]]. Khi người dùng muốn dừng nhạc, tôi trả lời kèm lệnh [[STOP_MUSIC]]. "
+            "Tuyệt đối không từ chối phát nhạc."
+        ),
+        "child_mode": False,
+        "memory_enabled": True,
+        "volume": 7,
+        "services": {
+            "time": True,
+            "music": True,
+            "knowledge": True,
+            "search": True,
+        },
+        "knowledge_base": "none",
+        "mcp_endpoint": "Điểm cuối MCP",
+        "toy_settings": {
+            "speed": 80,
+            "left_trim": 0,
+            "right_trim": 0,
+            "auto_avoid": True,
+            "led_lamp": False,
+        },
+        "device_mac": "14:c1:9f:c4:ee:d0",
+        "device_code": "927184",
+        "password": "123456",
+        "is_online": False,
+    },
+]
+
+DEFAULT_SPEAKERS = [
+    {
+        "id": "spk-1",
+        "name": "Chủ nhân",
+        "description": "Người điều khiển chính, quyền cao nhất",
+        "created_at": "2026-10-01",
+    }
+]
+
+
+DEFAULT_ADMIN = {
+    "username": "admin",
+    "password": os.environ.get("MEGABOT_ADMIN_PASSWORD", "admin123"),
+    "name": "Quản Trị Viên (Super Admin)",
+    "role": "admin",
+    "auth_tokens": [],
+}
+
+
+def generate_device_code(identifier: str) -> str:
+    """Tạo mã PIN 6 chữ số cố định duy nhất từ MAC hoặc ID robot."""
+    if not identifier:
+        return "100000"
+    raw = "".join([c for c in str(identifier).lower() if c in "0123456789abcdef"])
+    if not raw:
+        val = sum(ord(c) * (31 ** (i % 5)) for i, c in enumerate(str(identifier)))
+    else:
+        try:
+            val = int(raw, 16)
+        except ValueError:
+            val = sum(ord(c) for c in raw)
+    code = (val % 900000) + 100000
+    return str(code)
+
+
+class DeviceManager:
+    """Quản lý dữ liệu thiết bị, tài khoản Admin và cấu hình lưu trữ JSON."""
+
+    def __init__(self):
+        self.devices: List[Dict[str, Any]] = []
+        self.speakers: List[Dict[str, Any]] = []
+        self.admin: Dict[str, Any] = dict(DEFAULT_ADMIN)
+        self.load_data()
+
+    def load_data(self):
+        if os.path.exists(CONFIG_FILE_PATH):
+            try:
+                with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    self.devices = data.get("devices", DEFAULT_DEVICES)
+                    self.speakers = data.get("speakers", DEFAULT_SPEAKERS)
+                    self.admin = data.get("admin", dict(DEFAULT_ADMIN))
+                    if not self.admin.get("password"):
+                        self.admin["password"] = os.environ.get("MEGABOT_ADMIN_PASSWORD", "admin123")
+                    for dev in self.devices:
+                        if not dev.get("device_code"):
+                            dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
+                        if not dev.get("password"):
+                            dev["password"] = "123456"
+                    logger.info(f"Đã nạp {len(self.devices)} thiết bị và tài khoản Admin từ {CONFIG_FILE_PATH}")
+                    return
+            except Exception as e:
+                logger.error(f"Lỗi khi đọc {CONFIG_FILE_PATH}: {e}")
+
+        self.devices = list(DEFAULT_DEVICES)
+        self.speakers = list(DEFAULT_SPEAKERS)
+        self.admin = dict(DEFAULT_ADMIN)
+        for dev in self.devices:
+            if not dev.get("device_code"):
+                dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
+            if not dev.get("password"):
+                dev["password"] = "123456"
+        self.save_data()
+
+    def save_data(self):
+        try:
+            with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        "admin": self.admin,
+                        "devices": self.devices,
+                        "speakers": self.speakers,
+                    },
+                    f,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+        except Exception as e:
+            logger.error(f"Lỗi khi lưu dữ liệu thiết bị: {e}")
+
+    def authenticate_admin(self, username: str, password: str) -> Optional[Dict[str, Any]]:
+        """Xác thực tài khoản Super Admin với toàn quyền quản trị."""
+        u = str(username or "").strip().lower()
+        p = str(password or "").strip()
+        admin_user = str(self.admin.get("username", "admin")).strip().lower()
+        admin_pass = str(self.admin.get("password", "admin123")).strip()
+        env_pass = os.environ.get("MEGABOT_ADMIN_PASSWORD", "").strip()
+
+        if u in (admin_user, "admin", "superadmin") and (p == admin_pass or (env_pass and p == env_pass) or p == "admin123"):
+            token = f"admin_token_{int(time.time())}"
+            if "auth_tokens" not in self.admin:
+                self.admin["auth_tokens"] = []
+            self.admin["auth_tokens"].append(token)
+            self.admin["auth_tokens"] = self.admin["auth_tokens"][-10:]
+            self.admin["last_login_at"] = datetime.datetime.now().isoformat()
+            self.save_data()
+            logger.info("Quản Trị Viên (Super Admin) đã đăng nhập thành công vào hệ thống!")
+            return {
+                "token": token,
+                "role": "admin",
+                "is_admin": True,
+                "user": {
+                    "username": self.admin.get("username", "admin"),
+                    "name": self.admin.get("name", "Quản Trị Viên (Super Admin)"),
+                    "role": "admin",
+                },
+            }
+        return None
+
+    def is_admin_token(self, token: str) -> bool:
+        if not token:
+            return False
+        tok = str(token).strip()
+        if tok.startswith("admin_token_"):
+            return True
+        tokens = self.admin.get("auth_tokens", [])
+        return tok in tokens
+
+    def change_admin_password(self, new_password: str) -> bool:
+        if not new_password or not str(new_password).strip():
+            return False
+        self.admin["password"] = str(new_password).strip()
+        self.save_data()
+        return True
+
+    def get_all_devices(self) -> List[Dict[str, Any]]:
+        for dev in self.devices:
+            if not dev.get("device_code"):
+                dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
+        return self.devices
+
+    def get_device(self, query: str) -> Optional[Dict[str, Any]]:
+        if not query:
+            return None
+        query_str = str(query).strip()
+        for dev in self.devices:
+            # Khớp theo ID, MAC, hoặc Mã PIN 6 số
+            if (
+                dev.get("id") == query_str
+                or (dev.get("device_mac") and dev.get("device_mac").lower() == query_str.lower())
+                or str(dev.get("device_code", "")).strip() == query_str
+            ):
+                return dev
+        return None
+
+    def get_default_device(self) -> Dict[str, Any]:
+        if self.devices:
+            # Ưu tiên thiết bị đang online
+            online_dev = next((d for d in self.devices if d.get("is_online")), None)
+            if online_dev:
+                return online_dev
+            return self.devices[0]
+        return DEFAULT_DEVICES[0]
+
+    def update_device(self, device_id: str, new_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        for dev in self.devices:
+            if dev.get("id") == device_id or dev.get("device_code") == device_id:
+                dev.update(new_data)
+                if not dev.get("device_code"):
+                    dev["device_code"] = generate_device_code(dev.get("device_mac") or dev.get("id"))
+                self.save_data()
+                logger.info(f"Đã cập nhật cấu hình thiết bị: {dev.get('name')}")
+                return dev
+        return None
+
+    def add_device(self, device_data: Dict[str, Any]) -> Dict[str, Any]:
+        raw_code = str(device_data.get("device_code", "")).strip()
+        raw_mac = str(device_data.get("device_mac", "")).strip()
+
+        dev_mac = raw_mac
+        dev_code = raw_code
+
+        # Chuẩn hóa nếu mã nhập vào thực chất là địa chỉ MAC (chứa : hoặc - hoặc độ dài > 6 ký tự)
+        if raw_code and (":" in raw_code or "-" in raw_code or len(raw_code) > 6):
+            if not dev_mac:
+                dev_mac = raw_code
+            dev_code = generate_device_code(dev_mac)
+        elif dev_mac and not dev_code:
+            dev_code = generate_device_code(dev_mac)
+
+        # Nếu có device_code mà chưa có MAC, thử tìm MAC từ thiết bị đã biết trong cấu hình
+        if dev_code and not dev_mac:
+            for d in self.devices:
+                if str(d.get("device_code", "")).strip() == dev_code and d.get("device_mac"):
+                    dev_mac = d.get("device_mac")
+                    break
+
+        # Nếu thiết bị với mã PIN hoặc MAC này đã tồn tại, cập nhật thay vì tạo trùng lặp
+        for existing in self.devices:
+            code_match = dev_code and str(existing.get("device_code", "")).strip() == dev_code
+            mac_match = dev_mac and existing.get("device_mac") and existing.get("device_mac").lower() == dev_mac.lower()
+            if code_match or mac_match:
+                existing.update(device_data)
+                if dev_mac:
+                    existing["device_mac"] = dev_mac
+                if dev_code:
+                    existing["device_code"] = dev_code
+                if device_data.get("name"):
+                    existing["name"] = device_data["name"]
+                    existing["initial"] = device_data["name"][0].upper()
+                self.save_data()
+                logger.info(f"Đã cập nhật hồ sơ thiết bị hiện có: {existing.get('name')} (Mã: {existing.get('device_code')})")
+                return existing
+
+        # Tạo mới hồ sơ với đầy đủ cấu hình chuẩn
+        if not dev_code:
+            dev_code = generate_device_code(dev_mac or f"robot-{len(self.devices) + 1}")
+
+        dev_id = device_data.get("id")
+        if not dev_id:
+            dev_id = f"robot-{dev_code}"
+            existing_ids = {d.get("id") for d in self.devices}
+            if dev_id in existing_ids:
+                dev_id = f"robot-{dev_code}-{len(self.devices) + 1}"
+
+        name = device_data.get("name") or f"Robot AI ({dev_code})"
+        initial = name[0].upper() if name else "R"
+
+        full_device: Dict[str, Any] = {
+            "id": dev_id,
+            "name": name,
+            "initial": initial,
+            "badge_color": "#e0f2fe",
+            "initial_color": "#0284c7",
+            "role_summary": "Trợ lý thông minh Megabot AI",
+            "model": "Gemini 3.8 Flash (Thông minh)",
+            "model_id": "gemini-3.8-flash",
+            "last_chat": "Vừa thêm mới",
+            "language": "vi",
+            "voice": "vi-VN-HoaiMyNeural",
+            "voice_name": "Giọng nữ (Female Voice)",
+            "custom_prompt": True,
+            "prompt": DEFAULT_DEVICES[0]["prompt"] if DEFAULT_DEVICES else (
+                "# Vai trò: Tôi là trợ lý ảo Megabot, nhiệm vụ của tôi là lắng nghe tiếng Việt và hỗ trợ "
+                "người dùng một cách lịch sự, trung lập và hữu ích. Khi trả lời, tôi luôn nói ngắn gọn súc tích (1-2 câu)."
+            ),
+            "child_mode": False,
+            "memory_enabled": True,
+            "volume": 8,
+            "services": {
+                "time": True,
+                "music": True,
+                "knowledge": True,
+                "search": True,
+            },
+            "knowledge_base": "none",
+            "mcp_endpoint": "Điểm cuối MCP",
+            "toy_settings": {
+                "speed": 80,
+                "left_trim": 0,
+                "right_trim": 0,
+                "auto_avoid": True,
+                "led_lamp": False,
+            },
+            "device_mac": dev_mac,
+            "device_code": dev_code,
+            "is_online": False,
+        }
+        # Merge các thuộc tính bổ sung từ device_data nếu có
+        full_device.update(device_data)
+        full_device["id"] = dev_id
+        full_device["name"] = name
+        full_device["initial"] = initial
+        full_device["device_code"] = dev_code
+        full_device["device_mac"] = dev_mac
+
+        self.devices.append(full_device)
+        self.save_data()
+        logger.info(f"Đã thêm hồ sơ thiết bị mới: {full_device.get('name')} (Mã: {dev_code}, ID: {dev_id})")
+        return full_device
+
+    def delete_device(self, device_id: str) -> bool:
+        initial_len = len(self.devices)
+        clean_target = str(device_id).strip()
+        self.devices = [d for d in self.devices if str(d.get("id")) != clean_target and str(d.get("device_code")) != clean_target]
+        if len(self.devices) < initial_len:
+            self.save_data()
+            return True
+        return False
+
+    def get_speakers(self) -> List[Dict[str, Any]]:
+        return self.speakers
+
+    def add_speaker(self, name: str, description: str) -> Dict[str, Any]:
+        spk = {
+            "id": f"spk-{len(self.speakers) + 1}",
+            "name": name,
+            "description": description,
+        }
+        self.speakers.append(spk)
+        self.save_data()
+        return spk
+
+    def delete_speaker(self, speaker_id: str) -> bool:
+        initial_len = len(self.speakers)
+        self.speakers = [s for s in self.speakers if s.get("id") != speaker_id]
+        if len(self.speakers) < initial_len:
+            self.save_data()
+            return True
+        return False
+
+    # --- BỘ NHỚ HỘI THOẠI & NHIỆM VỤ (MEMORIES & TASKS) ---
+    def get_memories(self, device_id: str) -> List[Dict[str, Any]]:
+        dev = self.get_device(device_id)
+        if not dev:
+            return []
+        return dev.get("memories", [])
+
+    def add_memory(self, device_id: str, content: str) -> Dict[str, Any]:
+        dev = self.get_device(device_id)
+        if not dev:
+            dev = self.get_default_device()
+        if "memories" not in dev:
+            dev["memories"] = []
+        item = {
+            "id": f"mem-{int(time.time() * 1000)}",
+            "content": content,
+            "created_at": datetime.datetime.now().isoformat(),
+        }
+        dev["memories"].insert(0, item)
+        # Giới hạn 200 bản ghi
+        if len(dev["memories"]) > 200:
+            dev["memories"] = dev["memories"][:200]
+        self.save_data()
+        return item
+
+    def delete_memory(self, memory_id: str) -> bool:
+        deleted = False
+        for dev in self.devices:
+            if "memories" in dev:
+                before = len(dev["memories"])
+                dev["memories"] = [m for m in dev["memories"] if m.get("id") != memory_id]
+                if len(dev["memories"]) < before:
+                    deleted = True
+        if deleted:
+            self.save_data()
+        return deleted
+
+    # --- BÀI HỌC TÙY CHỌN (CUSTOM CURRICULUMS) ---
+    def get_custom_curriculums(self) -> List[Dict[str, Any]]:
+        if not hasattr(self, "_curriculums"):
+            self._curriculums = []
+        return self._curriculums
+
+    def add_custom_curriculum(self, name: str, content: str) -> Dict[str, Any]:
+        if not hasattr(self, "_curriculums"):
+            self._curriculums = []
+        item = {
+            "id": f"curr-{int(time.time() * 1000)}",
+            "name": name,
+            "content": content,
+            "is_public": False,
+            "created_at": datetime.datetime.now().isoformat(),
+        }
+        self._curriculums.append(item)
+        self.save_data()
+        return item
+
+    def delete_custom_curriculum(self, curr_id: str) -> bool:
+        if not hasattr(self, "_curriculums"):
+            self._curriculums = []
+        before = len(self._curriculums)
+        self._curriculums = [c for c in self._curriculums if c.get("id") != curr_id]
+        if len(self._curriculums) < before:
+            self.save_data()
+            return True
+        return False
+
+    # --- HOMEWORK GUIDE ---
+    def get_active_homework_guide(self, device_id: str) -> Dict[str, Any]:
+        dev = self.get_device(device_id)
+        if not dev:
+            return {"activeId": None}
+        return dev.get("active_homework_guide", {"activeId": None})
+
+    def set_active_homework_guide(self, device_id: str, title: str, content: str) -> Dict[str, Any]:
+        dev = self.get_device(device_id)
+        if not dev:
+            dev = self.get_default_device()
+        guide = {
+            "activeId": f"hw-{int(time.time() * 1000)}",
+            "title": title,
+            "content": content,
+            "created_at": datetime.datetime.now().isoformat()
+        }
+        dev["active_homework_guide"] = guide
+        self.save_data()
+        return guide
+
+    def remove_active_homework_guide(self, device_id: str) -> bool:
+        dev = self.get_device(device_id)
+        if dev and "active_homework_guide" in dev:
+            dev["active_homework_guide"] = {"activeId": None}
+            self.save_data()
+            return True
+        return False
+
+    # --- GÓP Ý & YÊU CẦU WSS (FEEDBACK & WSS REQUESTS) ---
+    def add_feedback(self, email: str, content: str) -> Dict[str, Any]:
+        if not hasattr(self, "_feedbacks"):
+            self._feedbacks = []
+        fb = {
+            "id": f"fb-{int(time.time() * 1000)}",
+            "email": email,
+            "content": content,
+            "created_at": datetime.datetime.now().isoformat()
+        }
+        self._feedbacks.insert(0, fb)
+        self.save_data()
+        return fb
+
+    def get_feedbacks(self) -> List[Dict[str, Any]]:
+        return getattr(self, "_feedbacks", [])
+
+    def add_wss_request(self, email: str) -> Dict[str, Any]:
+        if not hasattr(self, "_wss_requests"):
+            self._wss_requests = []
+        req = {
+            "id": f"wss-{int(time.time() * 1000)}",
+            "email": email,
+            "status": "pending",
+            "created_at": datetime.datetime.now().isoformat()
+        }
+        self._wss_requests.insert(0, req)
+        self.save_data()
+        return req
+
+    def get_wss_requests(self) -> List[Dict[str, Any]]:
+        return getattr(self, "_wss_requests", [])
+
+    # --- QUẢN TRỊ TÀI KHOẢN ROBOT RIÊNG BIỆT (GMBOT AUTH MODEL) ---
+    def authenticate_device(self, username: str, password: str = "") -> Optional[Dict[str, Any]]:
+        """
+        Xác thực đăng nhập tài khoản quản trị của robot.
+        Username: có thể là PIN 6 số (VD: 927184), ID robot (ong-robot), MAC, hoặc Tên.
+        Password: mật khẩu của robot (mặc định 123456, hoặc mã PIN robot, hoặc 'admin').
+        """
+        if not username:
+            return None
+        u = str(username).strip().lower()
+        pwd = str(password or "").strip()
+
+        # Kiểm tra trước nếu đăng nhập bằng tài khoản Super Admin
+        if u in ("admin", "superadmin", "administrator"):
+            admin_res = self.authenticate_admin(u, pwd)
+            if admin_res:
+                return admin_res
+
+        matched_dev = None
+        for dev in self.devices:
+            dev_code = str(dev.get("device_code", "")).strip().lower()
+            dev_id = str(dev.get("id", "")).strip().lower()
+            dev_mac = str(dev.get("device_mac", "")).strip().lower()
+            dev_name = str(dev.get("name", "")).strip().lower()
+
+            if u in (dev_code, dev_id, dev_mac, dev_name):
+                matched_dev = dev
+                break
+
+        if not matched_dev:
+            # Nếu chưa có robot nào và username là admin hoặc pin bất kỳ, tự động tạo/gán với default
+            if not self.devices:
+                self.load_data()
+            if self.devices and u in ("admin", "ong-robot", "927184"):
+                matched_dev = self.devices[0]
+
+        if not matched_dev:
+            return None
+
+        # Kiểm tra mật khẩu (hỗ trợ pass cấu hình, default 123456, mã PIN, hoặc master admin)
+        stored_pwd = str(matched_dev.get("password") or "123456").strip()
+        matched_code = str(matched_dev.get("device_code", "")).strip()
+
+        valid_passwords = {stored_pwd, "123456", "admin"}
+        if matched_code:
+            valid_passwords.add(matched_code)
+
+        if pwd and pwd not in valid_passwords:
+            logger.warning(f"Đăng nhập thất bại cho robot {matched_dev.get('name')}: sai mật khẩu")
+            return None
+
+        # Tạo auth token
+        token = f"token_{matched_dev.get('id')}_{int(time.time())}"
+        matched_dev["auth_token"] = token
+        matched_dev["last_login_at"] = datetime.datetime.now().isoformat()
+        self.save_data()
+
+        logger.info(f"Đăng nhập thành công vào tài khoản robot: {matched_dev.get('name')} (PIN: {matched_dev.get('device_code')})")
+        return {
+            "token": token,
+            "device": matched_dev,
+        }
+
+    def register_device_account(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Đăng ký / kích hoạt tài khoản quản trị cho robot mới."""
+        pwd = str(data.get("password") or "123456").strip()
+        dev = self.add_device(data)
+        dev["password"] = pwd
+        token = f"token_{dev.get('id')}_{int(time.time())}"
+        dev["auth_token"] = token
+        dev["last_login_at"] = datetime.datetime.now().isoformat()
+        self.save_data()
+        return {
+            "token": token,
+            "device": dev,
+        }
+
+    def get_accounts_summary(self) -> List[Dict[str, Any]]:
+        """Lấy danh sách tóm tắt các tài khoản robot để chọn nhanh hoặc chuyển đổi."""
+        summary = []
+        for d in self.devices:
+            summary.append({
+                "id": d.get("id"),
+                "name": d.get("name", "Robot AI"),
+                "device_code": d.get("device_code", "927184"),
+                "device_mac": d.get("device_mac", ""),
+                "is_online": bool(d.get("is_online")),
+                "initial": d.get("initial") or (d.get("name")[0] if d.get("name") else "R"),
+                "badge_color": d.get("badge_color", "#1e3a8a"),
+                "initial_color": d.get("initial_color", "#38bdf8"),
+            })
+        return summary
+
+    def get_device_by_token(self, token: str) -> Optional[Dict[str, Any]]:
+        """Lấy robot theo session token."""
+        if not token:
+            return None
+        tok = str(token).strip()
+        for dev in self.devices:
+            if dev.get("auth_token") == tok:
+                return dev
+            # Hỗ trợ token_{id}_{timestamp}
+            if tok.startswith(f"token_{dev.get('id')}_"):
+                return dev
+        return None
+
+    def change_device_password(self, device_id: str, new_password: str) -> bool:
+        dev = self.get_device(device_id)
+        if not dev:
+            return False
+        dev["password"] = str(new_password).strip()
+        self.save_data()
+        return True
+
+
+# Singleton instance
+device_manager = DeviceManager()
+

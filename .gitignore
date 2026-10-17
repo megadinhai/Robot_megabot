@@ -13,6 +13,7 @@ releases/
 main/assets/lang_config.h
 main/mmap_generate_emoji.h
 .DS_Store
+Thumbs.db
 .cache
 *.pyc
 *.bin
@@ -22,6 +23,7 @@ mmap_generate_*.h
 # Python environments & cache
 venv/
 .venv/
+xiaozhi-esp32-main/
 __pycache__/
 *.py[cod]
 

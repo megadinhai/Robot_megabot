@@ -9,7 +9,7 @@
 #define OTTO_VERSION_NO_CAMERA 2
 
 #ifndef OTTO_HARDWARE_VERSION
-#define OTTO_HARDWARE_VERSION OTTO_VERSION_AUTO
+#define OTTO_HARDWARE_VERSION OTTO_VERSION_NO_CAMERA
 #endif
 
 enum OttoCameraType {
@@ -114,7 +114,7 @@ constexpr HardwareConfig NON_CAMERA_VERSION_CONFIG = {
     .right_hand_pin = GPIO_NUM_12,
 
     .audio_input_sample_rate = 16000,
-    .audio_output_sample_rate = 24000,
+    .audio_output_sample_rate = 16000,
     .audio_use_simplex = true,
 
     .audio_i2s_gpio_ws = GPIO_NUM_NC,
@@ -163,7 +163,7 @@ constexpr HardwareConfig NON_CAMERA_VERSION_CONFIG = {
 #define DISPLAY_HEIGHT 240
 #define DISPLAY_MIRROR_X false
 #define DISPLAY_MIRROR_Y false
-#define DISPLAY_SWAP_XY false
+#define DISPLAY_SWAP_XY true
 #define DISPLAY_INVERT_COLOR true
 #define DISPLAY_RGB_ORDER LCD_RGB_ELEMENT_ORDER_RGB
 #define DISPLAY_OFFSET_X 0
